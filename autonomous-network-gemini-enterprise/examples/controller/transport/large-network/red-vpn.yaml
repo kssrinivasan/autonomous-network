@@ -1,0 +1,254 @@
+apiVersion: google.dev/v1
+kind: VyOSL3VPN
+metadata:
+  name: red-vpn-service
+  namespace: network
+spec:
+  underlayRef: complex-network-underlay
+  services:
+    - name: "RED_MESH"
+      type: "l3vpn"
+      topology: "any-to-any"
+  routers:
+    # ==================== ALL PEs PARTICIPATE IN RED_MESH ====================
+    - name: "pe1"
+      vrfs:
+        - name: "RED_MESH"
+          table: 201  # v2.0: Dynamic allocation (was 300)
+          rd: "10.0.0.7:201"  # v2.0: Loopback-based (was 10.*.*.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors: [{ peer: "10.55.55.2", remote_as: 65035 }]
+
+    - name: "pe2"
+      vrfs:
+        - name: "RED_MESH"
+          table: 201  # v2.0: Dynamic allocation (was 300)
+          rd: "10.0.0.8:201"  # v2.0: Loopback-based (was 10.*.*.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth4"]
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors: [{ peer: "10.65.65.2", remote_as: 65035 }]
+
+    - name: "pe3"
+      vrfs:
+        - name: "RED_MESH"
+          table: 201  # v2.0: Dynamic allocation (was 300)
+          rd: "10.0.0.10:201"  # v2.0: Loopback-based (was 10.*.*.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors: [{ peer: "10.75.75.2", remote_as: 65035 }]
+
+    - name: "pe4"
+      vrfs:
+        - name: "RED_MESH"
+          table: 201  # v2.0: Dynamic allocation (was 300)
+          rd: "10.0.0.11:201"  # v2.0: Loopback-based (was 10.*.*.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors: [{ peer: "10.85.85.2", remote_as: 65035 }]
+
+    - name: "pe5"
+      vrfs:
+        - name: "RED_MESH"
+          table: 201  # v2.0: Dynamic allocation (was 300)
+          rd: "10.0.0.60:201"  # v2.0: Loopback-based (was 10.*.*.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors: [{ peer: "10.55.56.2", remote_as: 65035 }]
+
+    - name: "pe6"
+      vrfs:
+        - name: "RED_MESH"
+          table: 201  # v2.0: Dynamic allocation (was 300)
+          rd: "10.0.0.61:201"  # v2.0: Loopback-based (was 10.*.*.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors: [{ peer: "10.55.57.2", remote_as: 65035 }]
+
+    - name: "pe7"
+      vrfs:
+        - name: "RED_MESH"
+          table: 201  # v2.0: Dynamic allocation (was 300)
+          rd: "10.0.0.62:201"  # v2.0: Loopback-based (was 10.*.*.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors: [{ peer: "10.55.58.2", remote_as: 65035 }]
+
+    - name: "pe8"
+      vrfs:
+        - name: "RED_MESH"
+          table: 201  # v2.0: Dynamic allocation (was 300)
+          rd: "10.0.0.63:201"  # v2.0: Loopback-based (was 10.*.*.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors: [{ peer: "10.55.59.2", remote_as: 65035 }]
+
+    - name: "pe9"
+      vrfs:
+        - name: "RED_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 300)
+          rd: "10.0.0.64:200"  # v2.0: Loopback-based (was 10.*.*.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors: [{ peer: "10.55.60.2", remote_as: 65035 }]
+
+    - name: "pe10"
+      vrfs:
+        - name: "RED_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 300)
+          rd: "10.0.0.65:200"  # v2.0: Loopback-based (was 10.*.*.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors: [{ peer: "10.55.61.2", remote_as: 65035 }]
+
+    - name: "pe11"
+      vrfs:
+        - name: "RED_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 300)
+          rd: "10.0.0.66:200"  # v2.0: Loopback-based (was 10.*.*.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors: [{ peer: "10.55.62.2", remote_as: 65035 }]
+
+    - name: "pe12"
+      vrfs:
+        - name: "RED_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 300)
+          rd: "10.0.0.67:200"  # v2.0: Loopback-based (was 10.*.*.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors: [{ peer: "10.55.63.2", remote_as: 65035 }]
+
+  # ==================== CUSTOMER EDGE ROUTERS ====================
+  ce_routers:
+    - name: "ce1-red"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.101"
+          neighbors: [{ peer: "10.55.55.1", remote_as: 65001, description: "eBGP to pe1 RED_MESH VRF" }]
+
+    - name: "ce2-red"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.102"
+          neighbors: [{ peer: "10.65.65.1", remote_as: 65001, description: "eBGP to pe2 RED_MESH VRF" }]
+
+    - name: "ce3-red"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.103"
+          neighbors: [{ peer: "10.75.75.1", remote_as: 65001, description: "eBGP to pe3 RED_MESH VRF" }]
+
+    - name: "ce4-red"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.104"
+          neighbors: [{ peer: "10.85.85.1", remote_as: 65001, description: "eBGP to pe4 RED_MESH VRF" }]
+
+    - name: "ce5-red"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.105"
+          neighbors: [{ peer: "10.55.56.1", remote_as: 65001, description: "eBGP to pe5 RED_MESH VRF" }]
+
+    - name: "ce6-red"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.106"
+          neighbors: [{ peer: "10.55.57.1", remote_as: 65001, description: "eBGP to pe6 RED_MESH VRF" }]
+
+    - name: "ce7-red"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.107"
+          neighbors: [{ peer: "10.55.58.1", remote_as: 65001, description: "eBGP to pe7 RED_MESH VRF" }]
+
+    - name: "ce8-red"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.108"
+          neighbors: [{ peer: "10.55.59.1", remote_as: 65001, description: "eBGP to pe8 RED_MESH VRF" }]
+
+    - name: "ce9-red"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.109"
+          neighbors: [{ peer: "10.55.60.1", remote_as: 65001, description: "eBGP to pe9 RED_MESH VRF" }]
+
+    - name: "ce10-red"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.110"
+          neighbors: [{ peer: "10.55.61.1", remote_as: 65001, description: "eBGP to pe10 RED_MESH VRF" }]
+
+    - name: "ce11-red"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.111"
+          neighbors: [{ peer: "10.55.62.1", remote_as: 65001, description: "eBGP to pe11 RED_MESH VRF" }]
+
+    - name: "ce12-red"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.112"
+          neighbors: [{ peer: "10.55.63.1", remote_as: 65001, description: "eBGP to pe12 RED_MESH VRF" }]

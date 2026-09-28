@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HetGNN Model Overview</title>
+  <style>
+    /* ── Tokens ──────────────────────────────────────────────────── */
+    :root {
+      --bg:          #f8f9fb;
+      --surface:     #ffffff;
+      --surface-alt: #f0f4f8;
+      --border:      #d8e0ea;
+      --ink-1:       #0f1923;   /* headings */
+      --ink-2:       #344353;   /* body */
+      --ink-3:       #64788f;   /* muted / labels */
+
+      /* Brand blue ramp */
+      --blue-900:    #0d2d4e;
+      --blue-700:    #1558a0;
+      --blue-500:    #2878d6;
+      --blue-200:    #bcd6f7;
+      --blue-50:     #edf4fe;
+
+      /* Categorical series (validated, CVD-safe) */
+      --cat-1:       #2878d6;   /* blue   — router */
+      --cat-2:       #0e8a78;   /* teal   — interface */
+      --cat-3:       #8c48c4;   /* violet — vpn */
+      --cat-4:       #c95d00;   /* amber  — flow */
+
+      /* Status */
+      --ok:          #1a7a4a;
+      --ok-bg:       #e8f6ef;
+      --warn:        #c95d00;
+      --warn-bg:     #fff3e6;
+      --crit:        #b71c1c;
+      --crit-bg:     #fdeaea;
+
+      --radius:      8px;
+      --radius-lg:   14px;
+      --shadow:      0 1px 4px rgba(15,25,35,.08), 0 4px 16px rgba(15,25,35,.06);
+    }
+
+    /* ── Reset & base ────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink-2);
+      line-height: 1.65;
+    }
+
+    /* ── Layout ──────────────────────────────────────────────────── */
+    .page { max-width: 1080px; margin: 0 auto; padding: 0 24px 80px; }
+
+    /* ── Hero ────────────────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, var(--blue-900) 0%, var(--blue-700) 100%);
+      color: #fff;
+      padding: 56px 48px 48px;
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      margin-bottom: 40px;
+    }
+    .hero .tag {
+      display: inline-block;
+      background: rgba(255,255,255,.18);
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 20px;
+      font-size: .75rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      margin-bottom: 18px;
+    }
+    .hero h1 { font-size: 2.4rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.2; }
+    .hero p  { font-size: 1.05rem; color: rgba(255,255,255,.8); margin-top: 10px; max-width: 680px; }
+    .hero-meta {
+      display: flex; gap: 32px; margin-top: 28px;
+      flex-wrap: wrap;
+    }
+    .hero-stat { }
+    .hero-stat .label { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.6); }
+    .hero-stat .value { font-size: 1.6rem; font-weight: 700; color: #fff; }
+
+    /* ── Section ─────────────────────────────────────────────────── */
+    .section { margin-bottom: 40px; }
+    .section-header {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 20px;
+    }
+    .section-num {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--blue-700); color: #fff;
+      font-size: .8rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .section-header h2 { font-size: 1.25rem; font-weight: 700; color: var(--ink-1); letter-spacing: -.01em; }
+
+    /* ── Card ────────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px 28px;
+      box-shadow: var(--shadow);
+    }
+    .card + .card { margin-top: 16px; }
+
+    /* ── Node type cards ─────────────────────────────────────────── */
+    .node-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .node-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+    }
+    .node-card .node-pill {
+      display: inline-block;
+      border-radius: 20px;
+      font-size: .7rem; font-weight: 700;
+      letter-spacing: .06em; text-transform: uppercase;
+      padding: 3px 10px;
+      margin-bottom: 10px;
+    }
+    .node-card.router   .node-pill { background: #dceeff; color: var(--cat-1); }
+    .node-card.iface    .node-pill { background: #d5f3ef; color: var(--cat-2); }
+    .node-card.vpn      .node-pill { background: #ece0fa; color: var(--cat-3); }
+    .node-card.flow     .node-pill { background: #fde8d4; color: var(--cat-4); }
+    .node-card .dim { font-size: 2rem; font-weight: 800; letter-spacing: -.04em; line-height: 1; margin-bottom: 4px; }
+    .node-card.router .dim { color: var(--cat-1); }
+    .node-card.iface  .dim { color: var(--cat-2); }
+    .node-card.vpn    .dim { color: var(--cat-3); }
+    .node-card.flow   .dim { color: var(--cat-4); }
+    .node-card .dim-label { font-size: .8rem; color: var(--ink-3); margin-bottom: 12px; }
+    .node-card ul { list-style: none; }
+    .node-card ul li {
+      font-size: .8rem; color: var(--ink-2);
+      padding: 2px 0;
+      border-bottom: 1px solid var(--surface-alt);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .node-card ul li:last-child { border-bottom: none; }
+    .badge-scaled { font-size: .65rem; color: var(--ink-3); background: var(--surface-alt); border-radius: 3px; padding: 1px 5px; }
+    .badge-raw    { font-size: .65rem; color: var(--cat-3); background: #ece0fa; border-radius: 3px; padding: 1px 5px; }
+    .badge-new    { font-size: .65rem; color: var(--ok); background: var(--ok-bg); border-radius: 3px; padding: 1px 5px; }
+
+    /* ── Table ───────────────────────────────────────────────────── */
+    .tbl-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+    thead tr { background: var(--blue-900); color: #fff; }
+    thead th { padding: 10px 14px; text-align: left; font-weight: 600; white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid var(--border); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:nth-child(even) { background: var(--surface-alt); }
+    tbody td { padding: 9px 14px; vertical-align: top; }
+    .mono { font-family: "SF Mono", "Fira Code", "Cascadia Mono", monospace; font-size: .8rem; background: var(--surface-alt); border-radius: 3px; padding: 1px 5px; }
+    .val  { font-weight: 600; color: var(--blue-700); }
+
+    /* ── Architecture diagram ─────────────────────────────────────── */
+    .arch-diagram {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px 28px;
+      box-shadow: var(--shadow);
+    }
+    .arch-row { display: flex; align-items: center; justify-content: center; gap: 0; flex-wrap: wrap; margin-bottom: 0; }
+    .arch-box {
+      background: var(--blue-50);
+      border: 2px solid var(--blue-200);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      text-align: center;
+      min-width: 130px;
+      max-width: 180px;
+    }
+    .arch-box .box-label { font-size: .75rem; font-weight: 700; color: var(--blue-700); letter-spacing: .04em; text-transform: uppercase; }
+    .arch-box .box-sub   { font-size: .72rem; color: var(--ink-3); margin-top: 2px; }
+    .arch-arrow {
+      font-size: 1.4rem; color: var(--ink-3); padding: 0 6px;
+      line-height: 1;
+    }
+    .arch-fork { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+    .arch-fork-label { font-size: .7rem; color: var(--ink-3); font-style: italic; margin-top: 4px; }
+
+    /* ── Pipeline diagram ─────────────────────────────────────────── */
+    .pipeline-steps {
+      display: flex; flex-direction: column; gap: 0;
+    }
+    .pipeline-step {
+      display: flex; align-items: flex-start; gap: 16px;
+      position: relative;
+    }
+    .pipeline-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 19px; top: 40px;
+      width: 2px; height: calc(100% - 8px);
+      background: var(--border);
+    }
+    .step-circle {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: var(--blue-700); color: #fff;
+      font-weight: 700; font-size: .85rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; position: relative; z-index: 1;
+    }
+    .step-body { padding: 8px 0 24px; flex: 1; }
+    .step-title { font-weight: 700; font-size: .95rem; color: var(--ink-1); }
+    .step-desc  { font-size: .84rem; color: var(--ink-3); margin-top: 3px; }
+    .step-badge {
+      display: inline-block; font-size: .7rem; font-weight: 700;
+      border-radius: 4px; padding: 2px 8px; margin-top: 6px;
+    }
+    .step-badge.conditional { background: var(--warn-bg); color: var(--warn); }
+    .step-badge.compute     { background: var(--blue-50); color: var(--blue-700); }
+    .step-badge.storage     { background: #e8f6ef; color: var(--ok); }
+
+    /* ── Mahalanobis callout ─────────────────────────────────────── */
+    .callout {
+      border-left: 4px solid var(--blue-500);
+      background: var(--blue-50);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 16px 20px;
+      margin: 16px 0;
+      font-size: .875rem;
+    }
+    .callout.warn { border-color: var(--warn); background: var(--warn-bg); }
+    .callout.ok   { border-color: var(--ok);   background: var(--ok-bg); }
+    .callout strong { display: block; margin-bottom: 4px; color: var(--ink-1); }
+
+    /* ── Math ────────────────────────────────────────────────────── */
+    .math-block {
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: .9rem;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      text-align: center;
+      margin: 14px 0;
+      color: var(--ink-1);
+    }
+
+    /* ── Serving flow ────────────────────────────────────────────── */
+    .serve-steps {
+      counter-reset: serve;
+      list-style: none;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .serve-steps li {
+      counter-increment: serve;
+      display: flex; gap: 14px; align-items: flex-start;
+    }
+    .serve-steps li::before {
+      content: counter(serve);
+      min-width: 28px; height: 28px; border-radius: 50%;
+      background: var(--surface-alt); border: 2px solid var(--border);
+      color: var(--blue-700); font-weight: 700; font-size: .78rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .serve-steps li .step-text { font-size: .875rem; color: var(--ink-2); padding-top: 3px; }
+    .serve-steps li .step-text strong { color: var(--ink-1); }
+
+    /* ── Comparison table ────────────────────────────────────────── */
+    .cmp-ok   { color: var(--ok);   font-weight: 600; }
+    .cmp-fail { color: var(--crit); }
+
+    /* ── Stack chips ─────────────────────────────────────────────── */
+    .chip {
+      display: inline-block;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: .75rem; font-weight: 600;
+      padding: 3px 12px;
+      color: var(--ink-2);
+      margin: 3px 2px;
+    }
+    .chip.gcp    { background: #e8f0fe; border-color: #b6ccfe; color: #1558a0; }
+    .chip.ml     { background: #ece0fa; border-color: #d0b3f5; color: #6a2aab; }
+    .chip.data   { background: #d5f3ef; border-color: #9cdfd6; color: #0e6e5f; }
+    .chip.python { background: #fff3e6; border-color: #fdd1a0; color: #9a4000; }
+
+    /* ── Responsive ──────────────────────────────────────────────── */
+    @media (max-width: 680px) {
+      .hero { padding: 36px 20px; }
+      .hero h1 { font-size: 1.7rem; }
+      .page { padding: 0 12px 60px; }
+      .node-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ── Print ───────────────────────────────────────────────────── */
+    @media print {
+      body { background: #fff; }
+      .hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ══ HERO ══════════════════════════════════════════════════════════ -->
+  <div class="hero">
+    <div class="tag">Autonomous Network Lab · GNN Model</div>
+    <h1>Heterogeneous Graph Neural Network<br>— HetGNN —</h1>
+    <p>A spatial graph autoencoder that monitors a live telecommunications network in real time, learns the topology's healthy baseline, and flags nodes that deviate using Mahalanobis distance scoring in embedding space.</p>
+    <div class="hero-meta">
+      <div class="hero-stat">
+        <div class="label">Node Types</div>
+        <div class="value">4</div>
+      </div>
+      <div class="hero-stat">
+        <div class="label">Edge Relations</div>
+        <div class="value">11</div>
+      </div>
+      <div class="hero-stat">
+        <div class="label">Embedding Dim</div>
+        <div class="value">64</div>
+      </div>
+      <div class="hero-stat">
+        <div class="label">Training Window</div>
+        <div class="value">3 h</div>
+      </div>
+      <div class="hero-stat">
+        <div class="label">Inference Cadence</div>
+        <div class="value">1 min</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 1. NODE FEATURES ══════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <h2>Node Types &amp; Features</h2>
+    </div>
+
+    <div class="node-grid">
+      <div class="node-card router">
+        <div class="node-pill">Router</div>
+        <div class="dim">17</div>
+        <div class="dim-label">features</div>
+        <ul>
+          <li>state <span class="badge-scaled">scaled</span></li>
+          <li>cpu, mem <span class="badge-scaled">scaled</span></li>
+          <li>ospf_num_routes <span class="badge-scaled">scaled</span></li>
+          <li>pfx_count_norm <span class="badge-scaled">scaled</span></li>
+          <li>routes_fib <span class="badge-scaled">scaled</span></li>
+          <li>bfd_peers <span class="badge-scaled">scaled</span></li>
+          <li>ospf_neighbors, ospf_adj <span class="badge-scaled">scaled</span></li>
+          <li>rt_import_signature <span class="badge-new">new</span></li>
+          <li>vrf_min_routes <span class="badge-new">new</span></li>
+          <li>vrf_count <span class="badge-new">new</span></li>
+          <li>vrf_rt_import_mismatch <span class="badge-new">new</span></li>
+          <li>role_P/PE/RR/CE <span class="badge-raw">one-hot</span></li>
+        </ul>
+      </div>
+
+      <div class="node-card iface">
+        <div class="node-pill">Interface</div>
+        <div class="dim">16</div>
+        <div class="dim-label">features</div>
+        <ul>
+          <li>state <span class="badge-scaled">scaled</span></li>
+          <li>rx_drops, tx_drops <span class="badge-scaled">scaled</span></li>
+          <li>mtu_norm <span class="badge-scaled">scaled</span></li>
+          <li>rx/tx_errs_rate <span class="badge-scaled">scaled</span></li>
+          <li>rx/tx_bytes_rate <span class="badge-scaled">scaled</span></li>
+          <li>rx/tx_packets_rate <span class="badge-scaled">scaled</span></li>
+          <li>tx_queue_len <span class="badge-scaled">scaled</span></li>
+          <li>carrier_changes <span class="badge-scaled">scaled</span></li>
+          <li>carrier_state <span class="badge-scaled">scaled</span></li>
+          <li>rx_err_gradient <span class="badge-scaled">scaled</span></li>
+          <li>rx_util, tx_util <span class="badge-scaled">scaled</span></li>
+        </ul>
+      </div>
+
+      <div class="node-card vpn">
+        <div class="node-pill">VPN</div>
+        <div class="dim">3</div>
+        <div class="dim-label">features</div>
+        <ul>
+          <li>state <span class="badge-scaled">scaled</span></li>
+          <li>num_active_peers <span class="badge-scaled">scaled</span></li>
+          <li>total_prefixes <span class="badge-scaled">scaled</span></li>
+        </ul>
+        <div style="margin-top:10px; font-size:.75rem; color:var(--ink-3);">
+          uptime_norm removed — saturated dead feature that produced spurious root-cause attributions.
+        </div>
+      </div>
+
+      <div class="node-card flow">
+        <div class="node-pill">Flow</div>
+        <div class="dim">7</div>
+        <div class="dim-label">features</div>
+        <ul>
+          <li>throughput_sent_bps <span class="badge-scaled">scaled</span></li>
+          <li>throughput_recv_bps <span class="badge-scaled">scaled</span></li>
+          <li>latency_ms (avg) <span class="badge-scaled">scaled</span></li>
+          <li>jitter_ms (avg) <span class="badge-scaled">scaled</span></li>
+          <li>packet_loss_pct (avg) <span class="badge-scaled">scaled</span></li>
+          <li>is_running <span class="badge-scaled">scaled</span></li>
+          <li>is_bidirectional <span class="badge-scaled">scaled</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Preprocessing</strong>
+      Continuous features are Z-score scaled (μ, σ fitted on healthy training snapshots). Missing values default to <code>0.0</code>. Flow nodes with all-zero traffic metrics are excluded from scaler fitting to prevent inactive flows from skewing the distribution. AVG aggregation (not MAX) suppresses single-sample bursts in flow KPIs.
+    </div>
+  </div>
+
+  <!-- ══ 2. GRAPH SCHEMA ════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <h2>Graph Schema — 11 Edge Relations</h2>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Relation</th><th>Source</th><th>Target</th><th>Layer</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="mono">has_interface</span></td><td>Router</td><td>Interface</td><td>Physical</td></tr>
+          <tr><td><span class="mono">interface_of</span></td><td>Interface</td><td>Router</td><td>Physical (inverse)</td></tr>
+          <tr><td><span class="mono">connected_to</span></td><td>Interface</td><td>Interface</td><td>Physical (symmetric)</td></tr>
+          <tr><td><span class="mono">peer_of</span></td><td>Router</td><td>Router</td><td>Control Plane — OSPF + iBGP (symmetric)</td></tr>
+          <tr><td><span class="mono">member_of</span></td><td>Router</td><td>VPN</td><td>Service Layer</td></tr>
+          <tr><td><span class="mono">has_member</span></td><td>VPN</td><td>Router</td><td>Service Layer (inverse)</td></tr>
+          <tr><td><span class="mono">originates_from</span></td><td>Flow</td><td>Interface</td><td>Traffic</td></tr>
+          <tr><td><span class="mono">terminates_at</span></td><td>Flow</td><td>Interface</td><td>Traffic</td></tr>
+          <tr><td><span class="mono">source_of</span></td><td>Interface</td><td>Flow</td><td>Traffic (inverse)</td></tr>
+          <tr><td><span class="mono">destination_of</span></td><td>Interface</td><td>Flow</td><td>Traffic (inverse)</td></tr>
+          <tr><td><span class="mono">runs_over</span></td><td>Flow</td><td>VPN</td><td>Traffic → Service</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ 3. MODEL ARCHITECTURE ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <h2>Model Architecture</h2>
+    </div>
+
+    <div class="card">
+      <p style="font-size:.875rem; color:var(--ink-3); margin-bottom:20px;">
+        <strong style="color:var(--ink-1);">HetGNN</strong> — Heterogeneous Graph Autoencoder (PyTorch Geometric).
+        Encodes multi-type node features into a shared 64-d latent space via message passing, then reconstructs each type independently.
+      </p>
+
+      <!-- Architecture diagram -->
+      <div style="overflow-x:auto;">
+        <div style="min-width:600px; display:flex; flex-direction:column; gap:4px; align-items:center;">
+
+          <!-- Input -->
+          <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+            <div class="arch-box" style="background:#dceeff; border-color:var(--cat-1);">
+              <div class="box-label" style="color:var(--cat-1);">Router x</div>
+              <div class="box-sub">ℝ¹⁷</div>
+            </div>
+            <div class="arch-box" style="background:#d5f3ef; border-color:var(--cat-2);">
+              <div class="box-label" style="color:var(--cat-2);">Interface x</div>
+              <div class="box-sub">ℝ¹⁶</div>
+            </div>
+            <div class="arch-box" style="background:#ece0fa; border-color:var(--cat-3);">
+              <div class="box-label" style="color:var(--cat-3);">VPN x</div>
+              <div class="box-sub">ℝ³</div>
+            </div>
+            <div class="arch-box" style="background:#fde8d4; border-color:var(--cat-4);">
+              <div class="box-label" style="color:var(--cat-4);">Flow x</div>
+              <div class="box-sub">ℝ⁷</div>
+            </div>
+          </div>
+
+          <div style="color:var(--ink-3); font-size:1.4rem; line-height:1;">↓</div>
+
+          <!-- Projection -->
+          <div class="arch-box" style="min-width:340px; background:var(--blue-50); border-color:var(--blue-200);">
+            <div class="box-label">Linear Projection (lin_dict)</div>
+            <div class="box-sub">dᵢ → 64 · ReLU · Dropout(0.3) · per node type</div>
+          </div>
+
+          <div style="color:var(--ink-3); font-size:1.4rem; line-height:1;">↓</div>
+
+          <!-- Conv 1 -->
+          <div class="arch-box" style="min-width:340px; background:var(--blue-50); border-color:var(--blue-200);">
+            <div class="box-label">HeteroConv Layer 1 · SAGEConv(64→64)</div>
+            <div class="box-sub">mean aggregation · ReLU · Dropout(0.3)</div>
+          </div>
+
+          <div style="color:var(--ink-3); font-size:1.4rem; line-height:1;">↓</div>
+
+          <!-- Conv 2 -->
+          <div class="arch-box" style="min-width:340px; background:var(--blue-50); border-color:var(--blue-200);">
+            <div class="box-label">HeteroConv Layer 2 · SAGEConv(64→64)</div>
+            <div class="box-sub">mean aggregation · ReLU · Dropout(0.3)</div>
+          </div>
+
+          <div style="color:var(--ink-3); font-size:1.4rem; line-height:1;">↓</div>
+
+          <!-- Embeddings split -->
+          <div style="display:flex; gap:10px; justify-content:center; align-items:flex-start; flex-wrap:wrap; width:100%;">
+            <div style="flex:1; min-width:220px; display:flex; flex-direction:column; align-items:center; gap:4px;">
+              <div class="arch-box" style="min-width:200px; width:100%; background:#e8f6ef; border-color:var(--ok); border-width:2px;">
+                <div class="box-label" style="color:var(--ok);">Node Embeddings zᵢ ∈ ℝ⁶⁴</div>
+                <div class="box-sub">→ Mahalanobis anomaly scoring</div>
+              </div>
+              <div style="color:var(--ink-3); font-size:1.2rem;">↓</div>
+              <div class="arch-box" style="min-width:200px; width:100%; background:var(--ok-bg); border-color:var(--ok);">
+                <div class="box-label" style="color:var(--ok);">D_M Score per node</div>
+                <div class="box-sub">anomaly flag if D_M > threshold</div>
+              </div>
+            </div>
+            <div style="flex:1; min-width:220px; display:flex; flex-direction:column; align-items:center; gap:4px;">
+              <div class="arch-box" style="min-width:200px; width:100%; background:var(--surface-alt); border-color:var(--border);">
+                <div class="box-label">Linear Decoders (decoder_dict)</div>
+                <div class="box-sub">64 → dᵢ · per node type</div>
+              </div>
+              <div style="color:var(--ink-3); font-size:1.2rem;">↓</div>
+              <div class="arch-box" style="min-width:200px; width:100%; background:var(--surface-alt); border-color:var(--border);">
+                <div class="box-label">Reconstruction x̂ᵢ</div>
+                <div class="box-sub">top-3 feature attribution only</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 4. EMBEDDING GENERATION & ANOMALY SCORING ══════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <h2>Embedding Generation &amp; Mahalanobis Anomaly Scoring</h2>
+    </div>
+
+    <div class="card">
+      <p style="font-size:.875rem; margin-bottom:16px;">
+        Each node's 64-d embedding is a <strong>graph-contextualised representation</strong>: it encodes not just the node's own telemetry but the state of its neighborhood across multiple hop levels and all 11 edge relation types (physical links, control-plane adjacencies, VPN membership, traffic flows).
+      </p>
+
+      <h3 style="font-size:1rem; font-weight:700; color:var(--ink-1); margin-bottom:10px;">Message-Passing (per layer)</h3>
+      <div class="math-block">
+        h<sub>i</sub><sup>(k)</sup> = σ( W·MEAN{ h<sub>j</sub><sup>(k-1)</sup> | j∈N(i) } + B·h<sub>i</sub><sup>(k-1)</sup> ) + Dropout
+      </div>
+      <p style="font-size:.82rem; color:var(--ink-3); margin-bottom:20px;">
+        Nodes with no incoming edges for a given relation retain their previous-layer embedding unchanged — they are not zeroed out.
+      </p>
+
+      <h3 style="font-size:1rem; font-weight:700; color:var(--ink-1); margin-bottom:10px;">Post-Training Calibration</h3>
+      <p style="font-size:.875rem; margin-bottom:10px;">
+        After training, all training snapshots are re-encoded in eval mode. For each node type the following healthy-state statistics are computed and saved to <span class="mono">model_stats.pth</span>:
+      </p>
+      <ul style="font-size:.875rem; margin-left:20px; margin-bottom:16px; color:var(--ink-2);">
+        <li>Centroid <strong>μ ∈ ℝ⁶⁴</strong></li>
+        <li>Covariance <strong>Σ ∈ ℝ⁶⁴ˣ⁶⁴</strong></li>
+        <li>Regularised inverse <strong>Σ<sub>reg</sub>⁻¹ = (Σ + εI)⁻¹</strong> with ε = 10⁻⁵ (ridge term for VPN's near-singular N=3 covariance)</li>
+        <li>Healthy training D_M distribution: mean, std, max</li>
+      </ul>
+
+      <h3 style="font-size:1rem; font-weight:700; color:var(--ink-1); margin-bottom:8px;">Mahalanobis Distance (serve time)</h3>
+      <div class="math-block">
+        D<sub>M</sub>(z<sub>i</sub>) = √( (z<sub>i</sub> − μ)<sup>T</sup> Σ<sub>reg</sub>⁻¹ (z<sub>i</sub> − μ) )
+      </div>
+
+      <h3 style="font-size:1rem; font-weight:700; color:var(--ink-1); margin-top:16px; margin-bottom:8px;">Threshold Calibration Formula</h3>
+      <div class="math-block">
+        threshold<sub>type</sub> = max( D̄<sub>M</sub> + K·σ<sub>D_M</sub>, D<sub>M</sub><sup>max</sup> × FLOOR_MULT<sub>type</sub> )
+      </div>
+
+      <div class="tbl-wrap" style="margin-top:14px;">
+        <table>
+          <thead><tr><th>Parameter</th><th>Value</th><th>Rationale</th></tr></thead>
+          <tbody>
+            <tr><td><strong>K (MAHA_K)</strong></td><td class="val">2.0</td><td>~95th percentile of a Gaussian — catches single-feature faults like vrf-rt-misconfiguration where only one PE's embedding shifts modestly</td></tr>
+            <tr><td><strong>FLOOR_MULT router</strong></td><td class="val">1.2×</td><td>PE2 hub and CE/RR routers sit structurally far from the population centroid; live healthy D_M for PE2 routinely exceeds mean+2σ</td></tr>
+            <tr><td><strong>FLOOR_MULT interface</strong></td><td class="val">1.2×</td><td>Route-reflector loopbacks and hub-side links diverge from the bulk for structural reasons</td></tr>
+            <tr><td><strong>FLOOR_MULT vpn</strong></td><td class="val">1.5×</td><td>N=3 unique VPN nodes; empirical mean+2σ is artificially tight (within-node temporal variance, not across-population)</td></tr>
+            <tr><td><strong>FLOOR_MULT flow</strong></td><td class="val">1.2×</td><td>Per-flow KPIs drift with traffic conditions; pure mean+2σ on a 3h window underestimates serving variance</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-size:1rem; font-weight:700; color:var(--ink-1); margin-top:20px; margin-bottom:8px;">Why Mahalanobis over Per-feature MSE</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Criterion</th><th>MSE (per-feature)</th><th>Mahalanobis (embedding)</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Accounts for feature correlations</td>
+              <td class="cmp-fail">No — each feature independent</td>
+              <td class="cmp-ok">Yes — Σ⁻¹ captures correlated drift</td>
+            </tr>
+            <tr>
+              <td>Sensitive to small multi-feature shifts</td>
+              <td class="cmp-fail">No — diluted across all dims</td>
+              <td class="cmp-ok">Yes — any principal-direction shift detected</td>
+            </tr>
+            <tr>
+              <td>Stable for small-N types (VPN, N=3)</td>
+              <td class="cmp-fail">No — decoder variance dominates</td>
+              <td class="cmp-ok">Yes — encoder embeddings are more stable</td>
+            </tr>
+            <tr>
+              <td>Interpretability</td>
+              <td class="cmp-ok">Direct — which raw feature is anomalous</td>
+              <td class="cmp-fail">Indirect — top-3 MSE features added for attribution</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout ok" style="margin-top:12px;">
+        <strong>Design principle</strong>
+        The anomaly <em>flag</em> is always driven by D_M. Per-feature reconstruction MSE is computed after the fact, purely to generate a human-readable "top-3 contributing features" explanation for the network operator. The two signals are intentionally decoupled.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 5. TRAINING HYPERPARAMETERS ═══════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <h2>Training Hyperparameters</h2>
+    </div>
+    <div class="card">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Parameter</th><th>Symbol</th><th>Value</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Epochs</td><td><span class="mono">EPOCHS</span></td><td class="val">50</td><td>Maximum; early stopping typically fires earlier</td></tr>
+            <tr><td>Learning Rate</td><td><span class="mono">LEARNING_RATE</span></td><td class="val">0.001</td><td>Adam initial step size</td></tr>
+            <tr><td>Hidden Channels</td><td><span class="mono">HIDDEN_CHANNELS</span></td><td class="val">64</td><td>Embedding dimensionality for all node types</td></tr>
+            <tr><td>Conv Layers</td><td><span class="mono">NUM_LAYERS</span></td><td class="val">2</td><td>SAGEConv message-passing hops</td></tr>
+            <tr><td>Dropout</td><td><span class="mono">DROPOUT</span></td><td class="val">0.3</td><td>After projection ReLU and after each SAGEConv layer</td></tr>
+            <tr><td>Validation Split</td><td><span class="mono">VALIDATION_SPLIT</span></td><td class="val">20%</td><td>Held-out fraction of snapshots</td></tr>
+            <tr><td>Early Stopping Patience</td><td><span class="mono">EARLY_STOPPING_PATIENCE</span></td><td class="val">10</td><td>Epochs without improvement → halt &amp; restore best weights</td></tr>
+            <tr><td>Early Stopping Delta</td><td><span class="mono">MIN_DELTA</span></td><td class="val">0.001</td><td>Minimum val_loss improvement to reset patience</td></tr>
+            <tr><td>Random Seed</td><td><span class="mono">RANDOM_SEED</span></td><td class="val">Stochastic</td><td>No default seed — two pinned seeds (42, 1337) produced degenerate VPN models. Set via env var for sweep experiments</td></tr>
+            <tr><td>LR Scheduler</td><td><span class="mono">ReduceLROnPlateau</span></td><td class="val">×0.5 / 5 ep</td><td>Halves LR after 5 epochs without validation improvement</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-size:1rem; font-weight:700; color:var(--ink-1); margin-top:20px; margin-bottom:10px;">Loss Function</h3>
+
+      <div class="math-block">
+        ℒ<sub>total</sub> = 0.25·ℒ<sub>router</sub> + 0.25·ℒ<sub>interface</sub> + 0.25·ℒ<sub>vpn</sub> + 0.25·ℒ<sub>flow</sub> + 0.10·ℒ<sub>diversity</sub>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px; font-size:.84rem; color:var(--ink-2);">
+        <div>
+          <strong style="color:var(--ink-1);">Per-type reconstruction loss</strong><br>
+          MSE between decoder output x̂ᵢ and original input xᵢ. Equal weights (0.25 each) ensure VPN nodes — despite only N=3 per snapshot — receive the same gradient signal as routers and interfaces.
+        </div>
+        <div>
+          <strong style="color:var(--ink-1);">Contrastive diversity loss</strong><br>
+          Penalises mean pairwise cosine similarity within each node type's embedding batch. Prevents representation collapse — forces the model to produce distinct embeddings for structurally different nodes.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 6. TRAINING PIPELINE ═══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <h2>Training Pipeline — Vertex AI Pipelines (KFP v2)</h2>
+    </div>
+
+    <div class="card">
+      <p style="font-size:.875rem; color:var(--ink-3); margin-bottom:22px;">
+        The full training lifecycle is orchestrated as a Kubeflow Pipelines v2 DAG submitted to Vertex AI. Triggered via <span class="mono">./install.sh --deploy gnn</span>. A quality gate prevents automatic deployment of models with validation loss &gt; 1.0.
+      </p>
+
+      <div class="pipeline-steps">
+        <div class="pipeline-step">
+          <div class="step-circle">1</div>
+          <div class="step-body">
+            <div class="step-title">Ingest Snapshots</div>
+            <div class="step-desc">Fetches 360 snapshots from Spanner (30 s cadence = 3 h window). Parallelised via ThreadPoolExecutor(8 workers) — reduced from 60 min → 3-4 min. Serialises to GCS as <span class="mono">.pkl</span> files per snapshot.</div>
+            <span class="step-badge compute">n1-standard-4</span>
+            <span class="step-badge storage">GCS output</span>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-circle">2</div>
+          <div class="step-body">
+            <div class="step-title">Fit Scalers</div>
+            <div class="step-desc">Fits one StandardScaler per node type over all ingested snapshots. Router scaler covers 13 continuous features (indices 0–12); role one-hot columns are excluded. Inactive flows (all-zero traffic metrics) are filtered before fitting. Saves <span class="mono">scalers.pkl</span> to GCS.</div>
+            <span class="step-badge storage">GCS output</span>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-circle">3</div>
+          <div class="step-body">
+            <div class="step-title">Train Model</div>
+            <div class="step-desc">Launches a Vertex AI Custom Training Job running <span class="mono">train_hetgnn.py</span>. Trains HetGNN (up to 50 epochs, early-stopping patience 10), then runs post-training calibration to compute Mahalanobis cluster statistics. Saves <span class="mono">model.pth</span> + <span class="mono">model_stats.pth</span> to GCS.</div>
+            <span class="step-badge compute">Vertex AI Custom Job</span>
+            <span class="step-badge storage">GCS output</span>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-circle">4</div>
+          <div class="step-body">
+            <div class="step-title">Evaluate Model</div>
+            <div class="step-desc">Scores the trained model on the held-out 20% validation set. Emits a scalar <strong>val_loss</strong> used by the quality gate. Pipeline logs per-task states — a passing pipeline (SUCCEEDED) can still have undeployed steps if val_loss &gt; 1.0.</div>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-circle" style="background:var(--warn);">QG</div>
+          <div class="step-body">
+            <div class="step-title">Quality Gate</div>
+            <div class="step-desc">Steps 5–7 are conditionally triggered only when <strong>val_loss &lt; 1.0</strong>. If the condition is not met, the pipeline still reports SUCCEEDED but steps show as NOT_TRIGGERED and no deployment occurs.</div>
+            <span class="step-badge conditional">dsl.Condition(val_loss &lt; 1.0)</span>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-circle">5</div>
+          <div class="step-body">
+            <div class="step-title">Register Model</div>
+            <div class="step-desc">Registers model artifacts + serving image to Vertex AI Model Registry as a new versioned <span class="mono">gnn-hetgnn</span> entry.</div>
+            <span class="step-badge storage">Vertex AI Model Registry</span>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-circle">6</div>
+          <div class="step-body">
+            <div class="step-title">Deploy Endpoint</div>
+            <div class="step-desc">Deploys the new model version to the <span class="mono">gnn-endpoint</span> Vertex AI Endpoint, shifting 100% traffic to the new deployed model. Model artifacts are referenced via <span class="mono">AIP_STORAGE_URI</span> — no manual manifest update needed.</div>
+            <span class="step-badge compute">Vertex AI Endpoint</span>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="step-circle">7</div>
+          <div class="step-body">
+            <div class="step-title">Update Inference Scheduler</div>
+            <div class="step-desc">Updates Cloud Scheduler <span class="mono">gnn-inference-scheduler</span> to target the newly deployed endpoint.</div>
+            <span class="step-badge storage">Cloud Scheduler</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 7. SERVING WORKFLOW ════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">7</div>
+      <h2>Serving Workflow — Every 60 Seconds</h2>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; gap:18px; align-items:flex-start; flex-wrap:wrap; margin-bottom:18px;">
+        <div style="background:var(--blue-50); border:1px solid var(--blue-200); border-radius:var(--radius); padding:12px 18px; font-size:.84rem;">
+          <div style="font-weight:700; color:var(--blue-700); margin-bottom:2px;">Trigger</div>
+          Cloud Scheduler <span class="mono">* * * * *</span>
+        </div>
+        <div style="background:var(--blue-50); border:1px solid var(--blue-200); border-radius:var(--radius); padding:12px 18px; font-size:.84rem;">
+          <div style="font-weight:700; color:var(--blue-700); margin-bottom:2px;">Server</div>
+          Vertex AI Endpoint · Cloud Run · aiohttp
+        </div>
+        <div style="background:var(--blue-50); border:1px solid var(--blue-200); border-radius:var(--radius); padding:12px 18px; font-size:.84rem;">
+          <div style="font-weight:700; color:var(--blue-700); margin-bottom:2px;">Model Cache</div>
+          In-process <span class="mono">_cache</span> dict — warm across requests
+        </div>
+      </div>
+
+      <ol class="serve-steps">
+        <li><div class="step-text">Receive <strong>POST /predict</strong> with timestamp from Cloud Scheduler.</div></li>
+        <li><div class="step-text">Load model weights, scalers, and cluster statistics from <strong>GCS</strong> (path from <span class="mono">AIP_STORAGE_URI</span> env var, set by Vertex AI at deploy time). Cached in-process after first load.</div></li>
+        <li><div class="step-text">Fetch the network snapshot at the given timestamp from <strong>Spanner</strong> (<span class="mono">networktopology-db</span>) — routers, interfaces, VPNs, flows, VRF configs.</div></li>
+        <li><div class="step-text">Build a <strong>HeteroData</strong> graph object via <span class="mono">GraphBuilder</span> using the calibrated <span class="mono">scalers.pkl</span>.</div></li>
+        <li><div class="step-text">Run <strong>HetGNN forward pass</strong> → node embeddings <strong>zᵢ ∈ ℝ⁶⁴</strong> and reconstruction vectors <strong>x̂ᵢ</strong>.</div></li>
+        <li><div class="step-text">For each node, compute <strong>D_M(zᵢ)</strong> using pre-computed <strong>μ</strong> and <strong>Σ_reg⁻¹</strong> from <span class="mono">model_stats.pth</span>.</div></li>
+        <li><div class="step-text">Flag node as <strong>anomalous</strong> if D_M(zᵢ) &gt; threshold<sub>type</sub>. Compute per-feature MSE breakdown to identify <strong>top-3 contributing features</strong> (attribution only).</div></li>
+        <li><div class="step-text">Write node embeddings, D_M scores, anomaly flags, and feature attributions to <strong>Spanner NodeEmbedding table</strong>. Return JSON summary to caller.</div></li>
+      </ol>
+
+      <div class="callout warn" style="margin-top:16px;">
+        <strong>Fallback compatibility</strong>
+        For model artifacts trained before Mahalanobis scoring was introduced (no <span class="mono">cluster_stats</span> key in <span class="mono">model_stats.pth</span>), serve.py falls back to per-feature reconstruction MSE with hardcoded thresholds, ensuring backward compatibility.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 8. INFRASTRUCTURE STACK ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">8</div>
+      <h2>Infrastructure Stack</h2>
+    </div>
+
+    <div class="card">
+      <div style="margin-bottom:18px;">
+        <span class="chip gcp">Google Cloud Platform</span>
+        <span class="chip ml">Vertex AI Pipelines (KFP v2)</span>
+        <span class="chip ml">Vertex AI Endpoints</span>
+        <span class="chip gcp">Cloud Run</span>
+        <span class="chip gcp">Cloud Scheduler</span>
+        <span class="chip gcp">Cloud Build</span>
+        <span class="chip data">Cloud Spanner</span>
+        <span class="chip gcp">Google Cloud Storage</span>
+        <span class="chip python">PyTorch Geometric</span>
+        <span class="chip python">aiohttp</span>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Component</th><th>Technology</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Training Orchestration</strong></td>
+              <td>Vertex AI Pipelines</td>
+              <td>KFP v2 DAG — 7 steps from ingest to endpoint deployment</td>
+            </tr>
+            <tr>
+              <td><strong>Training Compute</strong></td>
+              <td>Vertex AI Custom Job</td>
+              <td><span class="mono">n1-standard-4</span> by default; accelerator type configurable</td>
+            </tr>
+            <tr>
+              <td><strong>Model Registry</strong></td>
+              <td>Vertex AI Model Registry</td>
+              <td>Versioned <span class="mono">gnn-hetgnn</span> entries with GCS artifact pointer + serving image URI</td>
+            </tr>
+            <tr>
+              <td><strong>Inference Server</strong></td>
+              <td>Vertex AI Endpoint / Cloud Run</td>
+              <td>aiohttp server; in-process model cache; loads artifacts from <span class="mono">AIP_STORAGE_URI</span></td>
+            </tr>
+            <tr>
+              <td><strong>Inference Trigger</strong></td>
+              <td>Cloud Scheduler</td>
+              <td><span class="mono">gnn-inference-scheduler</span> · cron <span class="mono">* * * * *</span></td>
+            </tr>
+            <tr>
+              <td><strong>Feature Database</strong></td>
+              <td>Cloud Spanner</td>
+              <td><span class="mono">networktopology-db</span>: SCD Type-2 topology tables + time-series metrics (3h retention) + NodeEmbedding results</td>
+            </tr>
+            <tr>
+              <td><strong>Artifact Store</strong></td>
+              <td>Google Cloud Storage</td>
+              <td><span class="mono">gnn-networks-gnn-artifacts/models/hetgnn/&lt;run_id&gt;/</span></td>
+            </tr>
+            <tr>
+              <td><strong>Container Build</strong></td>
+              <td>Cloud Build</td>
+              <td>Jinja2 template <span class="mono">cloudbuild.j2</span> → <span class="mono">cloudbuild.yaml</span>; source tarred at submit time</td>
+            </tr>
+            <tr>
+              <td><strong>Metrics Collection</strong></td>
+              <td>Cloud Functions (metricscollector)</td>
+              <td>Writes to Spanner <span class="mono">NetworkMetrics</span> with 3h retention; parallel worker pool</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Spanner schema summary -->
+      <h3 style="font-size:1rem; font-weight:700; color:var(--ink-1); margin-top:22px; margin-bottom:10px;">Spanner Schema (GNN-relevant tables)</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Table</th><th>Pattern</th><th>Retention</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="mono">PhysicalRouter</span>, <span class="mono">PhysicalInterface</span>, <span class="mono">VRF</span>, <span class="mono">BGPSession</span>, <span class="mono">L3VPNService</span>, <span class="mono">TrafficFlow</span> …</td>
+              <td>SCD Type-2 topology — <span class="mono">(id, valid_start_ts DESC)</span>, active row: <span class="mono">valid_end_ts IS NULL</span></td>
+              <td>Indefinite</td>
+            </tr>
+            <tr>
+              <td><span class="mono">NetworkMetrics</span></td>
+              <td>Time-series; index <span class="mono">NetworkMetricsByTimestamp</span> (reduced query from 6,148 ms → 56 ms)</td>
+              <td>3 hours</td>
+            </tr>
+            <tr>
+              <td><span class="mono">TrafficFlowSeries</span></td>
+              <td>Time-series; index <span class="mono">TrafficFlowSeriesByTimestamp</span></td>
+              <td>One-day row deletion policy</td>
+            </tr>
+            <tr>
+              <td><span class="mono">NodeEmbedding</span></td>
+              <td>Per-node embedding + D_M score + anomaly flag + feature attribution from each inference tick. PK <span class="mono">(node_id, timestamp DESC)</span></td>
+              <td>Indefinite</td>
+            </tr>
+            <tr>
+              <td><span class="mono">FaultEvent</span></td>
+              <td>Ground-truth fault annotations for evaluation</td>
+              <td>Indefinite</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FOOTER ═══════════════════════════════════════════════════════ -->
+  <div style="text-align:center; padding:24px 0; font-size:.78rem; color:var(--ink-3); border-top:1px solid var(--border); margin-top:20px;">
+    Autonomous Network Lab · HetGNN Model Overview · July 2026
+  </div>
+
+</div>
+</body>
+</html>

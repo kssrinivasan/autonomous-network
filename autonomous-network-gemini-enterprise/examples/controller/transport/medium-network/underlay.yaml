@@ -1,0 +1,314 @@
+apiVersion: google.dev/v1
+kind: VyOSUnderlay
+metadata:
+  name: medium-network-underlay
+  namespace: network
+spec:
+  infrastructureRef: medium-network-infra
+  routing:
+    ospf:
+      router_id_source: "loopback"
+      areas:
+        - area_id: "0.0.0.0"
+          type: "backbone"
+        - area_id: "0.0.0.1"
+          type: "regional"
+        - area_id: "0.0.0.2"
+          type: "regional"
+    bgp:
+      as_number: 65001
+      router_id_source: "loopback"
+      route_reflectors: ["10.0.0.1", "10.0.0.2"]
+  mpls:
+    enabled: true
+    ldp:
+      router_id_interface: "loopback"
+  routers:
+    # ===================================================================
+    # P ROUTERS (Core - Area 0 only)
+    # ===================================================================
+    - name: "p1"
+      protocols:
+        ospf:
+          router_id: "10.0.0.3"
+          areas: [{ area: "0.0.0.0", type: "backbone" }]
+          passive_interfaces: ["lo"]
+        mpls:
+          enabled: true
+          ldp: { router_id: "10.0.0.3", interfaces: ["eth1", "eth2", "eth3", "eth4", "eth5", "eth6"] }
+
+    - name: "p2"
+      protocols:
+        ospf:
+          router_id: "10.0.0.4"
+          areas: [{ area: "0.0.0.0", type: "backbone" }]
+          passive_interfaces: ["lo"]
+        mpls:
+          enabled: true
+          ldp: { router_id: "10.0.0.4", interfaces: ["eth1", "eth2", "eth3", "eth4", "eth5", "eth6"] }
+
+    - name: "p3"
+      protocols:
+        ospf:
+          router_id: "10.0.0.5"
+          areas: [{ area: "0.0.0.0", type: "backbone" }]
+          passive_interfaces: ["lo"]
+        mpls:
+          enabled: true
+          ldp: { router_id: "10.0.0.5", interfaces: ["eth1", "eth2", "eth3", "eth4", "eth5", "eth6"] }
+
+    - name: "p4"
+      protocols:
+        ospf:
+          router_id: "10.0.0.6"
+          areas: [{ area: "0.0.0.0", type: "backbone" }]
+          passive_interfaces: ["lo"]
+        mpls:
+          enabled: true
+          ldp: { router_id: "10.0.0.6", interfaces: ["eth1", "eth2", "eth3", "eth4", "eth5", "eth6"] }
+
+    # ===================================================================
+    # RR ROUTERS (Route Reflectors - Area 0 only)
+    # ===================================================================
+    - name: "rr1"
+      protocols:
+        ospf:
+          router_id: "10.0.0.1"
+          areas: [{ area: "0.0.0.0", type: "backbone" }]
+          passive_interfaces: ["lo"]
+        bgp:
+          as_number: 65001
+          router_id: "10.0.0.1"
+          route_reflector: true
+          neighbors:
+            # RR-to-RR peering (CRITICAL)
+            - { peer: "10.0.0.2", remote_as: 65001, description: "iBGP to rr2" }
+            # PE clients (all 8 PEs)
+            - { peer: "10.0.0.60", remote_as: 65001, route_reflector_client: true }
+            - { peer: "10.0.0.61", remote_as: 65001, route_reflector_client: true }
+            - { peer: "10.0.0.62", remote_as: 65001, route_reflector_client: true }
+            - { peer: "10.0.0.63", remote_as: 65001, route_reflector_client: true }
+            - { peer: "10.0.0.64", remote_as: 65001, route_reflector_client: true }
+            - { peer: "10.0.0.65", remote_as: 65001, route_reflector_client: true }
+            - { peer: "10.0.0.66", remote_as: 65001, route_reflector_client: true }
+            - { peer: "10.0.0.67", remote_as: 65001, route_reflector_client: true }
+        mpls:
+          enabled: true
+          ldp: { router_id: "10.0.0.1", interfaces: ["eth1", "eth2"] }
+
+    - name: "rr2"
+      protocols:
+        ospf:
+          router_id: "10.0.0.2"
+          areas: [{ area: "0.0.0.0", type: "backbone" }]
+          passive_interfaces: ["lo"]
+        bgp:
+          as_number: 65001
+          router_id: "10.0.0.2"
+          route_reflector: true
+          neighbors:
+            # RR-to-RR peering (CRITICAL)
+            - { peer: "10.0.0.1", remote_as: 65001, description: "iBGP to rr1" }
+            # PE clients (all 8 PEs)
+            - { peer: "10.0.0.60", remote_as: 65001, route_reflector_client: true }
+            - { peer: "10.0.0.61", remote_as: 65001, route_reflector_client: true }
+            - { peer: "10.0.0.62", remote_as: 65001, route_reflector_client: true }
+            - { peer: "10.0.0.63", remote_as: 65001, route_reflector_client: true }
+            - { peer: "10.0.0.64", remote_as: 65001, route_reflector_client: true }
+            - { peer: "10.0.0.65", remote_as: 65001, route_reflector_client: true }
+            - { peer: "10.0.0.66", remote_as: 65001, route_reflector_client: true }
+            - { peer: "10.0.0.67", remote_as: 65001, route_reflector_client: true }
+        mpls:
+          enabled: true
+          ldp: { router_id: "10.0.0.2", interfaces: ["eth1", "eth2"] }
+
+    # ===================================================================
+    # PA ROUTERS (ABRs - Area 0 + Area N)
+    # ===================================================================
+    # pa1: ABR between Area 0 and Area 1
+    - name: "pa1"
+      protocols:
+        ospf:
+          router_id: "10.0.0.20"
+          areas:
+            - { area: "0.0.0.0", type: "backbone", interfaces: ["eth1", "eth2"] }    # Core-facing (P routers)
+            - { area: "0.0.0.1", type: "regional", interfaces: ["eth3", "eth4", "eth5", "eth6", "eth7", "eth8"] }  # PE-facing + PA ring
+          passive_interfaces: ["lo"]
+        mpls:
+          enabled: true
+          ldp: { router_id: "10.0.0.20", interfaces: ["eth1", "eth2", "eth3", "eth4", "eth5", "eth6", "eth7", "eth8"] }
+
+    # pa2: ABR between Area 0 and Area 1
+    - name: "pa2"
+      protocols:
+        ospf:
+          router_id: "10.0.0.21"
+          areas:
+            - { area: "0.0.0.0", type: "backbone", interfaces: ["eth1", "eth2"] }    # Core-facing (P routers)
+            - { area: "0.0.0.1", type: "regional", interfaces: ["eth3", "eth4", "eth5", "eth6", "eth7", "eth8"] }  # PE-facing + PA ring
+          passive_interfaces: ["lo"]
+        mpls:
+          enabled: true
+          ldp: { router_id: "10.0.0.21", interfaces: ["eth1", "eth2", "eth3", "eth4", "eth5", "eth6", "eth7", "eth8"] }
+
+    # pa3: ABR between Area 0, Area 1, and Area 2
+    - name: "pa3"
+      protocols:
+        ospf:
+          router_id: "10.0.0.22"
+          areas:
+            - { area: "0.0.0.0", type: "backbone", interfaces: ["eth1", "eth2"] }    # Core-facing (P routers)
+            - { area: "0.0.0.1", type: "regional", interfaces: ["eth3", "eth4", "eth5", "eth6"] }  # Area 1: PA ring + some PEs
+            - { area: "0.0.0.2", type: "regional", interfaces: ["eth7", "eth8"] }    # Area 2: pe7, pe8
+          passive_interfaces: ["lo"]
+        mpls:
+          enabled: true
+          ldp: { router_id: "10.0.0.22", interfaces: ["eth1", "eth2", "eth3", "eth4", "eth5", "eth6", "eth7", "eth8"] }
+
+    # pa4: ABR between Area 0, Area 1, and Area 2
+    - name: "pa4"
+      protocols:
+        ospf:
+          router_id: "10.0.0.23"
+          areas:
+            - { area: "0.0.0.0", type: "backbone", interfaces: ["eth1", "eth2"] }    # Core-facing (P routers)
+            - { area: "0.0.0.1", type: "regional", interfaces: ["eth3", "eth4", "eth5", "eth6"] }  # Area 1: PA ring + some PEs
+            - { area: "0.0.0.2", type: "regional", interfaces: ["eth7", "eth8"] }    # Area 2: pe7, pe8
+          passive_interfaces: ["lo"]
+        mpls:
+          enabled: true
+          ldp: { router_id: "10.0.0.23", interfaces: ["eth1", "eth2", "eth3", "eth4", "eth5", "eth6", "eth7", "eth8"] }
+
+    # ===================================================================
+    # PE ROUTERS (Provider Edge - Area 1)
+    # ===================================================================
+    - name: "pe1"
+      protocols:
+        ospf:
+          router_id: "10.0.0.60"
+          areas: [{ area: "0.0.0.1", type: "regional" }]   # Area 1 only (NOT Area 0)
+          passive_interfaces: ["lo"]
+        bgp:
+          as_number: 65001
+          router_id: "10.0.0.60"
+          neighbors:
+            - { peer: "10.0.0.1", remote_as: 65001 }   # rr1
+            - { peer: "10.0.0.2", remote_as: 65001 }   # rr2
+        mpls:
+          enabled: true
+          ldp: { router_id: "10.0.0.60", interfaces: ["eth1", "eth2"] }  # PA-facing only (NOT CE-facing)
+
+    - name: "pe2"
+      protocols:
+        ospf:
+          router_id: "10.0.0.61"
+          areas: [{ area: "0.0.0.1", type: "regional" }]
+          passive_interfaces: ["lo"]
+        bgp:
+          as_number: 65001
+          router_id: "10.0.0.61"
+          neighbors:
+            - { peer: "10.0.0.1", remote_as: 65001 }
+            - { peer: "10.0.0.2", remote_as: 65001 }
+        mpls:
+          enabled: true
+          ldp: { router_id: "10.0.0.61", interfaces: ["eth1", "eth2"] }
+
+    - name: "pe3"
+      protocols:
+        ospf:
+          router_id: "10.0.0.62"
+          areas: [{ area: "0.0.0.1", type: "regional" }]
+          passive_interfaces: ["lo"]
+        bgp:
+          as_number: 65001
+          router_id: "10.0.0.62"
+          neighbors:
+            - { peer: "10.0.0.1", remote_as: 65001 }
+            - { peer: "10.0.0.2", remote_as: 65001 }
+        mpls:
+          enabled: true
+          ldp: { router_id: "10.0.0.62", interfaces: ["eth1", "eth2"] }
+
+    - name: "pe4"
+      protocols:
+        ospf:
+          router_id: "10.0.0.63"
+          areas: [{ area: "0.0.0.1", type: "regional" }]
+          passive_interfaces: ["lo"]
+        bgp:
+          as_number: 65001
+          router_id: "10.0.0.63"
+          neighbors:
+            - { peer: "10.0.0.1", remote_as: 65001 }
+            - { peer: "10.0.0.2", remote_as: 65001 }
+        mpls:
+          enabled: true
+          ldp: { router_id: "10.0.0.63", interfaces: ["eth1", "eth2"] }
+
+    - name: "pe5"
+      protocols:
+        ospf:
+          router_id: "10.0.0.64"
+          areas: [{ area: "0.0.0.1", type: "regional" }]
+          passive_interfaces: ["lo"]
+        bgp:
+          as_number: 65001
+          router_id: "10.0.0.64"
+          neighbors:
+            - { peer: "10.0.0.1", remote_as: 65001 }
+            - { peer: "10.0.0.2", remote_as: 65001 }
+        mpls:
+          enabled: true
+          ldp: { router_id: "10.0.0.64", interfaces: ["eth1", "eth2"] }
+
+    - name: "pe6"
+      protocols:
+        ospf:
+          router_id: "10.0.0.65"
+          areas: [{ area: "0.0.0.1", type: "regional" }]
+          passive_interfaces: ["lo"]
+        bgp:
+          as_number: 65001
+          router_id: "10.0.0.65"
+          neighbors:
+            - { peer: "10.0.0.1", remote_as: 65001 }
+            - { peer: "10.0.0.2", remote_as: 65001 }
+        mpls:
+          enabled: true
+          ldp: { router_id: "10.0.0.65", interfaces: ["eth1", "eth2"] }
+
+    # ===================================================================
+    # PE ROUTERS (Provider Edge - Area 2)
+    # ===================================================================
+    - name: "pe7"
+      protocols:
+        ospf:
+          router_id: "10.0.0.66"
+          areas: [{ area: "0.0.0.2", type: "regional" }]   # Area 2 only (NOT Area 0)
+          passive_interfaces: ["lo"]
+        bgp:
+          as_number: 65001
+          router_id: "10.0.0.66"
+          neighbors:
+            - { peer: "10.0.0.1", remote_as: 65001 }
+            - { peer: "10.0.0.2", remote_as: 65001 }
+        mpls:
+          enabled: true
+          ldp: { router_id: "10.0.0.66", interfaces: ["eth1", "eth2"] }
+
+    - name: "pe8"
+      protocols:
+        ospf:
+          router_id: "10.0.0.67"
+          areas: [{ area: "0.0.0.2", type: "regional" }]
+          passive_interfaces: ["lo"]
+        bgp:
+          as_number: 65001
+          router_id: "10.0.0.67"
+          neighbors:
+            - { peer: "10.0.0.1", remote_as: 65001 }
+            - { peer: "10.0.0.2", remote_as: 65001 }
+        mpls:
+          enabled: true
+          ldp: { router_id: "10.0.0.67", interfaces: ["eth1", "eth2"] }

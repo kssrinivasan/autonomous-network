@@ -1,0 +1,40 @@
+{
+  "@type": "Intent",
+  "name": "blue-spoke-vpn",
+  "description": "Point-to-point VPN between two spoke sites on the Blue VPN",
+  "intentExpression": {
+    "@type": "IntentExpression",
+    "expectation": [
+      {
+        "@type": "L3ConnectivityExpectation",
+        "expectationVerb": "DELIVER",
+        "expectationObject": {
+          "@type": "L3VPNService",
+          "serviceName": "Blue Spoke VPN",
+          "topology": "point-to-point",
+          "underlayRef": "l3vpn-underlay",
+          "endpoints": [
+            {
+              "peRouter": "pe1",
+              "peInterface": "eth2",
+              "customerRouter": "ce1-spoke",
+              "customerPrefix": "10.100.1.0/24"
+            },
+            {
+              "peRouter": "pe3",
+              "peInterface": "eth2",
+              "customerRouter": "ce2-spoke",
+              "customerPrefix": "10.100.3.0/24"
+            }
+          ],
+          "sla": {
+            "bandwidth": "10 Mbps",
+            "latency": "< 50ms",
+            "availability": "99.9%",
+            "trafficClass": "standard"
+          }
+        }
+      }
+    ]
+  }
+}

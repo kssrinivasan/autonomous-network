@@ -1,0 +1,31 @@
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: free5gc-cellsite1
+  namespace: network
+spec:
+  container_name: "cell1"
+  gnb:
+    mcc: "208"
+    mnc: "93"
+    tac: 1
+    gnbId: "0x1"
+    amf_name: "free5gc-core-amf"
+    upf_name: "free5gc-core-upf"
+    smf_name: "free5gc-core-smf"
+    slices:
+      - sst: 1
+        sd: "010203"
+  ues:
+    - imsi: "208930000000001"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000002"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"

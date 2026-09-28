@@ -1,0 +1,549 @@
+# L3VPN traffic tests — RED VPN, any-to-any mesh, TIME-COMPRESSED
+#
+# ── Topology ────────────────────────────────────────────────────────────────
+#
+#   d1-red  Norwich    (pe1 / Oxford-DC1)
+#   d2-red  Coventry   (pe2 / Cambridge-DC1)
+#   d3-red  Plymouth   (pe3 / Brighton-DC1)
+#   d4-red  Leicester  (pe4 / Cardiff-DC1)
+#
+#   VPN topology: any-to-any mesh — all 6 device pairs are exercised.
+#   PE-CE uplink budget: 100 Mbit per interface.
+#
+# ── Time compression ────────────────────────────────────────────────────────
+#
+#   15 real seconds  = 1 simulated hour
+#   360 real seconds = 1 simulated day   (6 minutes)
+#   2520 real seconds= 1 simulated week  (42 minutes)
+#   172 800 seconds  = 48 real hours ≈ 480 simulated days ≈ 1.3 simulated years
+#
+#   All patterns use time_reference: elapsed so the waveform counts from t=0
+#   on test start — no wall-clock anchoring needed for compressed cycles.
+#
+#   Phase-offset formula:  offset = period/4 - peak_elapsed_second
+#
+#   Business peak at 14:00 simulated = 14×15 = 210 s elapsed
+#     Daily  phase_offset  = 360/4  − 210 = −120
+#     Weekly phase_offset  = 2520/4 − 1080 = −450   (Wednesday noon peak)
+#
+# ── Traffic character (RED = business enterprise) ──────────────────────────
+#
+#   Single workday peak centred on 14:00 simulated.
+#   Overnight floor ≈ 10-15 % of peak.
+#   Mid-week Wednesday peak > Monday/Friday via weekly sine component.
+#   Weekend trough pronounced — the weekly component swings negative vs base.
+#
+# ── Flow map ────────────────────────────────────────────────────────────────
+#
+#   d1-red-d2-red-bidir    TCP  pe1 ↔ pe2  ERP / file-sync (adjacent PEs via p1)
+#   d1-red-d3-red-bidir    TCP  pe1 ↔ pe3  Database replication (diagonal p1-p3)
+#   d1-red-d4-red-bidir    UDP  pe1 ↔ pe4  VoIP / video-conf quality probe
+#   d2-red-d3-red-bidir    TCP  pe2 ↔ pe3  Cross-site data replication (p1-p3-p4)
+#   d2-red-d4-red-bidir    UDP  pe2 ↔ pe4  Telemetry / SNMP monitoring
+#   d3-red-d4-red-bidir    UDP  pe3 ↔ pe4  Quality probe (adjacent via p4)
+#
+# ── Saturation design ───────────────────────────────────────────────────────
+#
+#   Target: ~80 Mbps aggregate per PE-CE interface at the 14:00 simulated peak.
+#   CE-PE link bandwidth: 100 Mbit (all interfaces).
+#   80% utilisation target = 80 Mbps.
+#
+#   Flow peak contributions (base + daily_amp + weekly_amp):
+#
+#     d1→d2: 14 + 14 + 3 = 31 Mbps   d2→d1: 18 + 18 + 4 = 40 Mbps
+#     d1→d3: 12 + 12 + 3 = 27 Mbps   d3→d1: 10 + 10 + 2 = 22 Mbps
+#     d1→d4:  7 +  7 + 2 = 16 Mbps   d4→d1:  7 +  7 + 2 = 16 Mbps
+#     d2→d3: 10 + 10 + 2 = 22 Mbps   d3→d2: 14 + 14 + 3 = 31 Mbps
+#     d2→d4:  8 +  8 + 2 = 18 Mbps   d4→d2:  8 +  8 + 2 = 18 Mbps
+#     d3→d4: 12 + 12 + 3 = 27 Mbps   d4→d3: 12 + 12 + 3 = 27 Mbps
+#
+#   Aggregate per PE-CE at peak:
+#     pe1-ce1-red outbound: d1→d2 + d1→d3 + d1→d4 = 31 + 27 + 16 = 74 Mbps  ✓
+#     pe1-ce1-red inbound:  d2→d1 + d3→d1 + d4→d1 = 40 + 22 + 16 = 78 Mbps  ✓
+#     pe2-ce2-red outbound: d2→d1 + d2→d3 + d2→d4 = 40 + 22 + 18 = 80 Mbps  ✓
+#     pe2-ce2-red inbound:  d1→d2 + d3→d2 + d4→d2 = 31 + 31 + 18 = 80 Mbps  ✓
+#     pe3-ce3-red outbound: d3→d1 + d3→d2 + d3→d4 = 22 + 31 + 27 = 80 Mbps  ✓
+#     pe3-ce3-red inbound:  d1→d3 + d2→d3 + d4→d3 = 27 + 22 + 27 = 76 Mbps  ✓
+#     pe4-ce4-red outbound: d4→d1 + d4→d2 + d4→d3 = 16 + 18 + 27 = 61 Mbps  ✓
+#     pe4-ce4-red inbound:  d1→d4 + d2→d4 + d3→d4 = 16 + 18 + 27 = 61 Mbps  ✓
+#
+#   Note: pe4 is naturally lower as it participates in fewer high-bandwidth flows
+#   (VoIP/telemetry/probe vs ERP/DB replication). The 61 Mbps still represents
+#   meaningful utilisation for anomaly detection on the Cardiff site.
+#
+# ── Metrics ─────────────────────────────────────────────────────────────────
+#
+#   All flow metrics (throughput_bps, latency_ms, jitter_ms, packet_loss_pct,
+#   active_sessions) are exported on port 9091 by the traffic-agent and scraped
+#   automatically by the Ops Agent into Cloud Monitoring.
+#
+#   Bidirectional flows produce two Prometheus series per device, e.g.:
+#     flow_id="d1-red-d2-red-bidir_d1-red"      role=source
+#     flow_id="d1-red-d2-red-bidir_d1-red_rev"  role=destination
+
+# ════════════════════════════════════════════════════════════════════════════
+# PAIR 1 — d1-red ↔ d2-red : TCP bidirectional, ERP / file-sync
+#
+#   Represents corporate ERP traffic and daily file synchronisation between
+#   the Norwich and Coventry branch sites.  Asymmetric: downloads (d2→d1
+#   content delivery) are ~30 % heavier than uploads.
+#
+#   Forward  (d1→d2): base 14 Mbps, peak ~31 Mbps at 14:00 sim.
+#   Reverse  (d2→d1): base 18 Mbps, peak ~40 Mbps at 14:00 sim.
+#
+#   Phase offsets (elapsed):
+#     daily period=360 : peak at 210 s → offset = 360/4 − 210 = −120
+#     weekly period=2520: Wednesday noon at 1080 s → offset = 2520/4 − 1080 = −450
+# ════════════════════════════════════════════════════════════════════════════
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: d1-red-d2-red-bidir
+  namespace: network
+  labels:
+    scenario: l3vpn-red-mesh
+    vpn: red-mesh
+    source: d1-red
+    destination: d2-red
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  vpnRef: l3vpn-red-service
+  source_devices:
+    - d1-red
+  destination_device: d2-red
+  protocol: TCP
+  duration: 172800    # 48 real hours ≈ 480 compressed days ≈ 1.3 compressed years
+
+  # ── d1-red → d2-red : branch uploads / ERP writes ───────────────────────
+  # bw(t) = 14 + 14×sin(2π(t−120)/360) + 3×sin(2π(t−450)/2520) + noise
+  # Peak ~31 Mbps at 14:00 sim; overnight floor ~0 Mbps; weekend trough ~3 Mbps
+  bandwidth: 35Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 14Mbps
+    components:
+      - period: 360          # compressed daily cycle (6 real minutes = 1 simulated day)
+        amplitude: 14Mbps
+        phase_offset: -120   # peak at 14:00 simulated (210 s elapsed)
+      - period: 2520         # compressed weekly cycle (42 real minutes = 1 simulated week)
+        amplitude: 3Mbps
+        phase_offset: -450   # mid-week peak (Wednesday noon simulated)
+    noise_stddev_pct: 4.0
+    min_rate: 2Mbps
+    max_rate: 50Mbps
+
+  # ── d2-red → d1-red : content delivery / query responses ────────────────
+  # bw(t) = 18 + 18×sin(2π(t−120)/360) + 4×sin(2π(t−450)/2520) + noise
+  # Peak ~40 Mbps — heavier than upload; overnight floor ~0 Mbps
+  bidirectional: true
+  reverse_bandwidth: 45Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 18Mbps
+    components:
+      - period: 360
+        amplitude: 18Mbps
+        phase_offset: -120
+      - period: 2520
+        amplitude: 4Mbps
+        phase_offset: -450
+    noise_stddev_pct: 4.0
+    min_rate: 2Mbps
+    max_rate: 60Mbps
+
+  concurrent_users: 15
+
+# ════════════════════════════════════════════════════════════════════════════
+# PAIR 2 — d1-red ↔ d3-red : TCP bidirectional, database replication
+#
+#   Diagonal path: pe1 (Oxford) ↔ pe3 (Brighton), traversing p1-p3 and p3-p4.
+#   Models inter-DC database replication and backup traffic.
+#
+#   Forward  (d1→d3): base 12 Mbps, peak ~27 Mbps.
+#   Reverse  (d3→d1): base 10 Mbps, peak ~22 Mbps (symmetric replication).
+#
+#   Prometheus flow IDs:
+#     d1-red-d3-red-bidir_d1-red      role=source
+#     d1-red-d3-red-bidir_d1-red_rev  role=destination
+# ════════════════════════════════════════════════════════════════════════════
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: d1-red-d3-red-bidir
+  namespace: network
+  labels:
+    scenario: l3vpn-red-mesh
+    vpn: red-mesh
+    source: d1-red
+    destination: d3-red
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  vpnRef: l3vpn-red-service
+  source_devices:
+    - d1-red
+  destination_device: d3-red
+  protocol: TCP
+  duration: 172800
+
+  # ── d1-red → d3-red : DB writes / replication stream ───────────────────
+  # bw(t) = 12 + 12×sin(2π(t−120)/360) + 3×sin(2π(t−450)/2520) + noise
+  # Peak ~27 Mbps at 14:00 simulated; overnight floor ~0 Mbps
+  bandwidth: 30Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 12Mbps
+    components:
+      - period: 360
+        amplitude: 12Mbps
+        phase_offset: -120   # peak at 14:00 simulated
+      - period: 2520
+        amplitude: 3Mbps
+        phase_offset: -450   # Wednesday noon peak
+    noise_stddev_pct: 4.0
+    min_rate: 2Mbps
+    max_rate: 45Mbps
+
+  # ── d3-red → d1-red : DB query results / snapshot pulls ─────────────────
+  # bw(t) = 10 + 10×sin(2π(t−120)/360) + 2×sin(2π(t−450)/2520) + noise
+  # Peak ~22 Mbps; overnight floor ~0 Mbps
+  bidirectional: true
+  reverse_bandwidth: 25Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 10Mbps
+    components:
+      - period: 360
+        amplitude: 10Mbps
+        phase_offset: -120
+      - period: 2520
+        amplitude: 2Mbps
+        phase_offset: -450
+    noise_stddev_pct: 3.0
+    min_rate: 2Mbps
+    max_rate: 40Mbps
+
+  concurrent_users: 15
+
+# ════════════════════════════════════════════════════════════════════════════
+# PAIR 3 — d1-red ↔ d4-red : UDP bidirectional, VoIP / video-conferencing
+#
+#   Diagonal path: pe1 (Oxford) ↔ pe4 (Cardiff).
+#
+#   Symmetric: VoIP and video calls are roughly equal in both directions.
+#   Meaningful load on both pe1 and pe4 CE-PE interfaces.
+#
+#   Peak: 16 Mbps at 14:00 sim (symmetric both directions).
+#   Overnight: 1 Mbps (keepalive / monitoring).
+#
+#   Prometheus flow IDs:
+#     d1-red-d4-red-bidir_d1-red      role=source
+#     d1-red-d4-red-bidir_d1-red_rev  role=destination
+# ════════════════════════════════════════════════════════════════════════════
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: d1-red-d4-red-bidir
+  namespace: network
+  labels:
+    scenario: l3vpn-red-mesh
+    vpn: red-mesh
+    source: d1-red
+    destination: d4-red
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  vpnRef: l3vpn-red-service
+  source_devices:
+    - d1-red
+  destination_device: d4-red
+  protocol: UDP      # UDP — measures latency_ms, jitter_ms, packet_loss_pct
+  duration: 172800
+
+  # ── d1-red → d4-red : VoIP / video uplink ───────────────────────────────
+  # bw(t) = 7 + 7×sin(2π(t−120)/360) + 2×sin(2π(t−450)/2520) + noise
+  # Peak ~16 Mbps; overnight ~0 Mbps; symmetric with reverse
+  bandwidth: 20Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 7Mbps
+    components:
+      - period: 360
+        amplitude: 7Mbps
+        phase_offset: -120   # peak at 14:00 simulated
+      - period: 2520
+        amplitude: 2Mbps
+        phase_offset: -450
+    noise_stddev_pct: 2.0    # lower noise — VoIP codecs maintain tight CBR
+    min_rate: 1Mbps
+    max_rate: 25Mbps
+
+  # ── d4-red → d1-red : VoIP / video downlink (symmetric) ─────────────────
+  bidirectional: true
+  reverse_bandwidth: 20Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 7Mbps
+    components:
+      - period: 360
+        amplitude: 7Mbps
+        phase_offset: -120
+      - period: 2520
+        amplitude: 2Mbps
+        phase_offset: -450
+    noise_stddev_pct: 2.0
+    min_rate: 1Mbps
+    max_rate: 25Mbps
+
+  concurrent_users: 10
+
+# ════════════════════════════════════════════════════════════════════════════
+# PAIR 4 — d2-red ↔ d3-red : TCP bidirectional, cross-site data replication
+#
+#   Path: pe2 (Cambridge) → p1/p3 → pe3 (Brighton).
+#
+#   Models nightly/daily bulk data movement between Coventry and Plymouth
+#   sites: log archiving, ERP batch jobs, CRM sync.
+#
+#   Forward  (d2→d3): base 10 Mbps, peak ~22 Mbps.
+#   Reverse  (d3→d2): base 14 Mbps, peak ~31 Mbps (larger result-set downloads).
+#
+#   Prometheus flow IDs:
+#     d2-red-d3-red-bidir_d2-red      role=source
+#     d2-red-d3-red-bidir_d2-red_rev  role=destination
+# ════════════════════════════════════════════════════════════════════════════
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: d2-red-d3-red-bidir
+  namespace: network
+  labels:
+    scenario: l3vpn-red-mesh
+    vpn: red-mesh
+    source: d2-red
+    destination: d3-red
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  vpnRef: l3vpn-red-service
+  source_devices:
+    - d2-red
+  destination_device: d3-red
+  protocol: TCP
+  duration: 172800
+
+  # ── d2-red → d3-red : batch jobs / log archiving ─────────────────────────
+  # bw(t) = 10 + 10×sin(2π(t−120)/360) + 2×sin(2π(t−450)/2520) + noise
+  # Peak ~22 Mbps at 14:00 simulated; overnight ~0 Mbps
+  bandwidth: 25Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 10Mbps
+    components:
+      - period: 360
+        amplitude: 10Mbps
+        phase_offset: -120   # peak at 14:00 simulated
+      - period: 2520
+        amplitude: 2Mbps
+        phase_offset: -450   # Wednesday noon peak
+    noise_stddev_pct: 4.0
+    min_rate: 2Mbps
+    max_rate: 40Mbps
+
+  # ── d3-red → d2-red : result-set downloads / CRM sync ───────────────────
+  # bw(t) = 14 + 14×sin(2π(t−120)/360) + 3×sin(2π(t−450)/2520) + noise
+  # Peak ~31 Mbps; overnight ~0 Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 14Mbps
+    components:
+      - period: 360
+        amplitude: 14Mbps
+        phase_offset: -120
+      - period: 2520
+        amplitude: 3Mbps
+        phase_offset: -450
+    noise_stddev_pct: 3.0
+    min_rate: 2Mbps
+    max_rate: 50Mbps
+
+  concurrent_users: 15
+
+# ════════════════════════════════════════════════════════════════════════════
+# PAIR 5 — d2-red ↔ d4-red : UDP bidirectional, telemetry + monitoring
+#
+#   Path: pe2 (Cambridge) ↔ pe4 (Cardiff).
+#   Forward  (d2→d4): business-hours telemetry uplink — multi_sine.
+#   Reverse  (d4→d2): SNMP poll responses / heartbeat — multi_sine.
+#
+#   Both directions use multi_sine to contribute meaningful load to pe4.
+#   Peak ~18 Mbps each direction at 14:00 sim.
+#
+#   Prometheus flow IDs:
+#     d2-red-d4-red-bidir_d2-red      role=source
+#     d2-red-d4-red-bidir_d2-red_rev  role=destination
+# ════════════════════════════════════════════════════════════════════════════
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: d2-red-d4-red-bidir
+  namespace: network
+  labels:
+    scenario: l3vpn-red-mesh
+    vpn: red-mesh
+    source: d2-red
+    destination: d4-red
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  vpnRef: l3vpn-red-service
+  source_devices:
+    - d2-red
+  destination_device: d4-red
+  protocol: UDP
+  duration: 172800
+
+  # ── d2-red → d4-red : business-hours telemetry uplink ───────────────────
+  # bw(t) = 8 + 8×sin(2π(t−120)/360) + 2×sin(2π(t−450)/2520) + noise
+  # Peak ~18 Mbps at 14:00 sim; overnight ~0 Mbps
+  bandwidth: 22Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 8Mbps
+    components:
+      - period: 360
+        amplitude: 8Mbps
+        phase_offset: -120   # peak at 14:00 simulated
+      - period: 2520
+        amplitude: 2Mbps
+        phase_offset: -450
+    noise_stddev_pct: 3.0
+    min_rate: 1Mbps
+    max_rate: 30Mbps
+
+  # ── d4-red → d2-red : SNMP / telemetry response stream ──────────────────
+  # bw(t) = 8 + 8×sin(2π(t−120)/360) + 2×sin(2π(t−450)/2520) + noise
+  # Peak ~18 Mbps — symmetric with forward; contributes to pe4 outbound load.
+  bidirectional: true
+  reverse_bandwidth: 22Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 8Mbps
+    components:
+      - period: 360
+        amplitude: 8Mbps
+        phase_offset: -120
+      - period: 2520
+        amplitude: 2Mbps
+        phase_offset: -450
+    noise_stddev_pct: 3.0
+    min_rate: 1Mbps
+    max_rate: 30Mbps
+
+  concurrent_users: 10
+
+# ════════════════════════════════════════════════════════════════════════════
+# PAIR 6 — d3-red ↔ d4-red : UDP bidirectional, quality probe
+#
+#   Path: pe3 (Brighton) ↔ pe4 (Cardiff) — adjacent via p4.
+#   Both directions carry meaningful load to bring pe4 to ~80 Mbps aggregate.
+#
+#   Forward  (d3→d4): business-hours quality probe — multi_sine.
+#                     Peak shifted slightly earlier (13:30 sim) to de-correlate
+#                     from the other pairs and create diverse congestion windows.
+#   Reverse  (d4→d3): symmetric quality probe — multi_sine.
+#
+#   Phase offset for 13:30 simulated:
+#     peak_elapsed = 13.5 × 15 = 202.5 s  → offset = 360/4 − 202.5 = −112.5 ≈ −113
+#
+#   Peak ~27 Mbps each direction — largest contributor to pe4 load.
+#
+#   Prometheus flow IDs:
+#     d3-red-d4-red-bidir_d3-red      role=source
+#     d3-red-d4-red-bidir_d3-red_rev  role=destination
+# ════════════════════════════════════════════════════════════════════════════
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: d3-red-d4-red-bidir
+  namespace: network
+  labels:
+    scenario: l3vpn-red-mesh
+    vpn: red-mesh
+    source: d3-red
+    destination: d4-red
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  vpnRef: l3vpn-red-service
+  source_devices:
+    - d3-red
+  destination_device: d4-red
+  protocol: UDP
+  duration: 172800
+
+  # ── d3-red → d4-red : quality probe (slight early-afternoon peak) ────────
+  # bw(t) = 12 + 12×sin(2π(t−113)/360) + 3×sin(2π(t−450)/2520) + noise
+  # Peak ~27 Mbps at 13:30 simulated (de-correlated from 14:00 pairs)
+  bandwidth: 30Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 12Mbps
+    components:
+      - period: 360
+        amplitude: 12Mbps
+        phase_offset: -113   # peak at 13:30 simulated (202.5 s elapsed)
+      - period: 2520
+        amplitude: 3Mbps
+        phase_offset: -450
+    noise_stddev_pct: 3.0
+    min_rate: 2Mbps
+    max_rate: 45Mbps
+
+  # ── d4-red → d3-red : symmetric quality probe / monitoring push ──────────
+  # bw(t) = 12 + 12×sin(2π(t−113)/360) + 3×sin(2π(t−450)/2520) + noise
+  # Peak ~27 Mbps — symmetric; key contributor to pe4 outbound load.
+  bidirectional: true
+  reverse_bandwidth: 30Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 12Mbps
+    components:
+      - period: 360
+        amplitude: 12Mbps
+        phase_offset: -113
+      - period: 2520
+        amplitude: 3Mbps
+        phase_offset: -450
+    noise_stddev_pct: 3.0
+    min_rate: 2Mbps
+    max_rate: 45Mbps
+
+  concurrent_users: 10

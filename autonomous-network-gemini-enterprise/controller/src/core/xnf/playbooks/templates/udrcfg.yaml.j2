@@ -1,0 +1,36 @@
+info:
+  version: 1.1.0
+  description: UDR initial local configuration
+
+configuration:
+  sbi:
+    scheme: http
+    registerIPv4: {{ nf_ip }}
+    bindingIPv4: {{ nf_ip }}
+    port: 8000
+    tls:
+      pem: cert/udr.pem
+      key: cert/udr.key
+  dbConnectorType: mongodb 
+  mongodb:
+    name: free5gc
+    url: {{ mongodb_url }}
+  nrfUri: {{ nrf_uri }}
+  nrfCertPem: cert/nrf.pem # NRF Certificate
+{% if metrics_enabled %}
+  metrics:
+    enable: true
+    scheme: {{ metrics_scheme }}
+    bindingIPv4: 0.0.0.0
+    port: {{ metrics_port }}
+    namespace: {{ metrics_namespace }}
+{% if metrics_scheme == 'https' %}
+    tls:
+      pem: cert/udr.pem
+      key: cert/udr.key
+{% endif %}
+{% endif %}
+logger:
+  enable: true
+  level: info
+  reportCaller: false

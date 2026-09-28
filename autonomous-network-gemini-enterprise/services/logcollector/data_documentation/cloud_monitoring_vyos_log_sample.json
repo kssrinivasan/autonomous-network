@@ -1,0 +1,66 @@
+{
+  "insertId": "699822a20002be40420c7b19",
+  "jsonPayload": {
+    "logName": "projects/networkagent-434609/logs/vyos_syslog",
+    "resource": {
+      "type": "gce_instance",
+      "labels": {
+        "project_id": "networkagent-434609",
+        "instance_id": "3515116987487830921",
+        "zone": "europe-west1-c"
+      }
+    },
+    "insertId": "m3k4if1i9f2j",
+    "_comment": "==== This the jsonPayload created by the Ops Agent parse_regex ====",
+    "jsonPayload": {
+      "time": "2026-02-20T09:00:06.786281+00:00",
+      "host": "rr1",
+      "proc_id": "1",
+      "app_name": "systemd",
+      "msg_id": "-",
+      "pri": "30",
+      "source": "vyos",
+      "facility": "3: system daemons",
+      "msg_body": "Finished Rotate log files."
+    },
+    "receiveTimestamp": "2026-02-20T09:00:07.122224731Z",
+    "labels": {
+      "compute.googleapis.com/resource_name": "networkvm"
+    }
+  },
+  "httpRequest": {
+    "requestMethod": "POST",
+    "requestUrl": "http://capture-log-sjzjfd6jba-ew.a.run.app/",
+    "userAgent": "APIs-Google; (+https://developers.google.com/webmasters/APIs-Google.html)",
+    "protocol": "HTTP/1.1"
+  },
+  "resource": {
+    "type": "cloud_run_revision",
+    "labels": {
+      "service_name": "capture-log",
+      "project_id": "networkagent-434609",
+      "location": "europe-west1",
+      "revision_name": "capture-log-00007-tim",
+      "configuration_name": "capture-log"
+    }
+  },
+  "timestamp": "2026-02-20T09:00:18.179776Z",
+  "severity": "INFO",
+  "labels": {
+    "python_logger": "main",
+    "goog-drz-cloudfunctions-id": "capture_log",
+    "goog-drz-cloudfunctions-location": "europe-west1",
+    "run.googleapis.com/base_image_versions": "us-docker.pkg.dev/serverless-runtimes/google-22-full/runtimes/python312:python312_20260207_3_12_12_RC00",
+    "instanceId": "00da6cd2c4d909577e4df855af65cc9c750027b182c2877fb81fe1f226a6f5f45beed918840885fd0fbc86279f5687c5cb71868009f9987c67765d95488000755297214c9885dbf190d24ab5a8c1",
+    "goog-managed-by": "cloudfunctions"
+  },
+  "logName": "projects/networkagent-434609/logs/run.googleapis.com%2Fstdout",
+  "trace": "projects/networkagent-434609/traces/9f34692bd637f4d7372406d4db81e701",
+  "sourceLocation": {
+    "file": "/workspace/main.py",
+    "line": "216",
+    "function": "capture_log"
+  },
+  "receiveTimestamp": "2026-02-20T09:00:18.504855809Z",
+  "spanId": "6782fa43683b9f70"
+}

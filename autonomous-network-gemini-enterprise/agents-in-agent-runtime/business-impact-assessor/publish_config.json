@@ -1,0 +1,6 @@
+{
+  "displayName": "Business Impact Assessor",
+  "description": "An AI assistant designed to provide the business impact of specific network resources such as links and order upgrade jobs based on the Revenue Impact Index (RII).",
+  "icon_url": "https://storage.googleapis.com/${GCP_PROJECT}-agent-assets/telco_icon.jpg",
+  "tool_description": "Provide business impact assessment of network links and order upgrade jobs based on Revenue Impact Index."
+}

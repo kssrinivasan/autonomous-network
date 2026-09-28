@@ -1,0 +1,141 @@
+---
+# Transport Domain Intent - Default L3VPN Backhaul Network
+# TMF921 Intent for VyOS L3VPN service provisioning (HIGH-LEVEL ABSTRACTION)
+# API Endpoint: POST http://<transport-api-host>:8080/a2a/app  (A2A JSON-RPC)
+#
+# WHAT you specify (business intent):
+#   - PE routers and customer-facing interfaces
+#   - Customer endpoints and prefixes
+#   - VPN topology type
+#   - SLA requirements
+#
+# HOW the orchestrator derives (technical implementation):
+#   - VRF name (auto-generated from serviceName)
+#   - Route Distinguisher (RD) per PE router
+#   - Route Target (RT) values based on topology
+#   - BGP neighbor configurations
+#   - QoS policies from trafficClass
+
+namespace: default
+intent:
+  "@type": "Intent"
+  name: "default-transport-backhaul"
+  description: "Any-to-any L3VPN backhaul network connecting core and cell sites"
+  priority: 50
+  intentExpression:
+    "@type": "IntentExpression"
+    expectation:
+      - "@type": "L3ConnectivityIntent"
+        expectationVerb: "DELIVER"
+        expectationObject:
+          "@type": "L3VPNService"
+          serviceName: "RED Mesh VPN"
+          topology: "any-to-any"
+          endpoints:
+            - peRouter: "pe1"
+              peInterface: "eth3"
+              customerRouter: "ce1-red"
+              customerPrefix: "10.101.1.0/24"
+
+            - peRouter: "pe2"
+              peInterface: "eth4"
+              customerRouter: "ce2-red"
+              customerPrefix: "10.101.2.0/24"
+
+            - peRouter: "pe3"
+              peInterface: "eth3"
+              customerRouter: "ce3-red"
+              customerPrefix: "10.101.3.0/24"
+
+            - peRouter: "pe4"
+              peInterface: "eth3"
+              customerRouter: "ce4-red"
+              customerPrefix: "10.101.4.0/24"
+
+          sla:
+            bandwidth: "100 Mbps per endpoint"
+            latency: "< 10ms"
+            availability: "99.99%"
+            trafficClass: "business-critical"
+
+# ============================================================================
+# ORCHESTRATOR AUTO-DERIVES (ACTN MDSC Role - Multi-Domain Service Coordinator):
+# ============================================================================
+#
+# 1. VRF Name:
+#    Auto-generated from serviceName → "RED_MESH"
+#
+# 2. Route Distinguisher (RD) per PE:
+#    Format: {pe-loopback-ip}:{vrf-id}
+#    - pe1: 10.0.0.7:2000
+#    - pe2: 10.0.0.8:2000
+#    - pe3: 10.0.0.10:2000
+#    - pe4: 10.0.0.11:2000
+#
+# 3. Route Targets (RT):
+#    any-to-any topology uses common RT for import/export on all PEs
+#    - RT export: 65035:2000
+#    - RT import: 65035:2000
+#
+# 4. BGP Neighbors:
+#    PE-CE peering derived from:
+#    - PE side: peInterface IP (e.g., 10.55.55.1 for pe1 eth3)
+#    - CE side: customerPrefix gateway IP (e.g., 10.55.55.2 for ce1-red)
+#    - Remote AS: Resolved from CE router configuration or site registry
+#
+# 5. QoS Policies:
+#    trafficClass "business-critical" maps to:
+#    - High priority queue on PE routers
+#    - Bandwidth shaping per SLA (100 Mbps)
+#
+# 6. VRF Table ID:
+#    Auto-allocated from available pool (e.g., 300)
+#
+# 7. Underlay Dependency:
+#    Validates VyOSUnderlay CR "default-multi-underlay" is Ready
+#
+# ============================================================================
+# Generated VyOSL3VPN CR (what the orchestrator creates):
+# ============================================================================
+#
+# apiVersion: google.dev/v1
+# kind: VyOSL3VPN
+# metadata:
+#   name: l3vpn-red-service
+#   namespace: network
+# spec:
+#   underlayRef: "default-multi-underlay"
+#   services:
+#     - name: "RED_MESH"
+#       type: "l3vpn"
+#       topology: "any-to-any"
+#   routers:
+#     - name: "pe1"
+#       vrfs:
+#         - name: "RED_MESH"
+#           table: 300
+#           rd: "10.0.0.7:2000"
+#           rt_export: ["65035:2000"]
+#           rt_import: ["65035:2000"]
+#           interfaces: ["eth3"]
+#       bgp:
+#         vrfs:
+#           - name: "RED_MESH"
+#             neighbors:
+#               - peer: "10.55.55.2"
+#                 remote_as: 65035
+#     # ... pe2, pe3, pe4 similarly derived
+#   ce_routers:
+#     - name: "ce1-red"
+#       protocols:
+#         bgp:
+#           as_number: 65035
+#           router_id: "10.0.0.101"
+#           neighbors:
+#             - peer: "10.55.55.1"
+#               remote_as: 65001
+#     # ... ce2-red, ce3-red, ce4-red similarly derived
+#
+# Prerequisites:
+#   - VyOSInfrastructure CR must be Ready (creates routers)
+#   - VyOSUnderlay CR "default-multi-underlay" must be Ready

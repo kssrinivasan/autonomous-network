@@ -1,0 +1,68 @@
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: blue-vpn-hub-spoke-test
+  namespace: network
+spec:
+  description: "BLUE VPN hub-and-spoke - enhanced for capacity testing and fault impact demonstration"
+  vpnRef: blue-vpn-service
+  source_devices:
+    - "d1-blue"   # pe1 (Oxford, Area 1)
+    - "d2-blue"   # pe2 (Cambridge, Area 1)
+    - "d3-blue"   # pe3 (Brighton, Area 1)
+    - "d4-blue"   # pe4 (Southampton, Area 1)
+    - "d5-blue"   # pe5 (Nantes, Area 3)
+    - "d6-blue"   # pe6 (Strasbourg, Area 3)
+    - "d7-blue"   # pe7 (Cologne, Area 2)
+    - "d8-blue"   # pe8 (Hanover, Area 2)
+    - "d9-blue"   # pe9 (Frankfurt, Area 2)
+    - "d10-blue"  # pe10 (Leipzig, Area 2)
+    - "d11-blue"  # pe11 (Montpellier, Area 3)
+  destination_device: "dh-blue"  # pe12 (Bilbao, Area 4 - hub)
+  protocol: TCP
+  duration: 3600    # 1 hour for steady-state analysis
+
+  # Spoke → Hub: 60 Mbps with time-of-day variation
+  bandwidth: 90Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: wall_clock
+    base_rate: 50Mbps
+    components:
+      - period: 3600       # 1-hour cycle (business hour simulation)
+        amplitude: 25Mbps
+        phase_offset: 0
+    noise_stddev_pct: 5.0
+    min_rate: 20Mbps
+    max_rate: 90Mbps
+
+  # Hub → Spoke: 15 Mbps asymmetric return traffic
+  bidirectional: true
+  reverse_bandwidth: 20Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: wall_clock
+    base_rate: 10Mbps
+    components:
+      - period: 3600
+        amplitude: 5Mbps
+        phase_offset: 900    # 15-minute phase shift
+    noise_stddev_pct: 3.0
+    min_rate: 5Mbps
+    max_rate: 20Mbps
+
+  concurrent_users: 10
+
+  expected_paths:
+    - source: "d1-blue"
+      expected: ["ce1-spoke", "pe1", "ar1", "pa1", "p1", "pa2", "p4", "pa6", "ar12", "pe12", "ce1-hub", "dh-blue"]
+      description: "Oxford to Bilbao hub - cross-region Area 1 → Area 0 → Area 4"
+    - source: "d2-blue"
+      expected: ["ce2-spoke", "pe2", "ar1", "pa1", "p1", "pa2", "p4", "pa6", "ar12", "pe12", "ce1-hub", "dh-blue"]
+      description: "Cambridge to Bilbao hub - cross-region Area 1 → Area 0 → Area 4"
+    - source: "d5-blue"
+      expected: ["ce4-spoke", "pe5", "ar9", "pa5", "p3", "p4", "pa6", "ar12", "pe12", "ce1-hub", "dh-blue"]
+      description: "Nantes to Bilbao hub - cross-region Area 3 → Area 0 → Area 4"
+    - source: "d7-blue"
+      expected: ["ce6-spoke", "pe7", "ar5", "pa3", "p2", "p4", "pa6", "ar12", "pe12", "ce1-hub", "dh-blue"]
+      description: "Cologne to Bilbao hub - cross-region Area 2 → Area 0 → Area 4"

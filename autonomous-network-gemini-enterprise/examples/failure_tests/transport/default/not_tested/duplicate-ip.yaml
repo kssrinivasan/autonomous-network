@@ -1,0 +1,47 @@
+# NetworkFailure: IP Address Overlap / Duplicate IP
+#
+# Fault Type   : DUPLICATE_IP
+# Target       : P3, interface eth3 (P3-to-P4 link)
+# Impact       : P3 claims the IP address 172.16.30.1/24 which is legitimately
+#                assigned to P1's eth1 (P1-P2 link). This causes severe ARP flapping
+#                throughout the network: hosts and routers that have cached the
+#                correct ARP entry for 172.16.30.1 (P1's MAC) will now receive
+#                gratuitous ARPs claiming P3 has that address. Routing table entries
+#                pointing to 172.16.30.1 become intermittently unreachable, causing
+#                packet loss and unpredictable black-holing depending on which ARP
+#                entry is currently winning.
+#
+# GNN Detection Signatures:
+#   HetGNN : IP addressing sub-embedding of P3/eth3 diverges — assigned prefix
+#             overlaps with P1/eth1 prefix, creating an anomalous embedding cluster
+#   D-GAT  : ARP cache churn visible as repeated updates to edge attributes
+#             between P1/eth1 and P3/eth3 nodes in the topology graph
+#   STGNN  : Intermittent reachability oscillations correlated to ARP timeout
+#             periods on nodes sharing the same subnet
+#
+# Usage:
+#   kubectl apply  -f nf-fault7-duplicate-ip.yaml    # Add duplicate IP (chaos starts)
+#   kubectl delete -f nf-fault7-duplicate-ip.yaml    # Remove duplicate IP (ARP settles)
+---
+apiVersion: google.dev/v1
+kind: NetworkFailure
+metadata:
+  name: fault7-duplicate-ip
+  namespace: network
+  labels:
+    scenario: l3vpn-hub-spoke
+    fault-type: duplicate-ip
+    severity: critical
+spec:
+  writeMode: direct
+  failureType: DUPLICATE_IP
+  infrastructureRef: l3vpn-infra
+  target:
+    router: p3
+    # We add the duplicate IP to eth3 (P3-to-P4 link, 172.16.50.0/24).
+    # The duplicated address 172.16.30.1 belongs to P1's eth1 on the P1-P2 link.
+    interface: eth3
+  parameters:
+    # 172.16.30.1/24 is the primary IP of P1's eth1 (P1-P2 link, VLAN 301).
+    # Duplicating this on P3/eth3 creates severe ARP conflict and routing instability.
+    duplicate_ip: "172.16.30.1/24"

@@ -1,0 +1,44 @@
+# NetworkFailure: Pre-Aggregation to Core Link Failure (Large Network)
+#
+# Fault Type   : LINK_DOWN
+# Target       : PA1-P1 link (Manchester PA to London Core)
+# Mechanism    : Bring down the bridge connecting pa1 and p1 (peer_router mode)
+# Impact       : UK regional traffic (Area 1) via pa1 must reroute through alternate
+#                ABR path (pa1-p2). Tests dual-homing resilience at PA tier. Minimal
+#                impact on other regions (Germany, France, Iberia).
+#
+# Traffic Impact:
+#   - All UK PE traffic via pa1 shifts to pa1-p2 path (Manchester → Frankfurt → dest)
+#   - Increased latency: ~5-8ms (UK → Germany → destination vs direct to London)
+#   - Load increase on pa1-p2 link (dual-homed backup)
+#   - Minimal impact on other regions (Germany, France, Iberia use different ABRs)
+#
+# GNN Detection Signatures:
+#   D-GAT  : Both directed edges PA1(eth)→P1(eth) and P1(eth)→PA1(eth) flip to
+#             link_state=0 simultaneously (bridge mode)
+#   STGNN  : OSPF adjacency down alarm, UK regional traffic shows path changes
+#   HetGNN : Load shift to pa1-p2 link visible in metrics, regional isolation pattern
+#
+# Related Scenario: docs/scenarios/large/scenario_2_pa_core_link_failure.md
+#
+# Usage:
+#   kubectl apply  -f link-down-pa1-p1.yaml    # Bring down PA1-P1 link
+#   kubectl delete -f link-down-pa1-p1.yaml    # Restore link
+---
+apiVersion: google.dev/v1
+kind: NetworkFailure
+metadata:
+  name: link-down-pa1-p1
+  namespace: network
+  labels:
+    scenario: large-network
+    fault-type: link-down
+    link-down-mode: bridge
+    severity: high
+spec:
+  writeMode: direct
+  failureType: LINK_DOWN
+  infrastructureRef: complex-network-infra
+  target:
+    router: pa1
+    peer_router: p1

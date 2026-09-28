@@ -1,0 +1,162 @@
+# Configuration file with credentials (use config.sh.template instead)
+config.sh
+
+**/playbooks/artifacts
+**/playbooks/extravars
+**/playbooks/inventory
+**/playbooks/env
+**/__pycache__
+**/.venv
+.vscode
+launch.json
+**/networkagent.json
+**/google-compute
+**/google-compute.pub
+**/gcp/monitoring.yaml
+**/gcp/networks.yaml
+**/gcp/git.yaml
+**/gcp/configconnector.yaml
+**/gcp/bigquery.yaml
+**/gcp/spanner.yaml
+**/gcp/dataflow.yaml
+**/gcp/logsink.yaml
+**/tools/deployment.yaml
+**/tools/cloudbuild.yaml
+**/deployment.yaml
+**/cloudbuild.yaml
+**/sample-services/locations/*.yaml
+**/sample-services/clusters/*.yaml
+
+deployment-blueprint.tar.gz
+porch-install
+
+# agent-cli runtime metadata
+**/deployment_metadata.json
+
+# packages file containing multi-root paths
+.packages.generated
+
+# Flutter/Dart/Pub related
+**/doc/api/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+**/generated_plugin_registrant.dart
+.packages
+.pub-preload-cache/
+.pub-cache/
+.pub/
+dashboard/build/
+flutter_*.png
+linked_*.ds
+unlinked.ds
+unlinked_spec.ds
+
+# Android related
+**/android/**/gradle-wrapper.jar
+.gradle/
+**/android/captures/
+**/android/gradlew
+**/android/gradlew.bat
+**/android/**/GeneratedPluginRegistrant.java
+**/android/key.properties
+*.jks
+local.properties
+**/.cxx/
+
+# iOS/XCode related
+**/ios/**/*.mode1v3
+**/ios/**/*.mode2v3
+**/ios/**/*.moved-aside
+**/ios/**/*.pbxuser
+**/ios/**/*.perspectivev3
+**/ios/**/*sync/
+**/ios/**/.sconsign.dblite
+**/ios/**/.tags*
+**/ios/**/.vagrant/
+**/ios/**/DerivedData/
+**/ios/**/Icon?
+**/ios/**/Pods/
+**/ios/**/.symlinks/
+**/ios/**/profile
+**/ios/**/xcuserdata
+**/ios/.generated/
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/App.framework
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/ephemeral
+**/ios/Flutter/app.flx
+**/ios/Flutter/app.zip
+**/ios/Flutter/flutter_assets/
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.*
+
+# macOS
+**/Flutter/ephemeral/
+**/Pods/
+**/macos/Flutter/GeneratedPluginRegistrant.swift
+**/macos/Flutter/ephemeral
+**/xcuserdata/
+
+# Windows
+**/windows/flutter/ephemeral/
+**/windows/flutter/generated_plugin_registrant.cc
+**/windows/flutter/generated_plugin_registrant.h
+**/windows/flutter/generated_plugins.cmake
+
+# Linux
+**/linux/flutter/ephemeral/
+**/linux/flutter/generated_plugin_registrant.cc
+**/linux/flutter/generated_plugin_registrant.h
+**/linux/flutter/generated_plugins.cmake
+
+# Python library
+lib/build
+**/*egg-info
+
+**/.env
+**/submit_pipeline.py
+**/gnn_pipeline.yaml
+gnn/tests/notebook_artifacts/
+# ---- carried over from gnnsandbox .gitignore ----
+.venv
+**/environment/monitoring.yaml
+**/environment/networks.yaml
+**/environment/git.yaml
+**/environment/configconnector.yaml
+**/environment/bigquery.yaml
+**/environment/spanner.yaml
+**/environment/logsink.yaml
+/setenv.sh
+/agents-in-agent-runtime/runtime_variables.json
+/dashboard-v2/variables.json
+/mcp_server_for_ge/variables.json
+/mcp_server_for_ge/ge/variables.json
+/mcp_server_for_ge/re/variables.json
+
+# Vendored at deploy time from lib/src/agent_library, because lib/ is outside
+# these services' --source build context. Never edit or commit these copies;
+# edit lib/ and redeploy. Each service has a .gcloudignore so that ignoring
+# them here does not also drop them from the Cloud Build upload.
+/mcp_server_for_ge/ge/src/agent_library/
+/mcp_server_for_ge/re/src/agent_library/
+
+# Same vendoring, done by agents-in-agent-runtime/deploy_agents.py, which
+# copytrees lib/src/agent_library into <agent>/app/ and rmtrees it in a finally.
+# A `git add -A` while a deploy is in flight would otherwise commit it.
+#
+# Safe to ignore here, and ONLY here: agents-cli packages the upload itself
+# (google/agents/cli/deploy/agent_runtime.py, _packaged_files(Path.cwd())) and
+# _ignore_lines reads <agent>/.gcloudignore else <agent>/.gitignore -- never this
+# file. Do NOT copy these lines into a per-agent .gitignore; that WOULD drop the
+# library from the deploy package and the runtime fails at import time.
+/agents-in-agent-runtime/*/app/agent_library/
+
+# Written by each service's install.sh with the URL of the deployment it just
+# made, and removed again by uninstall.sh. Nothing reads it back -- it exists
+# only so the operator can find the URL after the fact -- so it is per-clone
+# state, not source.
+/domains/transport/services/*/.api_url

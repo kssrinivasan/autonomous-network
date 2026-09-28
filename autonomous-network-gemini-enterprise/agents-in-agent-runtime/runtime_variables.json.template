@@ -1,0 +1,7 @@
+{
+  "GCP_PROJECT": "YOUR_PROJECT_ID",
+  "GCP_REGION": "YOUR_GCP_REGION",
+  "SERVICE_ACCOUNT": "networkagent@YOUR_PROJECT_ID.iam.gserviceaccount.com",
+  "AGENT_MCP_TOOLS_ADDRESS": "https://mcp-networktools-YOUR_PROJECT_NUMBER.YOUR_GCP_REGION.run.app/sse",
+  "GEMINI_APP_ID": "projects/YOUR_PROJECT_NUMBER/locations/global/collections/default_collection/engines/YOUR_GEMINI_ENGINE_NAME"
+}

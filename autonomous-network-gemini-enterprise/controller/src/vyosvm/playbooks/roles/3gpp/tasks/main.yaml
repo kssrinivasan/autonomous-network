@@ -1,0 +1,99 @@
+# Copyright 2024-2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+---
+- name: Check if /opt/free5gc exists
+  stat:
+    path: /opt/free5gc
+  register: free5gc_dir
+
+- name: Create /opt/free5gc directory structure
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /opt/free5gc
+    - /opt/free5gc/base
+    - /opt/free5gc/device
+  when: not free5gc_dir.stat.exists
+
+# ============================================================================
+# Copy base builder files
+# ============================================================================
+- name: Copy base Dockerfile
+  copy:
+    src: free5gc/base/Dockerfile
+    dest: /opt/free5gc/base/Dockerfile
+    mode: '0644'
+
+# ============================================================================
+# Copy consolidated device image files (NEW)
+# ============================================================================
+- name: Copy device Dockerfile
+  copy:
+    src: free5gc/device/Dockerfile
+    dest: /opt/free5gc/device/Dockerfile
+    mode: '0644'
+
+- name: Copy device entrypoint script
+  copy:
+    src: free5gc/device/entrypoint.sh
+    dest: /opt/free5gc/device/entrypoint.sh
+    mode: '0755'
+
+# ============================================================================
+# Copy templated Makefile
+# ============================================================================
+- name: Copy templated Makefile
+  template:
+    src: Makefile
+    dest: /opt/free5gc/Makefile
+    mode: '0644'
+
+# ============================================================================
+# Clone free5gc source
+# ============================================================================
+- name: Check if free5gc source exists
+  stat:
+    path: /opt/free5gc/base/free5gc
+  register: free5gc_src
+
+- name: Clone free5gc repository
+  git:
+    repo: https://github.com/free5gc/free5gc.git
+    dest: /opt/free5gc/base/free5gc
+    version: v4.2.0
+    force: yes
+  when: not free5gc_src.stat.exists
+
+# ============================================================================
+# Build consolidated device image
+# ============================================================================
+- name: Build consolidated device image
+  shell: make device
+  args:
+    chdir: /opt/free5gc
+  environment:
+    GOOGLE_REGION: "{{ GOOGLE_REGION }}"
+    GOOGLE_PROJECT: "{{ GOOGLE_PROJECT }}"
+
+# ============================================================================
+# MongoDB (needed by webui at runtime)
+# ============================================================================
+- name: Pull MongoDB image
+  docker_image:
+    name: mongo:7.0
+    source: pull
+

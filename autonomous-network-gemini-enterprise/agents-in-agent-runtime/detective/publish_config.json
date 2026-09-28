@@ -1,0 +1,6 @@
+{
+  "displayName": "Network Detective",
+  "description": "An elite network detective agent capable of querying Kubernetes VNF deployments, live telemetry metrics, checking active network fault status, identifying link bottlenecks, and performing semantic syslog triage.",
+  "icon_url": "https://storage.googleapis.com/${GCP_PROJECT}-agent-assets/telco_icon.jpg",
+  "tool_description": "Answer questions about Kubernetes network deployments, telemetry metrics, active faults, link bottlenecks, and error log entries."
+}

@@ -1,0 +1,14 @@
+fastapi==0.136.3
+uvicorn[standard]==0.49.0
+httpx==0.28.1
+# The agents are Reasoning Engines, so the only outbound auth this service needs
+# is an ADC access token -- see src/a2a_client.py. No a2a-sdk, nothing imports
+# a2a; no kubernetes, nothing reads a CRD any more.
+google-auth==2.53.0
+# google.auth.transport.requests -- which a2a_client.py imports to refresh the
+# ADC token -- raises ImportError at import time without this. It is not a
+# dependency of google-auth itself (that extra is `google-auth[requests]`); it
+# used to arrive transitively through kubernetes, which the same pass that
+# added google-auth removed. The container exited 1 on startup until this
+# was pinned back.
+requests==2.32.5

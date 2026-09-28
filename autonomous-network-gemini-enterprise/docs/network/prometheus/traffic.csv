@@ -1,0 +1,61 @@
+Metric Name,Sample Value,Description
+traffic_agent_bytes_sent_total,0,Total bytes sent by this flow.
+traffic_agent_bytes_received_total,1.566659836e+09,Total bytes received by this flow.
+traffic_agent_throughput_bps,1.4194515624013893e+07,Bidirectional throughput in bits per second (sent + received). Kept for backward compatibility; prefer throughput_sent_bps / throughput_recv_bps.
+traffic_agent_throughput_sent_bps,0,Outbound throughput in bits per second (bytes sent only). Use this for source-role flows to avoid double-counting bidirectional traffic.
+traffic_agent_throughput_recv_bps,1.4194515624013893e+07,Inbound throughput in bits per second (bytes received only). Use this for destination-role flows.
+traffic_agent_latency_ms,0.21181740976645436,Mean latency in milliseconds (UDP flows only).
+traffic_agent_packet_loss_pct,0,Packet loss percentage (UDP flows only).
+traffic_agent_jitter_ms,0.11052016985138005,Mean jitter in milliseconds (UDP flows only).
+traffic_agent_active_sessions,0,Number of currently active sessions in this flow.
+traffic_agent_flow_running,1,"1 if the flow is in 'running' phase, 0 otherwise."
+traffic_agent_bytes_sent_total,2.669756416e+09,Total bytes sent by this flow.
+traffic_agent_bytes_received_total,0,Total bytes received by this flow.
+traffic_agent_throughput_bps,2.4995984911673434e+07,Bidirectional throughput in bits per second (sent + received). Kept for backward compatibility; prefer throughput_sent_bps / throughput_recv_bps.
+traffic_agent_throughput_sent_bps,2.4995984911673434e+07,Outbound throughput in bits per second (bytes sent only). Use this for source-role flows to avoid double-counting bidirectional traffic.
+traffic_agent_throughput_recv_bps,0,Inbound throughput in bits per second (bytes received only). Use this for destination-role flows.
+traffic_agent_latency_ms,0,Mean latency in milliseconds (UDP flows only).
+traffic_agent_packet_loss_pct,0,Packet loss percentage (UDP flows only).
+traffic_agent_jitter_ms,0,Mean jitter in milliseconds (UDP flows only).
+traffic_agent_active_sessions,15,Number of currently active sessions in this flow.
+traffic_agent_flow_running,1,"1 if the flow is in 'running' phase, 0 otherwise."
+traffic_agent_bytes_sent_total,3.064766464e+09,Total bytes sent by this flow.
+traffic_agent_bytes_received_total,0,Total bytes received by this flow.
+traffic_agent_throughput_bps,2.8430549627811775e+07,Bidirectional throughput in bits per second (sent + received). Kept for backward compatibility; prefer throughput_sent_bps / throughput_recv_bps.
+traffic_agent_throughput_sent_bps,2.8430549627811775e+07,Outbound throughput in bits per second (bytes sent only). Use this for source-role flows to avoid double-counting bidirectional traffic.
+traffic_agent_throughput_recv_bps,0,Inbound throughput in bits per second (bytes received only). Use this for destination-role flows.
+traffic_agent_latency_ms,0,Mean latency in milliseconds (UDP flows only).
+traffic_agent_packet_loss_pct,0,Packet loss percentage (UDP flows only).
+traffic_agent_jitter_ms,0,Mean jitter in milliseconds (UDP flows only).
+traffic_agent_active_sessions,15,Number of currently active sessions in this flow.
+traffic_agent_flow_running,1,"1 if the flow is in 'running' phase, 0 otherwise."
+traffic_agent_bytes_sent_total,0,Total bytes sent by this flow.
+traffic_agent_bytes_received_total,2.18750976e+09,Total bytes received by this flow.
+traffic_agent_throughput_bps,2.0382873442825813e+07,Bidirectional throughput in bits per second (sent + received). Kept for backward compatibility; prefer throughput_sent_bps / throughput_recv_bps.
+traffic_agent_throughput_sent_bps,0,Outbound throughput in bits per second (bytes sent only). Use this for source-role flows to avoid double-counting bidirectional traffic.
+traffic_agent_throughput_recv_bps,2.0382873442825813e+07,Inbound throughput in bits per second (bytes received only). Use this for destination-role flows.
+traffic_agent_latency_ms,0,Mean latency in milliseconds (UDP flows only).
+traffic_agent_packet_loss_pct,0,Packet loss percentage (UDP flows only).
+traffic_agent_jitter_ms,0,Mean jitter in milliseconds (UDP flows only).
+traffic_agent_active_sessions,15,Number of currently active sessions in this flow.
+traffic_agent_flow_running,1,"1 if the flow is in 'running' phase, 0 otherwise."
+traffic_agent_bytes_sent_total,1.571676428e+09,Total bytes sent by this flow.
+traffic_agent_bytes_received_total,0,Total bytes received by this flow.
+traffic_agent_throughput_bps,1.3992736138365915e+07,Bidirectional throughput in bits per second (sent + received). Kept for backward compatibility; prefer throughput_sent_bps / throughput_recv_bps.
+traffic_agent_throughput_sent_bps,1.3992736138365915e+07,Outbound throughput in bits per second (bytes sent only). Use this for source-role flows to avoid double-counting bidirectional traffic.
+traffic_agent_throughput_recv_bps,0,Inbound throughput in bits per second (bytes received only). Use this for destination-role flows.
+traffic_agent_latency_ms,0,Mean latency in milliseconds (UDP flows only).
+traffic_agent_packet_loss_pct,100,Packet loss percentage (UDP flows only).
+traffic_agent_jitter_ms,0,Mean jitter in milliseconds (UDP flows only).
+traffic_agent_active_sessions,10,Number of currently active sessions in this flow.
+traffic_agent_flow_running,1,"1 if the flow is in 'running' phase, 0 otherwise."
+traffic_agent_bytes_sent_total,0,Total bytes sent by this flow.
+traffic_agent_bytes_received_total,3.727164224e+09,Total bytes received by this flow.
+traffic_agent_throughput_bps,2.9817432598482452e+07,Bidirectional throughput in bits per second (sent + received). Kept for backward compatibility; prefer throughput_sent_bps / throughput_recv_bps.
+traffic_agent_throughput_sent_bps,0,Outbound throughput in bits per second (bytes sent only). Use this for source-role flows to avoid double-counting bidirectional traffic.
+traffic_agent_throughput_recv_bps,2.9817432598482452e+07,Inbound throughput in bits per second (bytes received only). Use this for destination-role flows.
+traffic_agent_latency_ms,0,Mean latency in milliseconds (UDP flows only).
+traffic_agent_packet_loss_pct,0,Packet loss percentage (UDP flows only).
+traffic_agent_jitter_ms,0,Mean jitter in milliseconds (UDP flows only).
+traffic_agent_active_sessions,15,Number of currently active sessions in this flow.
+traffic_agent_flow_running,1,"1 if the flow is in 'running' phase, 0 otherwise."

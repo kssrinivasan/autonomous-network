@@ -1,0 +1,252 @@
+---
+# NetworkFailure Injection Playbook
+#
+# Injects a controlled network fault into a VyOS router running as a Docker
+# container on the network VM. The playbook:
+#   1. Saves the current (original) router configuration for later restoration
+#   2. Applies the fault configuration using docker exec on the target router
+#   3. Returns the original_state as an Ansible fact for the operator to persist
+#
+# Supported failure_type values (direct injection mode):
+#   - PROCESS_CRASH
+#   - LINK_DOWN
+#   - DUPLICATE_IP
+#   - TXQUEUE_STARVATION
+#
+# Note: The following fault types are ONLY supported in operator mode (CRD patching):
+#   - MTU_MISMATCH
+#   - BGP_SESSION_DOWN
+#   - PACKET_CORRUPTION
+#   - OSPF_AREA_MISMATCH
+#   - OSPF_COST_INFLATION
+#   - VRF_RT_MISCONFIGURATION
+#
+# Use the NetworkFailure CRD with injectionMode: operator for these types.
+#
+# Variables (passed via extravars):
+#   failure_name    - Name of the NetworkFailure resource
+#   failure_type    - One of the direct-mode failure types above
+#   router          - Docker container name of the target router
+#   interface       - Router interface name (PROCESS_CRASH/LINK_DOWN/DUPLICATE_IP/TXQUEUE_STARVATION)
+#   method          - "process_kill" or "loopback_disable" (PROCESS_CRASH only)
+#   duplicate_ip    - IP/prefix to duplicate (DUPLICATE_IP only)
+#   queue_length    - Target txqueuelen value (TXQUEUE_STARVATION only)
+ #   peer_router     - Second router name (LINK_DOWN bridge mode only)
+ #   link_down_mode  - "interface" or "bridge" (LINK_DOWN only)
+ #   bridge          - Derived Linux bridge name (LINK_DOWN bridge mode only)
+
+- name: NetworkFailure - Fault Injection
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+
+    - name: Log injection start
+      debug:
+        msg: >
+          [{{ failure_name }}] Injecting '{{ failure_type }}' on router '{{ router }}'
+          (interface={{ interface | default('N/A') }})
+
+    # =========================================================================
+    # PROCESS_CRASH
+    # =========================================================================
+    - name: "[PROCESS_CRASH] Save method as original state"
+      set_fact:
+        original_state:
+          method: "{{ method }}"
+          router: "{{ router }}"
+      when: failure_type == 'PROCESS_CRASH'
+
+    - name: "[PROCESS_CRASH] Kill bgpd process inside router container"
+      shell: >
+        docker exec {{ router }}
+        /bin/sh -c "kill -9 \$(cat /var/run/frr/bgpd.pid 2>/dev/null || pgrep bgpd) 2>/dev/null || true"
+      when: failure_type == 'PROCESS_CRASH' and method == 'process_kill'
+      register: bgpd_kill_result
+      failed_when: false
+
+    - name: "[PROCESS_CRASH] Disable loopback interface on router container"
+      shell: >
+        docker exec {{ router }} ip link set lo down
+      when: failure_type == 'PROCESS_CRASH' and method == 'loopback_disable'
+      register: loopback_down_result
+      failed_when: loopback_down_result.rc != 0
+
+    - name: "[PROCESS_CRASH] Verify BGP sessions dropped (process_kill)"
+      shell: >
+        docker exec {{ router }} vtysh -c "show bgp summary" 2>/dev/null |
+        grep -E "Active|Connect|Idle" | head -5 || echo "BGP not responding"
+      when: failure_type == 'PROCESS_CRASH' and method == 'process_kill'
+      failed_when: false
+      register: bgp_crash_verify
+
+    - name: "[PROCESS_CRASH] Verify loopback is down"
+      shell: >
+        docker exec {{ router }} ip link show lo | grep -o "DOWN\|UP"
+      when: failure_type == 'PROCESS_CRASH' and method == 'loopback_disable'
+      failed_when: false
+      register: loopback_verify
+
+    - name: "[PROCESS_CRASH] Log verification"
+      debug:
+        msg: "[{{ failure_name }}] PROCESS_CRASH method={{ method }} applied on {{ router }}"
+      when: failure_type == 'PROCESS_CRASH'
+
+    # =========================================================================
+    # LINK_DOWN
+    # Two sub-modes:
+    #   interface mode (link_down_mode == 'interface'):
+    #     Brings down the interface inside the router container via docker exec.
+    #     Only the local router sees an immediate L1/L2 down event.
+    #   bridge mode (link_down_mode == 'bridge'):
+    #     Brings down the Linux bridge on the host that connects two routers.
+    #     Both ends see an immediate carrier-loss event simultaneously.
+    # =========================================================================
+
+    # --- Interface mode ---
+    - name: "[LINK_DOWN/interface] Save original state"
+      set_fact:
+        original_state:
+          mode: "interface"
+          interface: "{{ interface }}"
+          router: "{{ router }}"
+      when: failure_type == 'LINK_DOWN' and link_down_mode == 'interface'
+
+    - name: "[LINK_DOWN/interface] Bring interface down inside router container"
+      shell: >
+        docker exec {{ router }} ip link set {{ interface }} down
+      when: failure_type == 'LINK_DOWN' and link_down_mode == 'interface'
+      register: link_down_iface_result
+      failed_when: link_down_iface_result.rc != 0
+
+    - name: "[LINK_DOWN/interface] Verify interface is down"
+      shell: >
+        docker exec {{ router }} ip link show {{ interface }} | grep -o "DOWN\|UP"
+      when: failure_type == 'LINK_DOWN' and link_down_mode == 'interface'
+      register: link_iface_verify
+      failed_when: false
+
+    - name: "[LINK_DOWN/interface] Log verification"
+      debug:
+        msg: >
+          [{{ failure_name }}] Interface {{ router }}/{{ interface }} state:
+          {{ link_iface_verify.stdout | trim }}
+      when: failure_type == 'LINK_DOWN' and link_down_mode == 'interface'
+
+    # --- Bridge mode ---
+    - name: "[LINK_DOWN/bridge] Save original state"
+      set_fact:
+        original_state:
+          mode: "bridge"
+          bridge: "{{ bridge }}"
+          router: "{{ router }}"
+          peer_router: "{{ peer_router }}"
+      when: failure_type == 'LINK_DOWN' and link_down_mode == 'bridge'
+
+    - name: "[LINK_DOWN/bridge] Bring Linux bridge down on host"
+      shell: >
+        ip link set {{ bridge }} down
+      when: failure_type == 'LINK_DOWN' and link_down_mode == 'bridge'
+      register: link_down_bridge_result
+      failed_when: link_down_bridge_result.rc != 0
+
+    - name: "[LINK_DOWN/bridge] Verify bridge is down"
+      shell: >
+        ip link show {{ bridge }} | grep -o "DOWN\|UP"
+      when: failure_type == 'LINK_DOWN' and link_down_mode == 'bridge'
+      register: link_bridge_verify
+      failed_when: false
+
+    - name: "[LINK_DOWN/bridge] Log verification"
+      debug:
+        msg: >
+          [{{ failure_name }}] Bridge {{ bridge }} ({{ router }} ↔ {{ peer_router }}) state:
+          {{ link_bridge_verify.stdout | trim }}
+      when: failure_type == 'LINK_DOWN' and link_down_mode == 'bridge'
+
+    # =========================================================================
+    # DUPLICATE_IP
+    # =========================================================================
+    - name: "[DUPLICATE_IP] Save duplicate IP as original state"
+      set_fact:
+        original_state:
+          interface: "{{ interface }}"
+          duplicate_ip: "{{ duplicate_ip }}"
+      when: failure_type == 'DUPLICATE_IP'
+
+    - name: "[DUPLICATE_IP] Add duplicate IP address to target interface"
+      shell: >
+        docker exec {{ router }} ip addr add {{ duplicate_ip }} dev {{ interface }}
+      when: failure_type == 'DUPLICATE_IP'
+      register: dup_ip_result
+      failed_when: dup_ip_result.rc != 0
+
+    - name: "[DUPLICATE_IP] Verify duplicate IP was added"
+      shell: >
+        docker exec {{ router }} ip addr show {{ interface }} | grep "{{ duplicate_ip.split('/')[0] }}"
+      when: failure_type == 'DUPLICATE_IP'
+      register: dup_ip_verify
+      failed_when: false
+
+    - name: "[DUPLICATE_IP] Log verification"
+      debug:
+        msg: >
+          [{{ failure_name }}] Duplicate IP {{ duplicate_ip }} added to
+          {{ router }}/{{ interface }}: {{ dup_ip_verify.stdout | trim }}
+      when: failure_type == 'DUPLICATE_IP'
+
+    # =========================================================================
+    # TXQUEUE_STARVATION
+    # Fault 8: Shrink Linux txqueuelen on a router interface to cause constant
+    # queue overflow under load. This is a kernel parameter — invisible to VyOS
+    # config, GitOps, and all configuration management systems.
+    # Only supported in direct injection mode.
+    # =========================================================================
+    - name: "[TXQUEUE_STARVATION] Read current txqueuelen from router interface"
+      shell: >
+        docker exec {{ router }}
+        ip link show {{ interface }} | awk '/qlen/ {for(i=1;i<=NF;i++) if ($i=="qlen") print $(i+1)}'
+      register: current_qlen_result
+      when: failure_type == 'TXQUEUE_STARVATION'
+      failed_when: false
+
+    - name: "[TXQUEUE_STARVATION] Save original txqueuelen as Ansible fact"
+      set_fact:
+        original_state:
+          interface: "{{ interface }}"
+          original_queue_length: "{{ current_qlen_result.stdout | trim | default('1000') | int }}"
+      when: failure_type == 'TXQUEUE_STARVATION'
+
+    - name: "[TXQUEUE_STARVATION] Set txqueuelen to starvation value via ip link"
+      shell: >
+        docker exec {{ router }}
+        ip link set {{ interface }} txqueuelen {{ queue_length | default(20) }}
+      when: failure_type == 'TXQUEUE_STARVATION'
+      register: txqueue_inject_result
+      failed_when: txqueue_inject_result.rc != 0
+
+    - name: "[TXQUEUE_STARVATION] Verify txqueuelen was applied"
+      shell: >
+        docker exec {{ router }}
+        ip link show {{ interface }} | awk '/qlen/ {for(i=1;i<=NF;i++) if ($i=="qlen") print $(i+1)}'
+      register: verify_qlen
+      when: failure_type == 'TXQUEUE_STARVATION'
+      failed_when: false
+
+    - name: "[TXQUEUE_STARVATION] Log verification"
+      debug:
+        msg: >
+          [{{ failure_name }}] txqueuelen on {{ router }}/{{ interface }} is now
+          {{ verify_qlen.stdout | trim }} (target: {{ queue_length | default(20) }},
+          original: {{ original_state.original_queue_length }}).
+          NOTE: This kernel parameter is invisible to VyOS config and all config management systems.
+      when: failure_type == 'TXQUEUE_STARVATION'
+
+    # =========================================================================
+    # Final summary
+    # =========================================================================
+    - name: Log injection completion
+      debug:
+        msg: >
+          [{{ failure_name }}] Fault '{{ failure_type }}' successfully injected on router
+          '{{ router }}'. original_state={{ original_state }}

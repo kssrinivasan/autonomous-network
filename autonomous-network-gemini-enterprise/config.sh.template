@@ -1,0 +1,133 @@
+#!/bin/bash
+# =============================================================================
+# Autonomous Network Lab - Master Configuration File Template
+# =============================================================================
+# This is the MASTER configuration file for the autonomous-network project.
+# All scripts source this file to get their environment variables.
+#
+# SETUP INSTRUCTIONS:
+# 1. Copy this file to config.sh:
+#    cp config.sh.template config.sh
+# 2. Edit config.sh and replace all placeholder values with your actual values
+# 3. NEVER commit config.sh to git (it contains credentials)
+# 4. Source this file before running any installation scripts:
+#    source ./config.sh
+#
+# =============================================================================
+# USER CONFIGURATION - REQUIRED (You MUST customize these values)
+# =============================================================================
+
+# GCP Project Configuration
+export GOOGLE_PROJECT="anthosbm-292404"           # REQUIRED: Your GCP project ID
+export GOOGLE_USER="kssrinivasan@google.com"            # REQUIRED: Your GCP user email
+export GOOGLE_VM_USER="your_username"                 # REQUIRED: GCE VM username (usually email with special chars replaced, e.g., john_doe_gmail_com)
+export GOOGLE_REGION="europe-west1"                   # REQUIRED: GCP region (e.g., us-central1, europe-west1, asia-southeast1)
+export GOOGLE_ZONE="europe-west1-b"                   # REQUIRED: GCP zone (e.g., us-central1-a, europe-west1-b, asia-southeast1-a)
+
+# Web Application Credentials
+export WEBAPPS_LOGIN="networkagent"                   # REQUIRED: Login for web UIs (dashboard, gitea)
+export WEBAPPS_PWD="changeme"                         # REQUIRED: Password for web UIs (use a strong password!)
+
+# Gemini Enterprise
+# OPTIONAL. The Gemini Enterprise app the agents register themselves with, and
+# the surface mcp_server_for_ge/ge/ is built to serve. Leave it empty and
+# domains/transport/agents/install.sh deploys the agents to Agent Runtime but
+# skips registration -- everything still works, the agents just are not
+# reachable from Gemini Enterprise.
+# Format: projects/<PROJECT_NUMBER>/locations/global/collections/default_collection/engines/<ENGINE_NAME>
+export GEMINI_APP_ID="${GEMINI_APP_ID:-}"
+
+# GKE Configuration
+export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+
+# =============================================================================
+# DERIVED CONFIGURATION - Optional overrides (sensible defaults provided)
+# =============================================================================
+
+# GCP Artifact Registry and Kubernetes
+export GOOGLE_REPO="${GOOGLE_REPO:-networkagent}"
+export GOOGLE_NAMESPACE="${GOOGLE_NAMESPACE:-automation}"
+# Expanded here, not escaped: no consumer runs this through envsubst.
+# domains/transport/agents/install.sh:45 reads it as a plain shell value, and its
+# ${AGENT_SERVICE_ACCOUNT:-...} fallback cannot repair a set-but-literal value.
+export AGENT_SERVICE_ACCOUNT="networkagent@${GOOGLE_PROJECT}.iam.gserviceaccount.com"
+
+# Calculate project number from project ID (required by some service accounts)
+if command -v gcloud &> /dev/null && [ -n "${GOOGLE_PROJECT}" ] && [ "${GOOGLE_PROJECT}" != "your-gcp-project-id" ]; then
+    GOOGLE_PROJECT_NUMBER=$(gcloud projects describe "$GOOGLE_PROJECT" --format="value(projectNumber)" 2>&1)
+    if [ $? -ne 0 ] || [ -z "$GOOGLE_PROJECT_NUMBER" ]; then
+        echo "Warning: Could not determine GOOGLE_PROJECT_NUMBER from GOOGLE_PROJECT='${GOOGLE_PROJECT}'" >&2
+        echo "  gcloud output: ${GOOGLE_PROJECT_NUMBER}" >&2
+        GOOGLE_PROJECT_NUMBER=""
+    fi
+    export GOOGLE_PROJECT_NUMBER
+fi
+
+# Organization name, consumed by the controller's VyOS VM provisioning playbook
+# (controller/src/vyosvm/lifecycle_tasks.py:47). install.sh exports this itself,
+# but it is needed here too so the per-component installers documented as
+# standalone -- e.g. "cd controller && ./install.sh" -- render correctly.
+# Empty is valid: projects outside an organization have no org name.
+if command -v gcloud &> /dev/null && [ -z "${GOOGLE_ORG_NAME:-}" ]; then
+    export GOOGLE_ORG_NAME="$(gcloud organizations list --format='value(name)' 2>/dev/null | head -1)"
+fi
+
+# =============================================================================
+# Spanner Database Configuration
+# =============================================================================
+export GOOGLE_SPANNER_INSTANCE="${GOOGLE_SPANNER_INSTANCE:-networktopology-instance}"
+export GOOGLE_SPANNER_TRANSPORT_DATABASE="${GOOGLE_SPANNER_TRANSPORT_DATABASE:-transporttopology-db}"
+export GOOGLE_SPANNER_INFRA_DATABASE="${GOOGLE_SPANNER_INFRA_DATABASE:-infratopology-db}"
+export GOOGLE_SPANNER_CORE_DATABASE="${GOOGLE_SPANNER_CORE_DATABASE:-coretopology-db}"
+export GOOGLE_SPANNER_RADIO_DATABASE="${GOOGLE_SPANNER_RADIO_DATABASE:-radiotopology-db}"
+export GOOGLE_SPANNER_SERVICE_DATABASE="${GOOGLE_SPANNER_SERVICE_DATABASE:-servicetopology-db}"
+export GOOGLE_SPANNER_OPS_DATABASE="${GOOGLE_SPANNER_OPS_DATABASE:-agentops-db}"
+
+# =============================================================================
+# GNN Configuration
+# =============================================================================
+export GOOGLE_GNN_BUCKET="${GOOGLE_GNN_BUCKET:-${GOOGLE_PROJECT}-gnn-artifacts}"
+export GOOGLE_PIPELINE_ROOT="${GOOGLE_PIPELINE_ROOT:-gs://${GOOGLE_GNN_BUCKET}/pipeline-runs}"
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+export SINK_NAME="${SINK_NAME:-nwoplogs-sink}"
+export TOPIC_NAME="${TOPIC_NAME:-nwoplogs-topic}"
+export CAPTURE_LOG_FUNCTION="${CAPTURE_LOG_FUNCTION:-capture_log}"
+
+# =============================================================================
+# Operator Configuration
+# =============================================================================
+export NETWORK_OPERATOR="${NETWORK_OPERATOR:-vyosnetwork-operator}"
+
+# =============================================================================
+# Gitea Configuration
+# =============================================================================
+export GITEA_SERVICE_NAME="${GITEA_SERVICE_NAME:-gitea}"
+export GITEA_ADMIN_EMAIL="${GITEA_ADMIN_EMAIL:-admin@example.com}"
+# Note: Gitea admin credentials use WEBAPPS_LOGIN and WEBAPPS_PWD
+
+# Helper functions for consistent output
+section() {
+  echo ""
+  echo "===================================================================="
+  echo "$1"
+  echo "===================================================================="
+}
+
+info() {
+  echo "  ℹ️  $1"
+}
+
+ok() {
+  echo "  ✓ $1"
+}
+
+warn() {
+  echo "  ⚠️  $1"
+}
+
+error() {
+  echo "  ✗ $1" >&2
+}

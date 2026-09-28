@@ -1,0 +1,588 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: networkfunctions.google.dev
+  labels:
+    type: core
+spec:
+  scope: Namespaced
+  group: google.dev
+  names:
+    kind: NetworkFunction
+    plural: networkfunctions
+    singular: networkfunction
+    shortNames:
+      - xnf
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: |
+            NetworkFunction represents a single free5gc NF instance running inside an existing
+            Device container. Normally auto-created by a FiveGCore controller; standalone use
+            is supported for testing individual NFs.
+
+            ## Normal workflow
+            Create a FiveGCore CR instead. The FiveGCore lifecycle creates child NetworkFunction CRs
+            automatically, naming them: {core-name}-{nf_type_lowercase}
+            (e.g., "free5gc-core-amf", "free5gc-core-smf"). Do NOT manually create NetworkFunction
+            CRs that would conflict with FiveGCore-managed names.
+
+            ## Auto-injected fields (when created by FiveGCore)
+            The following fields are populated automatically — you only need to provide NF-specific
+            tunables (e.g., tac for AMF) in FiveGCore spec.network_functions[].config:
+            - nrfUri      → all NFs except NRF (WebUI receives it for config but does not register)
+            - mongodbUri  → NRF, UDR, PCF, UPF, WebUI
+            - plmnList    → AMF, SMF, NRF, AUSF, N3IWF (from FiveGCore spec.plmnList)
+            - snssaiInfos → AMF, SMF, N3IWF (built from FiveGCore spec.slices)
+            - upfList     → SMF (resolved from UPF Device IPs)
+            - dnnList     → UPF (derived from FiveGCore spec.slices)
+            - amfIp       → N3IWF (resolved from AMF Device IP)
+
+            ## Status
+            Check status.phase=Ready before using in CellSite or other downstream resources.
+            status.ip_address is the data-plane IP (from Device CR spec.ip_address).
+
+            ## Example (standalone AMF for testing)
+              apiVersion: google.dev/v1
+              kind: NetworkFunction
+              metadata:
+                name: test-amf
+              spec:
+                nf_type: AMF
+                container_name: "amf1"
+                amf:
+                  plmnList:
+                    - mcc: "208"
+                      mnc: "93"
+                  tac: 1
+                  nrfUri: "http://192.168.1.10:8000"
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - nf_type
+                - container_name
+              x-kubernetes-validations:
+                - rule: "self.nf_type != 'AMF' || has(self.amf)"
+                  message: "AMF requires spec.amf"
+                - rule: "self.nf_type != 'SMF' || has(self.smf)"
+                  message: "SMF requires spec.smf"
+                - rule: "self.nf_type != 'UPF' || has(self.upf)"
+                  message: "UPF requires spec.upf"
+                - rule: "self.nf_type != 'NRF' || has(self.nrf)"
+                  message: "NRF requires spec.nrf"
+                - rule: "self.nf_type != 'UDR' || has(self.udr)"
+                  message: "UDR requires spec.udr"
+                - rule: "self.nf_type != 'UDM' || has(self.udm)"
+                  message: "UDM requires spec.udm"
+                - rule: "self.nf_type != 'AUSF' || has(self.ausf)"
+                  message: "AUSF requires spec.ausf"
+                - rule: "self.nf_type != 'NSSF' || has(self.nssf)"
+                  message: "NSSF requires spec.nssf"
+                - rule: "self.nf_type != 'PCF' || has(self.pcf)"
+                  message: "PCF requires spec.pcf"
+                - rule: "self.nf_type != 'N3IWF' || has(self.n3iwf)"
+                  message: "N3IWF requires spec.n3iwf"
+                - rule: "self.nf_type != 'WebUI' || has(self.webui)"
+                  message: "WebUI requires spec.webui"
+              properties:
+                nf_type:
+                  type: string
+                  description: |
+                    Free5GC network function type. Determines which binary to execute
+                    (/opt/device/bin/free5gc/{nf_type}) and which typed config block to use.
+                  enum:
+                    - AMF
+                    - SMF
+                    - UPF
+                    - NRF
+                    - UDR
+                    - UDM
+                    - AUSF
+                    - NSSF
+                    - PCF
+                    - N3IWF
+                    - WebUI
+                container_name:
+                  type: string
+                  description: |
+                    Name of existing Device CR that provides the container runtime environment.
+                    Device must exist and be Ready. Network configuration (IP, networks, gateway)
+                    is inherited from the Device CR.
+                  maxLength: 8
+                  pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+                amf:
+                  type: object
+                  description: AMF (Access and Mobility Management Function) configuration.
+                  required:
+                    - plmnList
+                    - tac
+                    - nrfUri
+                  properties:
+                    plmnList:
+                      type: array
+                      description: List of Public Land Mobile Networks served by this AMF.
+                      minItems: 1
+                      items:
+                        type: object
+                        required: [mcc, mnc]
+                        properties:
+                          mcc:
+                            type: string
+                            pattern: '^\d{3}$'
+                          mnc:
+                            type: string
+                            pattern: '^\d{2,3}$'
+                    tac:
+                      type: integer
+                      description: Tracking Area Code.
+                      minimum: 1
+                    sst:
+                      type: integer
+                      description: Slice/Service Type (optional).
+                    sd:
+                      type: string
+                      description: Slice Differentiator in hex (optional).
+                      pattern: '^[0-9a-fA-F]{6}$'
+                    nrfUri:
+                      type: string
+                      description: NRF registration endpoint.
+                    snssaiInfos:
+                      type: array
+                      description: |
+                        Slice config injected from FiveGCore spec.slices. Used by the AMF config
+                        template to populate plmnSupportList.snssaiList and supportDnnList.
+                        Format matches free5gc snssaiInfos: [{sNssai:{sst,sd}, dnnInfos:[...]}]
+                      items:
+                        type: object
+                        properties:
+                          sNssai:
+                            type: object
+                            properties:
+                              sst: {type: integer}
+                              sd: {type: string, pattern: '^[0-9a-fA-F]{6}$'}
+                          dnnInfos:
+                            type: array
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                smf:
+                  type: object
+                  description: SMF (Session Management Function) configuration.
+                  required:
+                    - snssaiInfos
+                    - nrfUri
+                  properties:
+                    nrfUri:
+                      type: string
+                      description: NRF registration endpoint.
+                    upfIp:
+                      type: string
+                      description: |
+                        Single UPF IP (standalone NF CRs). Use upfList for multiple UPFs
+                        or when managed by FiveGCore.
+                      pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                    upfList:
+                      type: array
+                      description: |
+                        UPF nodes for userplane topology. Injected by FiveGCore lifecycle;
+                        each entry becomes a node in userplaneInformation.upNodes.
+                      items:
+                        type: object
+                        required: [name, nodeID, addr]
+                        properties:
+                          name:
+                            type: string
+                            description: Node name (matches container_name of the UPF Device).
+                          nodeID:
+                            type: string
+                            description: PFCP node ID (UPF IP address).
+                            pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                          addr:
+                            type: string
+                            description: GTP-U interface address (UPF IP address).
+                            pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                    plmnList:
+                      type: array
+                      description: Public Land Mobile Networks served by this SMF.
+                      items:
+                        type: object
+                        required: [mcc, mnc]
+                        properties:
+                          mcc:
+                            type: string
+                            pattern: '^\d{3}$'
+                          mnc:
+                            type: string
+                            pattern: '^\d{2,3}$'
+                    snssaiInfos:
+                      type: array
+                      description: Per-slice session management configuration.
+                      minItems: 1
+                      items:
+                        type: object
+                        required: [sNssai, dnnInfos]
+                        properties:
+                          sNssai:
+                            type: object
+                            required: [sst]
+                            properties:
+                              sst:
+                                type: integer
+                              sd:
+                                type: string
+                                pattern: '^[0-9a-fA-F]{6}$'
+                          dnnInfos:
+                            type: array
+                            minItems: 1
+                            items:
+                              type: object
+                              required: [dnn]
+                              properties:
+                                dnn:
+                                  type: string
+                                dns:
+                                  type: object
+                                  properties:
+                                    ipv4:
+                                      type: string
+                                      pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                                pools:
+                                  type: array
+                                  description: UE IP address pools.
+                                  items:
+                                    type: object
+                                    required: [cidr]
+                                    properties:
+                                      cidr:
+                                        type: string
+                                staticPools:
+                                  type: array
+                                  description: Static UE IP address pools.
+                                  items:
+                                    type: object
+                                    required: [cidr]
+                                    properties:
+                                      cidr:
+                                        type: string
+                upf:
+                  type: object
+                  description: UPF (User Plane Function) configuration.
+                  properties:
+                    dnnList:
+                      type: array
+                      description: |
+                        Data Networks served by this UPF with pool CIDRs. Injected by
+                        FiveGCore lifecycle from SMF snssaiInfos. Template falls back to
+                        internet/10.60.0.0/24 if empty.
+                      items:
+                        type: object
+                        required: [dnn]
+                        properties:
+                          dnn:
+                            type: string
+                          cidr:
+                            type: string
+                    nrfUri:
+                      type: string
+                      description: NRF registration endpoint (injected by FiveGCore).
+                    mongodbUri:
+                      type: string
+                      description: MongoDB connection URI (injected by FiveGCore).
+                nrf:
+                  type: object
+                  description: NRF (Network Repository Function) configuration.
+                  required:
+                    - port
+                  properties:
+                    port:
+                      type: integer
+                      description: SBI listening port.
+                      minimum: 1
+                      maximum: 65535
+                    scheme:
+                      type: string
+                      description: SBI scheme (http or https).
+                      enum: [http, https]
+                      default: http
+                    mongodbUri:
+                      type: string
+                      description: MongoDB connection URI.
+                    plmnList:
+                      type: array
+                      description: Default PLMN identity injected from FiveGCore spec.plmnList.
+                      items:
+                        type: object
+                        properties:
+                          mcc: {type: string}
+                          mnc: {type: string}
+                udr:
+                  type: object
+                  description: UDR (Unified Data Repository) configuration.
+                  required:
+                    - port
+                    - nrfUri
+                  properties:
+                    port:
+                      type: integer
+                      minimum: 1
+                      maximum: 65535
+                    scheme:
+                      type: string
+                      enum: [http, https]
+                      default: http
+                    nrfUri:
+                      type: string
+                      description: NRF registration endpoint.
+                    mongodbUri:
+                      type: string
+                      description: MongoDB connection URI.
+                udm:
+                  type: object
+                  description: UDM (Unified Data Management) configuration.
+                  required:
+                    - port
+                    - nrfUri
+                  properties:
+                    port:
+                      type: integer
+                      minimum: 1
+                      maximum: 65535
+                    scheme:
+                      type: string
+                      enum: [http, https]
+                      default: http
+                    nrfUri:
+                      type: string
+                      description: NRF registration endpoint.
+                ausf:
+                  type: object
+                  description: AUSF (Authentication Server Function) configuration.
+                  required:
+                    - port
+                    - nrfUri
+                  properties:
+                    port:
+                      type: integer
+                      minimum: 1
+                      maximum: 65535
+                    scheme:
+                      type: string
+                      enum: [http, https]
+                      default: http
+                    nrfUri:
+                      type: string
+                      description: NRF registration endpoint.
+                    plmnList:
+                      type: array
+                      description: PLMN identities injected from FiveGCore spec.plmnList.
+                      items:
+                        type: object
+                        properties:
+                          mcc: {type: string}
+                          mnc: {type: string}
+                nssf:
+                  type: object
+                  description: NSSF (Network Slice Selection Function) configuration.
+                  required:
+                    - port
+                    - nrfUri
+                  properties:
+                    port:
+                      type: integer
+                      minimum: 1
+                      maximum: 65535
+                    scheme:
+                      type: string
+                      enum: [http, https]
+                      default: http
+                    nrfUri:
+                      type: string
+                      description: NRF registration endpoint.
+                pcf:
+                  type: object
+                  description: PCF (Policy Control Function) configuration.
+                  required:
+                    - port
+                    - nrfUri
+                  properties:
+                    port:
+                      type: integer
+                      minimum: 1
+                      maximum: 65535
+                    scheme:
+                      type: string
+                      enum: [http, https]
+                      default: http
+                    nrfUri:
+                      type: string
+                      description: NRF registration endpoint.
+                    mongodbUri:
+                      type: string
+                      description: MongoDB connection URI.
+                n3iwf:
+                  type: object
+                  description: N3IWF (Non-3GPP Interworking Function) configuration.
+                  required:
+                    - port
+                    - nrfUri
+                    - amfIp
+                  properties:
+                    port:
+                      type: integer
+                      minimum: 1
+                      maximum: 65535
+                    scheme:
+                      type: string
+                      enum: [http, https]
+                      default: http
+                    nrfUri:
+                      type: string
+                      description: NRF registration endpoint.
+                    amfIp:
+                      type: string
+                      description: AMF IP address for SCTP N2 interface.
+                      pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                    plmnList:
+                      type: array
+                      description: PLMN identities injected from FiveGCore spec.plmnList.
+                      items:
+                        type: object
+                        properties:
+                          mcc: {type: string}
+                          mnc: {type: string}
+                    snssaiInfos:
+                      type: array
+                      description: |
+                        Slice config injected from FiveGCore spec.slices. Used by the N3IWF config
+                        template to populate BroadcastPLMNList TAISliceSupportList.
+                      items:
+                        type: object
+                        properties:
+                          sNssai:
+                            type: object
+                            properties:
+                              sst: {type: integer}
+                              sd: {type: string, pattern: '^[0-9a-fA-F]{6}$'}
+                          dnnInfos:
+                            type: array
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                webui:
+                  type: object
+                  description: WebUI configuration.
+                  properties:
+                    nrfUri:
+                      type: string
+                      description: NRF URI (injected by FiveGCore lifecycle).
+                    mongodbUri:
+                      type: string
+                      description: MongoDB connection URI.
+                    port:
+                      type: integer
+                      description: HTTP listening port (default 5000).
+                      minimum: 1
+                      maximum: 65535
+                      default: 5000
+                metrics:
+                  type: object
+                  description: |
+                    Prometheus metrics endpoint configuration. When enabled, the NF exposes
+                    /metrics at http://<nf_ip>:<port>/metrics (Prometheus text format).
+                    Supported by SBI NFs (AMF, SMF, NRF, AUSF, PCF, UDM, UDR, NSSF).
+                    Injected automatically from FiveGCore spec.metrics when created by FiveGCore.
+                  properties:
+                    enabled:
+                      type: boolean
+                      default: false
+                    port:
+                      type: integer
+                      minimum: 1
+                      maximum: 65535
+                      default: 9089
+                    scheme:
+                      type: string
+                      default: http
+                      enum: [http, https]
+                    namespace:
+                      type: string
+                      default: free5gc
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                  description: |
+                    Current lifecycle phase:
+                    - Pending: Waiting for Device CR to be Ready
+                    - Creating: Generating config and starting NF process
+                    - Ready: NF process is running
+                    - Failed: NF failed to start or Device not found
+                  enum:
+                    - Pending
+                    - Creating
+                    - Ready
+                    - Failed
+                message:
+                  type: string
+                  description: Human-readable status message
+                ip_address:
+                  type: string
+                  description: Data plane IP address (resolved from Device CR)
+                  pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                mgmt_ip:
+                  type: string
+                  description: Management IP address (resolved from Device CR)
+                  pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                network_name:
+                  type: string
+                  description: Data plane network name (resolved from Device CR)
+                mgmt_network:
+                  type: string
+                  description: Management network name (resolved from Device CR)
+                gateway:
+                  type: string
+                  description: Default gateway (resolved from Device CR)
+                  pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                container_id:
+                  type: string
+                  description: Docker container ID (from Device CR)
+                process_id:
+                  type: integer
+                  description: NF process PID inside container
+                config_path:
+                  type: string
+                  description: Path to generated config file in container
+
+      additionalPrinterColumns:
+        - name: Type
+          type: string
+          description: Network function type
+          jsonPath: .spec.nf_type
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+        - name: Container
+          type: string
+          description: Device container name
+          jsonPath: .spec.container_name
+        - name: IP
+          type: string
+          description: Data plane IP address
+          jsonPath: .status.ip_address
+        - name: Mgmt-IP
+          type: string
+          description: Management IP address
+          jsonPath: .status.mgmt_ip
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp

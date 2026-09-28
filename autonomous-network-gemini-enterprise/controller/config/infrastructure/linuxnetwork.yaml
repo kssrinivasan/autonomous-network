@@ -1,0 +1,118 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: linuxnetworks.google.dev
+  labels:
+    type: infrastructure
+spec:
+  scope: Namespaced
+  group: google.dev
+  names:
+    kind: LinuxNetwork
+    plural: linuxnetworks
+    singular: linuxnetwork
+    shortNames:
+      - lnet
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: "Linux Network - Generated from VyOSNetwork by the operator"
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - name
+                - source_network
+              properties:
+                name:
+                  type: string
+                  pattern: '^[a-zA-Z0-9](?:[a-zA-Z0-9\-_]{0,13}[a-zA-Z0-9])?$'
+                  maxLength: 15
+                  type: string
+                  description: "Network description"
+                source_network:
+                  type: string
+                  description: "Source VyOSNetwork name that generated this network"
+                network_type:
+                  type: string
+                  enum: ["p2p", "multi-access", "loopback", "management"]
+                  description: "Network topology type"
+                  default: "p2p"
+                gateway:
+                  type: string
+                  pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                  description: "Gateway IP address for management network"
+                bandwidth:
+                  type: string
+                  pattern: '^[0-9]+[kmg]?bit$'
+                  description: "Network segment bandwidth capacity (e.g., '1gbit', '100mbit')"
+                connected_routers:
+                  type: array
+                  description: "Routers connected to this network (from VyOSNetwork)"
+                  items:
+                    type: object
+                    required:
+                      - router_name
+                      - interface
+                      - ip_address
+                    properties:
+                      router_name:
+                        type: string
+                        description: "VyOS router name"
+                      interface:
+                        type: string
+                        pattern: '^(eth[0-9]+|lo)$'
+                        description: "Router interface name"
+                      ip_address:
+                        type: string
+                        pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                        description: "Static IP address for this interface"
+                      mac_address:
+                        type: string
+                        pattern: '^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$'
+                        description: "MAC address for this interface"
+                      aliases:
+                        type: array
+                        items:
+                          type: string
+                        description: "Network aliases for this connection"
+            status:
+              type: object
+              required:
+                - phase
+                - message
+              properties:
+                phase:
+                  type: string
+                  enum: ["Pending", "Creating", "Ready", "Failed", "Deleting", "Updating"]
+                  description: "Network deployment phase"
+                message:
+                  type: string
+                  description: "Status message"
+                interface:
+                  type: string
+                  description: "Host interface associated with this network (for management networks)"
+                interface_ip:
+                  type: string
+                  description: "IP address of the host interface associated with this network (for management networks)"
+                gateway:
+                  type: string
+                  description: "Default gateway associated with this network (for management networks)"
+      additionalPrinterColumns:
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+        - name: Type
+          type: string
+          jsonPath: .spec.network_type
+        - name: Source-Network
+          type: string
+          jsonPath: .spec.source_network

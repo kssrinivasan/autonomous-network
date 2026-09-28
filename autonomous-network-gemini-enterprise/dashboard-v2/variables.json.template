@@ -1,0 +1,15 @@
+{
+  "GCP_PROJECT": "YOUR_PROJECT_ID",
+  "GCP_REGION": "YOUR_GCP_REGION",
+  "GCP_ZONE": "YOUR_GCP_ZONE",
+  "GCP_REPO": "networkagent",
+  "SERVICE_NAME": "dashboard-v2",
+  "IMAGE_NAME": "dashboard-v2",
+  "SERVICE_ACCOUNT": "networkagent@YOUR_PROJECT_ID.iam.gserviceaccount.com",
+  "WEBAPPS_LOGIN": "YOUR_WEB_LOGIN",
+  "WEBAPPS_PWD": "YOUR_WEB_PASSWORD",
+  "REASONING_ENGINE_ID": "projects/YOUR_PROJECT_NUMBER/locations/YOUR_GCP_REGION/reasoningEngines/YOUR_SUPERVISOR_ENGINE_ID",
+  "AI_PLATFORM_API_KEY": "",
+  "CONCURRENCY": 80,
+  "MAX_INSTANCES": 10
+}

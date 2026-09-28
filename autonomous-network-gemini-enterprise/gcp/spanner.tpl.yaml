@@ -1,0 +1,1097 @@
+# Copyright 2024-2028 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: spanner.cnrm.cloud.google.com/v1beta1
+kind: SpannerInstance
+metadata:
+  labels:
+    kind: spanner-instance
+  name: ${GOOGLE_SPANNER_INSTANCE}
+  namespace: ${GOOGLE_NAMESPACE}
+  annotations:
+    cnrm.cloud.google.com/project-id: ${GOOGLE_PROJECT}
+spec:
+  resourceID: ${GOOGLE_SPANNER_INSTANCE}
+  config: regional-${GOOGLE_REGION}
+  displayName: Network Topology
+  processingUnits: 100
+---
+apiVersion: spanner.cnrm.cloud.google.com/v1beta1
+kind: SpannerDatabase
+metadata:
+  labels:
+    kind: spanner-database
+  name: ${GOOGLE_SPANNER_TRANSPORT_DATABASE}
+  namespace: ${GOOGLE_NAMESPACE}
+  annotations:
+    cnrm.cloud.google.com/project-id: ${GOOGLE_PROJECT}
+spec:
+  resourceID: ${GOOGLE_SPANNER_TRANSPORT_DATABASE}
+  instanceRef:
+    name: ${GOOGLE_SPANNER_INSTANCE}
+  ddl:
+  - "CREATE TABLE PhysicalRouter (
+      id STRING(MAX) NOT NULL,
+      name STRING(MAX) NOT NULL,
+      vendor STRING(MAX),
+      model STRING(MAX),
+      location_city STRING(MAX),
+      location_lat FLOAT64,
+      location_lon FLOAT64,
+      role STRING(MAX),
+      status STRING(MAX),
+      config JSON,
+      valid_start_ts TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
+      valid_end_ts TIMESTAMP OPTIONS (allow_commit_timestamp=true)
+    ) PRIMARY KEY (id, valid_start_ts DESC)"
+  - "CREATE TABLE PhysicalInterface (
+      id STRING(MAX) NOT NULL,
+      router_id STRING(MAX) NOT NULL,
+      name STRING(MAX) NOT NULL,
+      speed STRING(MAX),
+      media_type STRING(MAX),
+      ip_address STRING(MAX),
+      mac_address STRING(MAX),
+      status STRING(MAX),
+      valid_start_ts TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
+      valid_end_ts TIMESTAMP OPTIONS (allow_commit_timestamp=true)
+    ) PRIMARY KEY (id, valid_start_ts DESC)"
+  - "CREATE TABLE PhysicalLink (
+      id STRING(MAX) NOT NULL,
+      name STRING(MAX),
+      bandwidth STRING(MAX),
+      status STRING(MAX),
+      properties JSON,
+      valid_start_ts TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
+      valid_end_ts TIMESTAMP OPTIONS (allow_commit_timestamp=true)
+    ) PRIMARY KEY (id, valid_start_ts DESC)"
+  - "CREATE TABLE L3VPNService (
+      id STRING(MAX) NOT NULL,
+      customer_id STRING(MAX) NOT NULL,
+      name STRING(MAX) NOT NULL,
+      service_type STRING(MAX),
+      topology STRING(MAX),
+      status STRING(MAX),
+      config JSON,
+      valid_start_ts TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
+      valid_end_ts TIMESTAMP OPTIONS (allow_commit_timestamp=true)
+    ) PRIMARY KEY (id, valid_start_ts DESC)"
+  - "CREATE TABLE VRF (
+      id STRING(MAX) NOT NULL,
+      router_id STRING(MAX) NOT NULL,
+      vpn_id STRING(MAX),
+      name STRING(MAX) NOT NULL,
+      rd STRING(MAX),
+      status STRING(MAX),
+      config JSON,
+      valid_start_ts TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
+      valid_end_ts TIMESTAMP OPTIONS (allow_commit_timestamp=true)
+    ) PRIMARY KEY (id, valid_start_ts DESC)"
+  - "CREATE TABLE BGPSession (
+      id STRING(MAX) NOT NULL,
+      vrf_id STRING(MAX) NOT NULL,
+      local_as INT64,
+      remote_as INT64,
+      peer_ip STRING(MAX),
+      status STRING(MAX),
+      config JSON,
+      valid_start_ts TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
+      valid_end_ts TIMESTAMP OPTIONS (allow_commit_timestamp=true)
+    ) PRIMARY KEY (id, valid_start_ts DESC)"
+  - "CREATE TABLE LogicalSubnet (
+      id STRING(MAX) NOT NULL,
+      cidr STRING(MAX) NOT NULL,
+      network_type STRING(MAX),
+      description STRING(MAX),
+      operational_state STRING(MAX),
+      mtu INT64,
+      mac_address STRING(MAX),
+      bridge_ip STRING(MAX),
+      host_device_name STRING(MAX),
+      properties JSON,
+      valid_start_ts TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
+      valid_end_ts TIMESTAMP OPTIONS (allow_commit_timestamp=true)
+    ) PRIMARY KEY (id, valid_start_ts DESC)"
+  - "CREATE TABLE Interface_Link (
+      interface_id STRING(MAX) NOT NULL,
+      link_id STRING(MAX) NOT NULL,
+      valid_start_ts TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
+      valid_end_ts TIMESTAMP OPTIONS (allow_commit_timestamp=true)
+    ) PRIMARY KEY (interface_id, link_id, valid_start_ts DESC)"
+  - "CREATE TABLE Subnet_Association (
+      entity_id STRING(MAX) NOT NULL,
+      subnet_id STRING(MAX) NOT NULL,
+      entity_type STRING(MAX),
+      valid_start_ts TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
+      valid_end_ts TIMESTAMP OPTIONS (allow_commit_timestamp=true)
+    ) PRIMARY KEY (entity_id, subnet_id, valid_start_ts DESC)"
+  - "CREATE TABLE NodeEmbedding (
+       id STRING(36) NOT NULL DEFAULT (GENERATE_UUID()),
+       node_id STRING(MAX) NOT NULL,
+       node_type STRING(MAX) NOT NULL,
+       hetgnn_embedding ARRAY<FLOAT64>,
+       hetgnn_score FLOAT64,
+       anomaly_explanation JSON,
+       timestamp TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true)
+     ) PRIMARY KEY (node_id, timestamp DESC)"
+  - "CREATE TABLE KgLogEntryNode (
+       id STRING(17) NOT NULL,
+       timestamp TIMESTAMP NOT NULL,
+       severity STRING(16) NOT NULL,
+       source STRING(MAX),
+       message STRING(MAX),
+       content STRING(MAX),
+       embedding ARRAY<FLOAT64>
+    ) PRIMARY KEY (id, timestamp)"
+  - "CREATE INDEX KgLogEntryNodeIdx1 ON KgLogEntryNode(timestamp DESC) STORING (severity, source, message, content, embedding)"
+  - "CREATE TABLE RouterSystemMetrics (
+        timestamp   TIMESTAMP NOT NULL,
+        router_name STRING(MAX) NOT NULL,
+        metric_name STRING(MAX) NOT NULL,
+        interface   STRING(MAX) NOT NULL DEFAULT (''),
+        metric_type STRING(MAX),
+        value       FLOAT64,
+        labels      JSON
+    ) PRIMARY KEY (router_name, metric_name, interface, timestamp DESC),
+      ROW DELETION POLICY (OLDER_THAN(timestamp, INTERVAL 1 DAY))"
+  - "CREATE INDEX RouterSystemMetricsByTimestamp ON RouterSystemMetrics(timestamp DESC) STORING (value)"
+  - "CREATE TABLE RouterRoutingMetrics (
+        timestamp   TIMESTAMP NOT NULL,
+        router_name STRING(MAX) NOT NULL,
+        metric_name STRING(MAX) NOT NULL,
+        vrf         STRING(MAX) NOT NULL DEFAULT (''),
+        afi         STRING(MAX) NOT NULL DEFAULT (''),
+        peer_ip     STRING(MAX) NOT NULL DEFAULT (''),
+        metric_type STRING(MAX),
+        value       FLOAT64,
+        labels      JSON
+    ) PRIMARY KEY (router_name, metric_name, vrf, afi, peer_ip, timestamp DESC),
+      ROW DELETION POLICY (OLDER_THAN(timestamp, INTERVAL 1 DAY))"
+  - "CREATE INDEX RouterRoutingMetricsByTimestamp ON RouterRoutingMetrics(timestamp DESC) STORING (value)"
+  - "CREATE TABLE ResourcePools (
+      pool_name STRING(MAX) NOT NULL,
+      scope STRING(MAX) NOT NULL,
+      last_sequence INT64 NOT NULL,
+      updated_at TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true)
+    ) PRIMARY KEY (pool_name, scope)"
+  - "CREATE VIEW HasInterface_Edge SQL SECURITY INVOKER AS
+       SELECT 
+         r.id AS router_id, r.valid_start_ts AS router_ts,
+         i.id AS interface_id, i.valid_start_ts AS interface_ts
+       FROM PhysicalRouter r
+       JOIN PhysicalInterface i
+       ON r.id = i.router_id
+       AND r.valid_start_ts < IFNULL(i.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       AND IFNULL(r.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z')) > i.valid_start_ts
+       GROUP BY router_id, router_ts, interface_id, interface_ts"
+  - "CREATE VIEW ConnectsTo_Edge SQL SECURITY INVOKER AS
+       SELECT
+         i.id AS interface_id, i.valid_start_ts AS interface_ts,
+         l.id AS link_id, l.valid_start_ts AS link_ts
+       FROM PhysicalInterface i
+       JOIN Interface_Link il ON i.id = il.interface_id
+       JOIN PhysicalLink l ON il.link_id = l.id
+       WHERE il.valid_end_ts IS NULL
+       AND i.valid_start_ts < IFNULL(l.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       AND IFNULL(i.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z')) > l.valid_start_ts
+       GROUP BY interface_id, interface_ts, link_id, link_ts"
+  - "CREATE VIEW RouterHasEmbedding_Edge SQL SECURITY INVOKER AS
+       SELECT
+         r.id AS router_id, r.valid_start_ts AS router_ts,
+         e.node_id AS embedding_node_id, e.timestamp AS embedding_ts
+       FROM PhysicalRouter r
+       JOIN NodeEmbedding e ON r.id = e.node_id
+       WHERE e.timestamp >= r.valid_start_ts AND e.timestamp < IFNULL(r.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       GROUP BY router_id, router_ts, embedding_node_id, embedding_ts"
+  - "CREATE VIEW InterfaceHasEmbedding_Edge SQL SECURITY INVOKER AS
+       SELECT
+         i.id AS interface_id, i.valid_start_ts AS interface_ts,
+         e.node_id AS embedding_node_id, e.timestamp AS embedding_ts
+       FROM PhysicalInterface i
+       JOIN NodeEmbedding e ON i.id = e.node_id
+       WHERE e.timestamp >= i.valid_start_ts AND e.timestamp < IFNULL(i.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       GROUP BY interface_id, interface_ts, embedding_node_id, embedding_ts"
+  - "CREATE VIEW LinkedTo_Edge SQL SECURITY INVOKER AS
+       SELECT
+         l.id AS link_id, l.valid_start_ts AS link_ts,
+         i.id AS interface_id, i.valid_start_ts AS interface_ts
+       FROM PhysicalLink l
+       JOIN Interface_Link il ON l.id = il.link_id
+       JOIN PhysicalInterface i ON il.interface_id = i.id
+       WHERE il.valid_end_ts IS NULL
+       AND l.valid_start_ts < IFNULL(i.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       AND IFNULL(l.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z')) > i.valid_start_ts
+       GROUP BY link_id, link_ts, interface_id, interface_ts"
+  - "CREATE VIEW RealizesVPN_Edge SQL SECURITY INVOKER AS
+       SELECT
+         vrf.id AS vrf_id, vrf.valid_start_ts AS vrf_ts,
+         vpn.id AS vpn_id, vpn.valid_start_ts AS vpn_ts
+       FROM VRF vrf
+       JOIN L3VPNService vpn
+       ON vrf.vpn_id = vpn.id
+       AND vrf.valid_start_ts < IFNULL(vpn.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       AND IFNULL(vrf.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z')) > vpn.valid_start_ts
+       GROUP BY vrf_id, vrf_ts, vpn_id, vpn_ts"
+  - "CREATE VIEW LocatedOn_Edge SQL SECURITY INVOKER AS
+       SELECT
+         vrf.id AS vrf_id, vrf.valid_start_ts AS vrf_ts,
+         r.id AS router_id, r.valid_start_ts AS router_ts
+       FROM VRF vrf
+       JOIN PhysicalRouter r
+       ON vrf.router_id = r.id
+       AND vrf.valid_start_ts < IFNULL(r.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       AND IFNULL(vrf.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z')) > r.valid_start_ts
+       GROUP BY vrf_id, vrf_ts, router_id, router_ts"
+  - "CREATE VIEW BelongsToVRF_Edge SQL SECURITY INVOKER AS
+       SELECT
+         bgp.id AS bgp_id, bgp.valid_start_ts AS bgp_ts,
+         vrf.id AS vrf_id, vrf.valid_start_ts AS vrf_ts
+       FROM BGPSession bgp
+       JOIN VRF vrf
+       ON bgp.vrf_id = vrf.id
+       AND bgp.valid_start_ts < IFNULL(vrf.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       AND IFNULL(bgp.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z')) > vrf.valid_start_ts
+       GROUP BY bgp_id, bgp_ts, vrf_id, vrf_ts"
+  - "CREATE VIEW AssociatedWith_Edge SQL SECURITY INVOKER AS
+       SELECT
+         i.id AS interface_id, i.valid_start_ts AS interface_ts,
+         s.id AS subnet_id, s.valid_start_ts AS subnet_ts
+       FROM PhysicalInterface i
+       JOIN Subnet_Association sa ON i.id = sa.entity_id
+       JOIN LogicalSubnet s ON sa.subnet_id = s.id
+       WHERE i.valid_start_ts < IFNULL(s.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       AND IFNULL(i.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z')) > s.valid_start_ts
+       GROUP BY interface_id, interface_ts, subnet_id, subnet_ts"
+  - "CREATE OR REPLACE PROPERTY GRAPH transportGraph
+       NODE TABLES (
+         PhysicalRouter,
+         PhysicalInterface,
+         PhysicalLink,
+          L3VPNService,
+         VRF,
+         BGPSession,
+         LogicalSubnet,
+         RouterSystemMetrics,
+         RouterRoutingMetrics,
+         NodeEmbedding
+       )
+       EDGE TABLES (
+         HasInterface_Edge
+           AS HasInterface
+           KEY (router_id, router_ts, interface_id, interface_ts)
+           SOURCE KEY (router_id, router_ts) REFERENCES PhysicalRouter (id, valid_start_ts)
+           DESTINATION KEY (interface_id, interface_ts) REFERENCES PhysicalInterface (id, valid_start_ts),
+         ConnectsTo_Edge 
+           AS ConnectsTo
+           KEY (interface_id, interface_ts, link_id, link_ts)
+           SOURCE KEY (interface_id, interface_ts) REFERENCES PhysicalInterface (id, valid_start_ts)
+           DESTINATION KEY (link_id, link_ts) REFERENCES PhysicalLink (id, valid_start_ts),
+          RouterHasEmbedding_Edge 
+            AS RouterHasEmbedding
+            KEY (router_id, router_ts, embedding_node_id, embedding_ts)
+            SOURCE KEY (router_id, router_ts) REFERENCES PhysicalRouter (id, valid_start_ts)
+            DESTINATION KEY (embedding_node_id, embedding_ts) REFERENCES NodeEmbedding (node_id, timestamp),
+          InterfaceHasEmbedding_Edge 
+            AS InterfaceHasEmbedding
+            KEY (interface_id, interface_ts, embedding_node_id, embedding_ts)
+            SOURCE KEY (interface_id, interface_ts) REFERENCES PhysicalInterface (id, valid_start_ts)
+            DESTINATION KEY (embedding_node_id, embedding_ts) REFERENCES NodeEmbedding (node_id, timestamp),
+         LinkedTo_Edge 
+           AS LinkedTo
+           KEY (link_id, link_ts, interface_id, interface_ts)
+           SOURCE KEY (link_id, link_ts) REFERENCES PhysicalLink (id, valid_start_ts)
+           DESTINATION KEY (interface_id, interface_ts) REFERENCES PhysicalInterface (id, valid_start_ts),
+          RealizesVPN_Edge 
+           AS RealizesVPN
+           KEY (vrf_id, vrf_ts, vpn_id, vpn_ts)
+           SOURCE KEY (vrf_id, vrf_ts) REFERENCES VRF (id, valid_start_ts)
+           DESTINATION KEY (vpn_id, vpn_ts) REFERENCES L3VPNService (id, valid_start_ts),
+         LocatedOn_Edge 
+           AS LocatedOn
+           KEY (vrf_id, vrf_ts, router_id, router_ts)
+           SOURCE KEY (vrf_id, vrf_ts) REFERENCES VRF (id, valid_start_ts)
+           DESTINATION KEY (router_id, router_ts) REFERENCES PhysicalRouter (id, valid_start_ts),
+         BelongsToVRF_Edge 
+           AS BelongsToVRF
+           KEY (bgp_id, bgp_ts, vrf_id, vrf_ts)
+           SOURCE KEY (bgp_id, bgp_ts) REFERENCES BGPSession (id, valid_start_ts)
+           DESTINATION KEY (vrf_id, vrf_ts) REFERENCES VRF (id, valid_start_ts),
+         AssociatedWith_Edge
+           AS AssociatedWith
+           KEY (interface_id, interface_ts, subnet_id, subnet_ts)
+           SOURCE KEY (interface_id, interface_ts) REFERENCES PhysicalInterface (id, valid_start_ts)
+           DESTINATION KEY (subnet_id, subnet_ts) REFERENCES LogicalSubnet (id, valid_start_ts)
+       )"
+  # Supersedes RouterRoutingMetrics, whose PRIMARY KEY
+  # (router_name, metric_name, vrf, afi, peer_ip, timestamp) is narrower than the
+  # label set the FRR exporter actually emits. Every series that differs only in
+  # a label outside that key collided on write and the last one in the batch won:
+  #
+  #   frr_ospf_neighbors{iface=...}       ~5 adjacencies per router -> 1 row kept
+  #   frr_bgp_peer_*{safi=unicast|vpn}    2 series per peer         -> 1 row kept
+  #   frr_collector_up{collector=...}     1 row per collector       -> 1 row kept
+  #
+  # No error was raised anywhere; the rows were simply overwritten, which is why
+  # the dashboard has been showing a single OSPF interface per router.
+  #
+  # This is a new table rather than a fix to the old one because neither half of
+  # the obvious repair is available:
+  #   * Spanner cannot ALTER a PRIMARY KEY.
+  #   * This ddl list is append-only -- editing an existing statement is a silent
+  #     no-op against a live database, and removing or reordering one makes the
+  #     Config Connector bridge destroy and recreate the whole database.
+  # Dropping and recreating in place is possible but would also mean dropping and
+  # re-declaring transportGraph (RouterRoutingMetrics is one of its NODE TABLES),
+  # i.e. two hand-copied duplicates of the property graph appended below.
+  #
+  # RouterRoutingMetrics is left declared -- it cannot be removed from this list --
+  # but nothing writes it any more, so its own ROW DELETION POLICY empties it
+  # within a day. Do not add new readers of it.
+  - "CREATE TABLE RouterRoutingSeries (
+        timestamp   TIMESTAMP NOT NULL,
+        router_name STRING(MAX) NOT NULL,
+        metric_name STRING(MAX) NOT NULL,
+        vrf         STRING(MAX) NOT NULL DEFAULT (''),
+        afi         STRING(MAX) NOT NULL DEFAULT (''),
+        safi        STRING(MAX) NOT NULL DEFAULT (''),
+        peer_ip     STRING(MAX) NOT NULL DEFAULT (''),
+        iface       STRING(MAX) NOT NULL DEFAULT (''),
+        area        STRING(MAX) NOT NULL DEFAULT (''),
+        collector   STRING(MAX) NOT NULL DEFAULT (''),
+        metric_type STRING(MAX),
+        value       FLOAT64,
+        labels      JSON
+    ) PRIMARY KEY (router_name, metric_name, vrf, afi, safi, peer_ip, iface, area, collector, timestamp DESC),
+      ROW DELETION POLICY (OLDER_THAN(timestamp, INTERVAL 1 DAY))"
+  - "CREATE INDEX RouterRoutingSeriesByTimestamp ON RouterRoutingSeries(timestamp DESC) STORING (value)"
+---
+# 5G Core topology database — FiveGCore, NetworkFunction, NF_Interface, metrics, embeddings
+
+apiVersion: spanner.cnrm.cloud.google.com/v1beta1
+kind: SpannerDatabase
+metadata:
+  labels:
+    kind: spanner-database
+  name: ${GOOGLE_SPANNER_CORE_DATABASE}
+  namespace: ${GOOGLE_NAMESPACE}
+  annotations:
+    cnrm.cloud.google.com/project-id: ${GOOGLE_PROJECT}
+spec:
+  resourceID: ${GOOGLE_SPANNER_CORE_DATABASE}
+  instanceRef:
+    name: ${GOOGLE_SPANNER_INSTANCE}
+  ddl:
+  - "CREATE TABLE FiveGCore (
+      id STRING(MAX) NOT NULL,
+      name STRING(MAX) NOT NULL,
+      phase STRING(MAX),
+      mongodb_uri STRING(MAX),
+      config JSON,
+      valid_start_ts TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
+      valid_end_ts TIMESTAMP OPTIONS (allow_commit_timestamp=true)
+    ) PRIMARY KEY (id, valid_start_ts DESC)"
+  - "CREATE TABLE NetworkFunction (
+      id STRING(MAX) NOT NULL,
+      name STRING(MAX) NOT NULL,
+      nf_type STRING(MAX) NOT NULL,
+      fivegcore_id STRING(MAX),
+      container_name STRING(MAX),
+      phase STRING(MAX),
+      ip_address STRING(MAX),
+      config JSON,
+      valid_start_ts TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
+      valid_end_ts TIMESTAMP OPTIONS (allow_commit_timestamp=true)
+    ) PRIMARY KEY (id, valid_start_ts DESC)"
+  - "CREATE INDEX NetworkFunctionByType ON NetworkFunction(nf_type, valid_start_ts DESC) STORING (name, ip_address, phase, fivegcore_id)"
+  - "CREATE INDEX NetworkFunctionByCore ON NetworkFunction(fivegcore_id, valid_start_ts DESC) STORING (nf_type, ip_address, phase)"
+  - "CREATE TABLE NetworkFunctionMetrics (
+      nf_id STRING(MAX) NOT NULL,
+      timestamp TIMESTAMP NOT NULL,
+      metric_name STRING(MAX) NOT NULL,
+      metric_type STRING(MAX),
+      value FLOAT64,
+      labels JSON
+    ) PRIMARY KEY (nf_id, timestamp DESC, metric_name)"
+  - "CREATE INDEX NetworkFunctionMetricsByTimestamp ON NetworkFunctionMetrics(timestamp DESC) STORING (value)"
+  - "CREATE TABLE NodeEmbedding (
+       id STRING(36) NOT NULL DEFAULT (GENERATE_UUID()),
+       node_id STRING(MAX) NOT NULL,
+       node_type STRING(MAX) NOT NULL,
+       hetgnn_embedding ARRAY<FLOAT64>,
+       hetgnn_score FLOAT64,
+       anomaly_explanation JSON,
+       timestamp TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true)
+     ) PRIMARY KEY (node_id, timestamp DESC)"
+  - "CREATE TABLE KgLogEntryNode (
+       id STRING(17) NOT NULL,
+       timestamp TIMESTAMP NOT NULL,
+       severity STRING(16) NOT NULL,
+       source STRING(MAX),
+       message STRING(MAX),
+       content STRING(MAX),
+       embedding ARRAY<FLOAT64>
+     ) PRIMARY KEY (id, timestamp)"
+  - "CREATE INDEX KgLogEntryNodeIdx1 ON KgLogEntryNode(timestamp DESC) STORING (severity, source, message)"
+  - "CREATE VIEW CoreHasNF_Edge SQL SECURITY INVOKER AS
+       SELECT
+         fc.id AS fivegcore_id, fc.valid_start_ts AS fivegcore_ts,
+         nf.id AS nf_id, nf.valid_start_ts AS nf_ts
+       FROM FiveGCore fc
+       JOIN NetworkFunction nf ON fc.id = nf.fivegcore_id
+       WHERE fc.valid_start_ts < IFNULL(nf.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+         AND IFNULL(fc.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z')) > nf.valid_start_ts
+       GROUP BY fivegcore_id, fivegcore_ts, nf_id, nf_ts"
+  - "CREATE VIEW NFHasEmbedding_Edge SQL SECURITY INVOKER AS
+       SELECT
+         nf.id AS nf_id, nf.valid_start_ts AS nf_ts,
+         e.node_id AS embedding_node_id, e.timestamp AS embedding_ts
+       FROM NetworkFunction nf
+       JOIN NodeEmbedding e ON nf.id = e.node_id
+       WHERE e.timestamp >= nf.valid_start_ts
+         AND e.timestamp < IFNULL(nf.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       GROUP BY nf_id, nf_ts, embedding_node_id, embedding_ts"
+  - "CREATE VIEW NFHasMetrics_Edge SQL SECURITY INVOKER AS
+       SELECT
+         nf.id AS nf_id, nf.valid_start_ts AS nf_ts,
+         m.nf_id AS m_nf_id, m.timestamp AS m_ts, m.metric_name AS m_metric_name
+       FROM NetworkFunction nf
+       JOIN NetworkFunctionMetrics m ON nf.id = m.nf_id
+       WHERE m.timestamp >= nf.valid_start_ts
+         AND m.timestamp < IFNULL(nf.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       GROUP BY nf_id, nf_ts, m_nf_id, m_ts, m_metric_name"
+  - "CREATE OR REPLACE PROPERTY GRAPH coreGraph
+       NODE TABLES (
+         FiveGCore,
+         NetworkFunction,
+         NetworkFunctionMetrics,
+         NodeEmbedding
+       )
+       EDGE TABLES (
+         CoreHasNF_Edge
+           AS CoreHasNF
+           KEY (fivegcore_id, fivegcore_ts, nf_id, nf_ts)
+           SOURCE KEY (fivegcore_id, fivegcore_ts) REFERENCES FiveGCore (id, valid_start_ts)
+           DESTINATION KEY (nf_id, nf_ts) REFERENCES NetworkFunction (id, valid_start_ts),
+         NFHasEmbedding_Edge
+           AS NFHasEmbedding
+           KEY (nf_id, nf_ts, embedding_node_id, embedding_ts)
+           SOURCE KEY (nf_id, nf_ts) REFERENCES NetworkFunction (id, valid_start_ts)
+           DESTINATION KEY (embedding_node_id, embedding_ts) REFERENCES NodeEmbedding (node_id, timestamp),
+         NFHasMetrics_Edge
+           AS NFHasMetrics
+           KEY (nf_id, nf_ts, m_nf_id, m_ts, m_metric_name)
+           SOURCE KEY (nf_id, nf_ts) REFERENCES NetworkFunction (id, valid_start_ts)
+           DESTINATION KEY (m_nf_id, m_ts, m_metric_name) REFERENCES NetworkFunctionMetrics (nf_id, timestamp, metric_name)
+       )"
+---
+# Radio / RAN topology database — CellSite, UE, CellSite_NF, metrics, embeddings
+
+apiVersion: spanner.cnrm.cloud.google.com/v1beta1
+kind: SpannerDatabase
+metadata:
+  labels:
+    kind: spanner-database
+  name: ${GOOGLE_SPANNER_RADIO_DATABASE}
+  namespace: ${GOOGLE_NAMESPACE}
+  annotations:
+    cnrm.cloud.google.com/project-id: ${GOOGLE_PROJECT}
+spec:
+  resourceID: ${GOOGLE_SPANNER_RADIO_DATABASE}
+  instanceRef:
+    name: ${GOOGLE_SPANNER_INSTANCE}
+  ddl:
+  - "CREATE TABLE CellSite (
+      id STRING(MAX) NOT NULL,
+      name STRING(MAX) NOT NULL,
+      container_name STRING(MAX),
+      gnb_id STRING(MAX),
+      nci STRING(MAX),
+      gnb_id_length INT64,
+      mcc STRING(3),
+      mnc STRING(3),
+      tac INT64,
+      phase STRING(MAX),
+      config JSON,
+      valid_start_ts TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
+      valid_end_ts TIMESTAMP OPTIONS (allow_commit_timestamp=true)
+    ) PRIMARY KEY (id, valid_start_ts DESC)"
+  - "CREATE TABLE UE (
+      id STRING(MAX) NOT NULL,
+      cellsite_id STRING(MAX) NOT NULL,
+      imsi STRING(15) NOT NULL,
+      apn STRING(MAX),
+      sst INT64,
+      sd STRING(MAX),
+      valid_start_ts TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
+      valid_end_ts TIMESTAMP OPTIONS (allow_commit_timestamp=true)
+    ) PRIMARY KEY (id, valid_start_ts DESC)"
+  - "CREATE INDEX UEByCellSite ON UE(cellsite_id, valid_start_ts DESC) STORING (imsi)"
+  - "CREATE TABLE CellSiteMetrics (
+      cellsite_id STRING(MAX) NOT NULL,
+      timestamp TIMESTAMP NOT NULL,
+      imsi STRING(MAX) NOT NULL DEFAULT (''),
+      metric_name STRING(MAX) NOT NULL,
+      metric_type STRING(MAX),
+      value FLOAT64,
+      labels JSON
+    ) PRIMARY KEY (cellsite_id, timestamp DESC, imsi, metric_name)"
+  - "CREATE INDEX CellSiteMetricsByTimestamp ON CellSiteMetrics(timestamp DESC) STORING (value)"
+  - "CREATE TABLE NodeEmbedding (
+       id STRING(36) NOT NULL DEFAULT (GENERATE_UUID()),
+       node_id STRING(MAX) NOT NULL,
+       node_type STRING(MAX) NOT NULL,
+       hetgnn_embedding ARRAY<FLOAT64>,
+       hetgnn_score FLOAT64,
+       anomaly_explanation JSON,
+       timestamp TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true)
+     ) PRIMARY KEY (node_id, timestamp DESC)"
+  - "CREATE TABLE KgLogEntryNode (
+       id STRING(17) NOT NULL,
+       timestamp TIMESTAMP NOT NULL,
+       severity STRING(16) NOT NULL,
+       source STRING(MAX),
+       message STRING(MAX),
+       content STRING(MAX),
+       embedding ARRAY<FLOAT64>
+     ) PRIMARY KEY (id, timestamp)"
+  - "CREATE INDEX KgLogEntryNodeIdx1 ON KgLogEntryNode(timestamp DESC) STORING (severity, source, message)"
+  - "CREATE VIEW HasUE_Edge SQL SECURITY INVOKER AS
+       SELECT
+         cs.id AS cellsite_id, cs.valid_start_ts AS cellsite_ts,
+         ue.id AS ue_id, ue.valid_start_ts AS ue_ts
+       FROM CellSite cs
+       JOIN UE ue ON cs.id = ue.cellsite_id
+       WHERE cs.valid_start_ts < IFNULL(ue.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+         AND IFNULL(cs.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z')) > ue.valid_start_ts
+       GROUP BY cellsite_id, cellsite_ts, ue_id, ue_ts"
+  - "CREATE VIEW CellSiteHasEmbedding_Edge SQL SECURITY INVOKER AS
+       SELECT
+         cs.id AS cellsite_id, cs.valid_start_ts AS cellsite_ts,
+         e.node_id AS embedding_node_id, e.timestamp AS embedding_ts
+       FROM CellSite cs
+       JOIN NodeEmbedding e ON cs.id = e.node_id
+       WHERE e.timestamp >= cs.valid_start_ts
+         AND e.timestamp < IFNULL(cs.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       GROUP BY cellsite_id, cellsite_ts, embedding_node_id, embedding_ts"
+  - "CREATE VIEW CellSiteHasMetrics_Edge SQL SECURITY INVOKER AS
+       SELECT
+         cs.id AS cellsite_id, cs.valid_start_ts AS cellsite_ts,
+         m.cellsite_id AS m_cellsite_id, m.timestamp AS m_ts,
+         m.imsi AS m_imsi, m.metric_name AS m_metric_name
+       FROM CellSite cs
+       JOIN CellSiteMetrics m ON cs.id = m.cellsite_id
+       WHERE m.timestamp >= cs.valid_start_ts
+         AND m.timestamp < IFNULL(cs.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       GROUP BY cellsite_id, cellsite_ts, m_cellsite_id, m_ts, m_imsi, m_metric_name"
+  - "CREATE OR REPLACE PROPERTY GRAPH radioGraph
+       NODE TABLES (
+         CellSite,
+         UE,
+         CellSiteMetrics,
+         NodeEmbedding
+       )
+       EDGE TABLES (
+         HasUE_Edge
+           AS HasUE
+           KEY (cellsite_id, cellsite_ts, ue_id, ue_ts)
+           SOURCE KEY (cellsite_id, cellsite_ts) REFERENCES CellSite (id, valid_start_ts)
+           DESTINATION KEY (ue_id, ue_ts) REFERENCES UE (id, valid_start_ts),
+         CellSiteHasEmbedding_Edge
+           AS CellSiteHasEmbedding
+           KEY (cellsite_id, cellsite_ts, embedding_node_id, embedding_ts)
+           SOURCE KEY (cellsite_id, cellsite_ts) REFERENCES CellSite (id, valid_start_ts)
+           DESTINATION KEY (embedding_node_id, embedding_ts) REFERENCES NodeEmbedding (node_id, timestamp),
+         CellSiteHasMetrics_Edge
+           AS CellSiteHasMetrics
+           KEY (cellsite_id, cellsite_ts, m_cellsite_id, m_ts, m_imsi, m_metric_name)
+           SOURCE KEY (cellsite_id, cellsite_ts) REFERENCES CellSite (id, valid_start_ts)
+           DESTINATION KEY (m_cellsite_id, m_ts, m_imsi, m_metric_name) REFERENCES CellSiteMetrics (cellsite_id, timestamp, imsi, metric_name)
+       )"
+---
+# Infrastructure / Compute topology database — ComputeHost, LinuxNetwork, embeddings
+#
+# ComputeHost is the infra-domain view of generic compute containers (Device CRD).
+# Its id is host:{k8s-name} (see controller/src/graph/infra_tasks.py), and the
+# device_id columns in coretopology-db and radiotopology-db are logical references
+# to it — no cross-DB graph edges are possible in Spanner, which is correct for
+# real-world domain separation.
+#
+# LinuxNetwork represents Linux bridges that connect VyOS router veth ports to
+# compute containers. connected_routers is a JSON list of router CR names — a
+# logical cross-domain reference to the transport domain.
+
+apiVersion: spanner.cnrm.cloud.google.com/v1beta1
+kind: SpannerDatabase
+metadata:
+  labels:
+    kind: spanner-database
+  name: ${GOOGLE_SPANNER_INFRA_DATABASE}
+  namespace: ${GOOGLE_NAMESPACE}
+  annotations:
+    cnrm.cloud.google.com/project-id: ${GOOGLE_PROJECT}
+spec:
+  resourceID: ${GOOGLE_SPANNER_INFRA_DATABASE}
+  instanceRef:
+    name: ${GOOGLE_SPANNER_INSTANCE}
+  ddl:
+  - "CREATE TABLE ComputeHost (
+      id STRING(MAX) NOT NULL,
+      name STRING(MAX) NOT NULL,
+      network_name STRING(MAX),
+      ip_address STRING(MAX),
+      mgmt_ip STRING(MAX),
+      gateway STRING(MAX),
+      extra_interfaces JSON,
+      phase STRING(MAX),
+      config JSON,
+      valid_start_ts TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
+      valid_end_ts TIMESTAMP OPTIONS (allow_commit_timestamp=true)
+    ) PRIMARY KEY (id, valid_start_ts DESC)"
+  - "CREATE TABLE LinuxNetwork (
+      id STRING(MAX) NOT NULL,
+      name STRING(MAX) NOT NULL,
+      namespace STRING(MAX) NOT NULL,
+      network_type STRING(MAX),
+      cidr STRING(MAX),
+      gateway STRING(MAX),
+      bandwidth STRING(MAX),
+      connected_routers JSON,
+      phase STRING(MAX),
+      config JSON,
+      valid_start_ts TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
+      valid_end_ts TIMESTAMP OPTIONS (allow_commit_timestamp=true)
+    ) PRIMARY KEY (id, valid_start_ts DESC)"
+  - "CREATE TABLE NodeEmbedding (
+       id STRING(36) NOT NULL DEFAULT (GENERATE_UUID()),
+       node_id STRING(MAX) NOT NULL,
+       node_type STRING(MAX) NOT NULL,
+       hetgnn_embedding ARRAY<FLOAT64>,
+       hetgnn_score FLOAT64,
+       anomaly_explanation JSON,
+       timestamp TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true)
+     ) PRIMARY KEY (node_id, timestamp DESC)"
+  - "CREATE TABLE ComputeMetrics (
+      host_id STRING(MAX) NOT NULL,
+      timestamp TIMESTAMP NOT NULL,
+      metric_name STRING(MAX) NOT NULL,
+      metric_type STRING(MAX),
+      value FLOAT64,
+      labels JSON
+    ) PRIMARY KEY (host_id, timestamp DESC, metric_name)"
+  - "CREATE INDEX ComputeMetricsByTimestamp ON ComputeMetrics(timestamp DESC) STORING (value)"
+  - "CREATE VIEW ComputeHostHasEmbedding_Edge SQL SECURITY INVOKER AS
+       SELECT
+         ch.id AS host_id, ch.valid_start_ts AS host_ts,
+         e.node_id AS embedding_node_id, e.timestamp AS embedding_ts
+       FROM ComputeHost ch
+       JOIN NodeEmbedding e ON ch.id = e.node_id
+       WHERE e.timestamp >= ch.valid_start_ts
+         AND e.timestamp < IFNULL(ch.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       GROUP BY host_id, host_ts, embedding_node_id, embedding_ts"
+  - "CREATE VIEW LinuxNetworkHasEmbedding_Edge SQL SECURITY INVOKER AS
+       SELECT
+         ln.id AS network_id, ln.valid_start_ts AS network_ts,
+         e.node_id AS embedding_node_id, e.timestamp AS embedding_ts
+       FROM LinuxNetwork ln
+       JOIN NodeEmbedding e ON ln.id = e.node_id
+       WHERE e.timestamp >= ln.valid_start_ts
+         AND e.timestamp < IFNULL(ln.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       GROUP BY network_id, network_ts, embedding_node_id, embedding_ts"
+  - "CREATE VIEW HostHasMetrics_Edge SQL SECURITY INVOKER AS
+       SELECT
+         ch.id AS host_id, ch.valid_start_ts AS host_ts,
+         m.host_id AS m_host_id, m.timestamp AS m_ts, m.metric_name AS m_metric_name
+       FROM ComputeHost ch
+       JOIN ComputeMetrics m ON ch.id = m.host_id
+       WHERE m.timestamp >= ch.valid_start_ts
+         AND m.timestamp < IFNULL(ch.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       GROUP BY host_id, host_ts, m_host_id, m_ts, m_metric_name"
+  - "CREATE OR REPLACE PROPERTY GRAPH infraGraph
+       NODE TABLES (
+         ComputeHost,
+         LinuxNetwork,
+         ComputeMetrics,
+         NodeEmbedding
+       )
+       EDGE TABLES (
+         HostHasMetrics_Edge
+           AS HostHasMetrics
+           KEY (host_id, host_ts, m_host_id, m_ts, m_metric_name)
+           SOURCE KEY (host_id, host_ts) REFERENCES ComputeHost (id, valid_start_ts)
+           DESTINATION KEY (m_host_id, m_ts, m_metric_name) REFERENCES ComputeMetrics (host_id, timestamp, metric_name),
+         ComputeHostHasEmbedding_Edge
+           AS ComputeHostHasEmbedding
+           KEY (host_id, host_ts, embedding_node_id, embedding_ts)
+           SOURCE KEY (host_id, host_ts) REFERENCES ComputeHost (id, valid_start_ts)
+           DESTINATION KEY (embedding_node_id, embedding_ts) REFERENCES NodeEmbedding (node_id, timestamp),
+         LinuxNetworkHasEmbedding_Edge
+           AS LinuxNetworkHasEmbedding
+           KEY (network_id, network_ts, embedding_node_id, embedding_ts)
+           SOURCE KEY (network_id, network_ts) REFERENCES LinuxNetwork (id, valid_start_ts)
+           DESTINATION KEY (embedding_node_id, embedding_ts) REFERENCES NodeEmbedding (node_id, timestamp)
+       )"
+  # ---------------------------------------------------------------------------
+  # Migration plan 7.1 — devices were isolated nodes in infraGraph.
+  #
+  # These statements are APPENDED rather than folded into the CREATE TABLE and
+  # PROPERTY GRAPH above. Config Connector's `ddl` list is append-only: the
+  # provider applies statements newly added to the end, and refuses to apply an
+  # existing statement that has been edited. Rewriting the CREATE TABLE would
+  # therefore be a no-op on every database that already exists. A fresh install
+  # runs the whole list in order and ends in the same state.
+  #
+  # attached_router denormalizes the ComputeHost -> LinuxNetwork -> VyOSRouter
+  # hop. The second half of it is genuinely cross-database (PhysicalRouter lives
+  # in transporttopology-db) so it cannot be a graph edge under decision 0.1;
+  # storing the router name is the same logical-reference convention the schema
+  # already uses for TrafficFlow.src_device_id.
+  #
+  # It is populated ONLY when the host's LinuxNetwork has exactly one connected
+  # router, which is the case for every `lan-*` device bridge. On a bridge with
+  # several routers there is no single terminating router and the column stays
+  # NULL rather than picking one arbitrarily -- callers that need the full set
+  # read LinuxNetwork.connected_routers directly, which is what utils/hosts.py
+  # in the MCP servers already does.
+  - "ALTER TABLE ComputeHost ADD COLUMN attached_router STRING(MAX)"
+  - "ALTER TABLE ComputeHost ADD COLUMN attached_router_interface STRING(MAX)"
+  # The ComputeHost -> LinuxNetwork hop, by contrast, is entirely inside this
+  # database and is a real edge. ComputeHost.network_name already holds the join
+  # key and is already populated, but it names LinuxNetwork.name while the node
+  # table is keyed on (id, valid_start_ts) -- so the edge needs a view to carry
+  # the destination's timestamp, exactly like the three edges above. The WHERE
+  # clause is an interval overlap, not a point-in-time test: both sides are
+  # SCD Type 2, so a host version links to every network version it coexisted
+  # with.
+  - "CREATE VIEW ComputeHostOnNetwork_Edge SQL SECURITY INVOKER AS
+       SELECT
+         ch.id AS host_id, ch.valid_start_ts AS host_ts,
+         ln.id AS network_id, ln.valid_start_ts AS network_ts
+       FROM ComputeHost ch
+       JOIN LinuxNetwork ln ON ch.network_name = ln.name
+       WHERE ch.valid_start_ts < IFNULL(ln.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+         AND ln.valid_start_ts < IFNULL(ch.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       GROUP BY host_id, host_ts, network_id, network_ts"
+  - "CREATE OR REPLACE PROPERTY GRAPH infraGraph
+       NODE TABLES (
+         ComputeHost,
+         LinuxNetwork,
+         ComputeMetrics,
+         NodeEmbedding
+       )
+       EDGE TABLES (
+         HostHasMetrics_Edge
+           AS HostHasMetrics
+           KEY (host_id, host_ts, m_host_id, m_ts, m_metric_name)
+           SOURCE KEY (host_id, host_ts) REFERENCES ComputeHost (id, valid_start_ts)
+           DESTINATION KEY (m_host_id, m_ts, m_metric_name) REFERENCES ComputeMetrics (host_id, timestamp, metric_name),
+         ComputeHostHasEmbedding_Edge
+           AS ComputeHostHasEmbedding
+           KEY (host_id, host_ts, embedding_node_id, embedding_ts)
+           SOURCE KEY (host_id, host_ts) REFERENCES ComputeHost (id, valid_start_ts)
+           DESTINATION KEY (embedding_node_id, embedding_ts) REFERENCES NodeEmbedding (node_id, timestamp),
+         LinuxNetworkHasEmbedding_Edge
+           AS LinuxNetworkHasEmbedding
+           KEY (network_id, network_ts, embedding_node_id, embedding_ts)
+           SOURCE KEY (network_id, network_ts) REFERENCES LinuxNetwork (id, valid_start_ts)
+           DESTINATION KEY (embedding_node_id, embedding_ts) REFERENCES NodeEmbedding (node_id, timestamp),
+         ComputeHostOnNetwork_Edge
+           AS ComputeHostOnNetwork
+           KEY (host_id, host_ts, network_id, network_ts)
+           SOURCE KEY (host_id, host_ts) REFERENCES ComputeHost (id, valid_start_ts)
+           DESTINATION KEY (network_id, network_ts) REFERENCES LinuxNetwork (id, valid_start_ts)
+       )"
+---
+# Service topology database — TrafficFlow, TrafficFlowSeries, NodeEmbedding
+# (TrafficFlowMetrics is superseded, see 7.8a at the foot of this database's ddl)
+#
+# Traffic flows are first-class topology objects (moved from transporttopology-db).
+# src_device_id and dst_device_id are logical references to ComputeHost.id in
+# infratopology-db (host:{name} convention) — no cross-DB graph edges.
+
+apiVersion: spanner.cnrm.cloud.google.com/v1beta1
+kind: SpannerDatabase
+metadata:
+  labels:
+    kind: spanner-database
+  name: ${GOOGLE_SPANNER_SERVICE_DATABASE}
+  namespace: ${GOOGLE_NAMESPACE}
+  annotations:
+    cnrm.cloud.google.com/project-id: ${GOOGLE_PROJECT}
+spec:
+  resourceID: ${GOOGLE_SPANNER_SERVICE_DATABASE}
+  instanceRef:
+    name: ${GOOGLE_SPANNER_INSTANCE}
+  ddl:
+  - "CREATE TABLE TrafficFlow (
+       id STRING(MAX) NOT NULL,
+       name STRING(MAX),
+       src_device_id STRING(MAX),
+       dst_device_id STRING(MAX),
+       phase STRING(MAX),
+       config JSON,
+       valid_start_ts TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
+       valid_end_ts TIMESTAMP OPTIONS (allow_commit_timestamp=true)
+     ) PRIMARY KEY (id, valid_start_ts DESC)"
+  - "CREATE INDEX TrafficFlowBySrc ON TrafficFlow(src_device_id, valid_start_ts DESC) STORING (dst_device_id, phase)"
+  - "CREATE INDEX TrafficFlowByDst ON TrafficFlow(dst_device_id, valid_start_ts DESC) STORING (src_device_id, phase)"
+  - "CREATE TABLE TrafficFlowMetrics (
+       flow_id     STRING(MAX) NOT NULL,
+       timestamp   TIMESTAMP   NOT NULL,
+       node_name   STRING(MAX) NOT NULL,
+       metric_name STRING(MAX) NOT NULL,
+       metric_type STRING(MAX),
+       value       FLOAT64,
+       labels      JSON
+     ) PRIMARY KEY (flow_id, timestamp DESC, node_name, metric_name),
+       ROW DELETION POLICY (OLDER_THAN(timestamp, INTERVAL 1 DAY))"
+  - "CREATE INDEX TrafficFlowMetricsByTimestamp ON TrafficFlowMetrics(timestamp DESC) STORING (value)"
+  - "CREATE TABLE NodeEmbedding (
+       id STRING(36) NOT NULL DEFAULT (GENERATE_UUID()),
+       node_id STRING(MAX) NOT NULL,
+       node_type STRING(MAX) NOT NULL,
+       hetgnn_embedding ARRAY<FLOAT64>,
+       hetgnn_score FLOAT64,
+       anomaly_explanation JSON,
+       timestamp TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true)
+     ) PRIMARY KEY (node_id, timestamp DESC)"
+  - "CREATE VIEW FlowHasMetrics_Edge SQL SECURITY INVOKER AS
+       SELECT
+         f.id AS flow_id, f.valid_start_ts AS flow_ts,
+         m.flow_id AS m_flow_id, m.timestamp AS m_ts,
+         m.node_name AS m_node_name, m.metric_name AS m_metric_name
+       FROM TrafficFlow f
+       JOIN TrafficFlowMetrics m ON f.id = m.flow_id
+       WHERE m.timestamp >= f.valid_start_ts
+         AND m.timestamp < IFNULL(f.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       GROUP BY flow_id, flow_ts, m_flow_id, m_ts, m_node_name, m_metric_name"
+  - "CREATE VIEW FlowHasEmbedding_Edge SQL SECURITY INVOKER AS
+       SELECT
+         f.id AS flow_id, f.valid_start_ts AS flow_ts,
+         e.node_id AS embedding_node_id, e.timestamp AS embedding_ts
+       FROM TrafficFlow f
+       JOIN NodeEmbedding e ON f.id = e.node_id
+       WHERE e.timestamp >= f.valid_start_ts
+         AND e.timestamp < IFNULL(f.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       GROUP BY flow_id, flow_ts, embedding_node_id, embedding_ts"
+  - "CREATE OR REPLACE PROPERTY GRAPH serviceGraph
+       NODE TABLES (
+         TrafficFlow,
+         TrafficFlowMetrics,
+         NodeEmbedding
+       )
+       EDGE TABLES (
+         FlowHasMetrics_Edge
+           AS FlowHasMetrics
+           KEY (flow_id, flow_ts, m_flow_id, m_ts, m_node_name, m_metric_name)
+           SOURCE KEY (flow_id, flow_ts) REFERENCES TrafficFlow (id, valid_start_ts)
+           DESTINATION KEY (m_flow_id, m_ts, m_node_name, m_metric_name) REFERENCES TrafficFlowMetrics (flow_id, timestamp, node_name, metric_name),
+         FlowHasEmbedding_Edge
+           AS FlowHasEmbedding
+           KEY (flow_id, flow_ts, embedding_node_id, embedding_ts)
+           SOURCE KEY (flow_id, flow_ts) REFERENCES TrafficFlow (id, valid_start_ts)
+           DESTINATION KEY (embedding_node_id, embedding_ts) REFERENCES NodeEmbedding (node_id, timestamp)
+       )"
+  # ---------------------------------------------------------------------------
+  # Migration plan 2.3 — serviceGraph's only real edge matched nothing.
+  #
+  # Appended rather than folded into the CREATE VIEW above, for the same reason
+  # as the infra block: Config Connector's `ddl` list is append-only and an
+  # edited statement is a silent no-op on a database that already exists.
+  #
+  # TrafficFlow and TrafficFlowMetrics do not share an id space:
+  #
+  #   TrafficFlow.id        = "flow:<test-name>"                  (controller)
+  #   TrafficFlowMetrics.flow_id = "<test-name>_<source-device>"  (traffic agent)
+  #                              = "<test-name>_<source-device>_rev" for the
+  #                                reverse leg of a bidirectional test
+  #
+  # so `f.id = m.flow_id` was never true and FlowHasMetrics returned zero rows
+  # for every flow — measured throughput sat in the same database as the flows
+  # it belonged to with no way to walk from one to the other. Joining on
+  # TrafficFlow.name with the collector's suffix is exact, not a heuristic: a
+  # test name is a Kubernetes object name and RFC 1123 forbids "_" in one, so
+  # the first underscore is always the boundary the collector inserted. The
+  # equality arm covers any series written before the suffix convention.
+  #
+  # One flow now fans out to between one and 2N metric series for N source
+  # devices, which is what the cardinality of the relation always was.
+  - "CREATE OR REPLACE VIEW FlowHasMetrics_Edge SQL SECURITY INVOKER AS
+       SELECT
+         f.id AS flow_id, f.valid_start_ts AS flow_ts,
+         m.flow_id AS m_flow_id, m.timestamp AS m_ts,
+         m.node_name AS m_node_name, m.metric_name AS m_metric_name
+       FROM TrafficFlow f
+       JOIN TrafficFlowMetrics m
+         ON m.flow_id = f.name OR STARTS_WITH(m.flow_id, CONCAT(f.name, '_'))
+       WHERE m.timestamp >= f.valid_start_ts
+         AND m.timestamp < IFNULL(f.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       GROUP BY flow_id, flow_ts, m_flow_id, m_ts, m_node_name, m_metric_name"
+  # ---------------------------------------------------------------------------
+  # Migration plan 7.8a — TrafficFlowMetrics discarded half of every poll.
+  #
+  # Its key is (flow_id, timestamp, node_name, metric_name). The traffic agent
+  # reports every flow from BOTH ends, and the collector extracted `role` into
+  # the labels JSON but never into the key, so the two ends collided and
+  # insert_or_update kept whichever arrived second. Measured on the running lab:
+  # "160 primary keys have more than one row in this poll, so 160 of 320 rows
+  # will be overwritten" — on every poll, for all ten metric names.
+  #
+  # node_name does not save it: the collector derives node_name from the
+  # flow_id, so both roles carry the SAME node_name. role is the only separator.
+  #
+  # This was not a uniform 50% sampling. Several metrics are meaningful from
+  # exactly one end and are reported as zero (or as nonsense) from the other:
+  #
+  #   throughput_sent_bps   source 11.6 Mbps  destination always 0
+  #   throughput_recv_bps   destination 11.4 Mbps  source always 0
+  #   packet_loss_pct       destination 0.94%  source 50.0%
+  #
+  # so the stored value flipped at random between the real reading and a
+  # fabricated one. packet_loss_pct is the damaging case: it feeds both the GNN
+  # anomaly features and the dashboard, and half its samples claimed 50% loss on
+  # a healthy flow.
+  #
+  # As with RouterRoutingSeries (7.5): Spanner cannot ALTER a PRIMARY KEY and
+  # this ddl list is append-only, so widening the key means a new table.
+  # TrafficFlowMetrics is left in place for the history it holds; its rows age
+  # out on the one-day deletion policy.
+  #
+  # Unlike 7.5, the graph can be re-pointed here rather than duplicated: the
+  # statement below is already CREATE OR REPLACE PROPERTY GRAPH, so appending a
+  # replacement is the same mechanism the file already uses. The edge keeps the
+  # label FlowHasMetrics — the relationship is unchanged, only its destination
+  # table is — so existing GQL traversals keep working with the new node label.
+  - "CREATE TABLE TrafficFlowSeries (
+       flow_id     STRING(MAX) NOT NULL,
+       timestamp   TIMESTAMP   NOT NULL,
+       node_name   STRING(MAX) NOT NULL,
+       metric_name STRING(MAX) NOT NULL,
+       role        STRING(MAX) NOT NULL DEFAULT (''),
+       metric_type STRING(MAX),
+       value       FLOAT64,
+       labels      JSON
+     ) PRIMARY KEY (flow_id, timestamp DESC, node_name, metric_name, role),
+       ROW DELETION POLICY (OLDER_THAN(timestamp, INTERVAL 1 DAY))"
+  - "CREATE INDEX TrafficFlowSeriesByTimestamp ON TrafficFlowSeries(timestamp DESC) STORING (value)"
+  - "CREATE VIEW FlowHasSeries_Edge SQL SECURITY INVOKER AS
+       SELECT
+         f.id AS flow_id, f.valid_start_ts AS flow_ts,
+         m.flow_id AS m_flow_id, m.timestamp AS m_ts,
+         m.node_name AS m_node_name, m.metric_name AS m_metric_name,
+         m.role AS m_role
+       FROM TrafficFlow f
+       JOIN TrafficFlowSeries m
+         ON m.flow_id = f.name OR STARTS_WITH(m.flow_id, CONCAT(f.name, '_'))
+       WHERE m.timestamp >= f.valid_start_ts
+         AND m.timestamp < IFNULL(f.valid_end_ts, TIMESTAMP('9999-12-31T23:59:59Z'))
+       GROUP BY flow_id, flow_ts, m_flow_id, m_ts, m_node_name, m_metric_name, m_role"
+  - "CREATE OR REPLACE PROPERTY GRAPH serviceGraph
+       NODE TABLES (
+         TrafficFlow,
+         TrafficFlowSeries,
+         NodeEmbedding
+       )
+       EDGE TABLES (
+         FlowHasSeries_Edge
+           AS FlowHasMetrics
+           KEY (flow_id, flow_ts, m_flow_id, m_ts, m_node_name, m_metric_name, m_role)
+           SOURCE KEY (flow_id, flow_ts) REFERENCES TrafficFlow (id, valid_start_ts)
+           DESTINATION KEY (m_flow_id, m_ts, m_node_name, m_metric_name, m_role) REFERENCES TrafficFlowSeries (flow_id, timestamp, node_name, metric_name, role),
+         FlowHasEmbedding_Edge
+           AS FlowHasEmbedding
+           KEY (flow_id, flow_ts, embedding_node_id, embedding_ts)
+           SOURCE KEY (flow_id, flow_ts) REFERENCES TrafficFlow (id, valid_start_ts)
+           DESTINATION KEY (embedding_node_id, embedding_ts) REFERENCES NodeEmbedding (node_id, timestamp)
+       )"
+---
+# Application operations database — FaultEvent (unified), AgentTrace, NetworkDescriptor.
+# These are cross-cutting operational tables that don't belong to any single topology domain.
+# FaultEvent consolidates all fault injection records across domains using target_domain +
+# target_id (matching the domain id convention: device:{name}, nf:{name}, cellsite:{name} etc.)
+# plus transport-specific optional columns for router/interface/vrf targets.
+# AgentTrace stores A2A agent trace/span records. NetworkDescriptor stores full network intent.
+
+apiVersion: spanner.cnrm.cloud.google.com/v1beta1
+kind: SpannerDatabase
+metadata:
+  labels:
+    kind: spanner-database
+  name: ${GOOGLE_SPANNER_OPS_DATABASE}
+  namespace: ${GOOGLE_NAMESPACE}
+  annotations:
+    cnrm.cloud.google.com/project-id: ${GOOGLE_PROJECT}
+spec:
+  resourceID: ${GOOGLE_SPANNER_OPS_DATABASE}
+  instanceRef:
+    name: ${GOOGLE_SPANNER_INSTANCE}
+  ddl:
+  - "CREATE TABLE FaultEvent (
+       id STRING(MAX) NOT NULL,
+       name STRING(MAX) NOT NULL,
+       failure_type STRING(MAX) NOT NULL,
+       injection_mode STRING(MAX) NOT NULL,
+       target_domain STRING(MAX),
+       target_id STRING(MAX),
+       target_type STRING(MAX),
+       target_router STRING(MAX),
+       target_interface STRING(MAX),
+       target_vrf STRING(MAX),
+       phase STRING(MAX) NOT NULL,
+       injected_at STRING(MAX),
+       config JSON,
+       valid_start_ts TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
+       valid_end_ts TIMESTAMP OPTIONS (allow_commit_timestamp=true)
+     ) PRIMARY KEY (id, valid_start_ts DESC)"
+  - "CREATE INDEX FaultEventByDomain ON FaultEvent(target_domain, valid_start_ts DESC) STORING (failure_type, target_id, phase, injected_at)"
+  - "CREATE INDEX FaultEventByTarget ON FaultEvent(target_id, valid_start_ts DESC) STORING (failure_type, phase, injected_at)"
+  - "CREATE INDEX FaultEventByType ON FaultEvent(failure_type, valid_start_ts DESC) STORING (target_domain, target_id, phase)"
+  - "CREATE INDEX FaultEventByRouter ON FaultEvent(target_router, valid_start_ts DESC) STORING (failure_type, injection_mode, phase, injected_at)"
+  - "CREATE TABLE AgentTrace (
+       id STRING(36) NOT NULL,
+       event_type STRING(MAX) NOT NULL,
+       trace_id STRING(MAX) NOT NULL,
+       span_id STRING(MAX) NOT NULL,
+       parent_span_id STRING(MAX),
+       operation_name STRING(MAX) NOT NULL,
+       timestamp TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
+       details JSON
+     ) PRIMARY KEY(id)"
+  - "CREATE INDEX AgentTraceByTrace ON AgentTrace(trace_id, timestamp DESC)"
+  - "CREATE INDEX AgentTraceByOp ON AgentTrace(operation_name, timestamp DESC) STORING (trace_id, span_id)"
+  - "CREATE TABLE NetworkDescriptor (
+       id STRING(MAX) NOT NULL,
+       name STRING(MAX) NOT NULL,
+       description STRING(MAX),
+       infrastructure JSON NOT NULL,
+       underlay JSON,
+       vpns JSON,
+       core JSON,
+       cell_sites JSON,
+       traffic_tests JSON,
+       labels JSON,
+       created_at TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
+       updated_at TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true)
+     ) PRIMARY KEY (id)"
+  - "CREATE TABLE IntentRecords (
+       id STRING(36) NOT NULL,
+       serviceId STRING(64) NOT NULL,
+       crName STRING(128) NOT NULL,
+       state STRING(16) NOT NULL,
+       intentEnvelope JSON NOT NULL,
+       createdAt TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true),
+       updatedAt TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp=true)
+     ) PRIMARY KEY (id)"
+  - "CREATE INDEX idx_service_id ON IntentRecords(serviceId)"
+  - "CREATE INDEX idx_state ON IntentRecords(state)"
+  - "CREATE INDEX idx_created ON IntentRecords(createdAt DESC)"

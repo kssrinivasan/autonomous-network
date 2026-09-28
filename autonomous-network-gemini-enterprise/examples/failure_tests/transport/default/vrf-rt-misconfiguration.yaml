@@ -1,0 +1,86 @@
+# NetworkFailure: Logical Misconfiguration / VRF Route Target Misconfiguration
+#
+# Fault Type   : VRF_RT_MISCONFIGURATION
+# Target       : PE3, VRF BLUE_SPOKE
+# Mode         : operator — injects the fault by patching the VyOSL3VPN CRD
+#                (l3vpn-blue-service) and letting the VyOSL3VPN operator apply it.
+#                This is the ONLY supported injection mode for this fault type.
+#
+# Impact       : PE3's BLUE_SPOKE VRF stops importing hub routes, CE2-spoke loses
+#                all connectivity to the hub and other spokes, all BGP sessions
+#                remain Established, zero alarms fire. The misconfigured rt_import
+#                is visible in the Spanner topology graph.
+#
+# Operator Mode Flow:
+#   1. The NetworkFailure operator patches spec.routers[pe3].vrfs[BLUE_SPOKE].rt_import
+#      in the VyOSL3VPN CRD from ["65035:1030"] to ["65035:9999"].
+#   2. The VyOSL3VPN operator detects the CRD change and runs its normal reconcile
+#      loop, applying the wrong RT to PE3 via vtysh — the same pipeline used during
+#      VPN service provisioning.
+#   3. The Spanner VRF table receives a new SCD row for PE3/BLUE_SPOKE with the
+#      misconfigured rt_import value and a valid_start_ts. The topology graph now
+#      shows the fault in the VRF node itself, not just in the FaultEvent node.
+#   4. On deletion, the CRD is patched back to rt_import=["65035:1030"] and the
+#      VyOSL3VPN operator reconciles again, restoring the correct configuration.
+#
+# Why operator mode is required:
+#   Operator mode ensures the misconfigured RT is visible in the topology graph
+#   state (Spanner VRF table) co-present with the FaultEvent node. The HetGNN
+#   can then learn to correlate the rt_import embedding deviation with the
+#   traffic anomaly signal. The fault is visible in both the CRD and the Spanner
+#   topology graph, and the CRD change appears in GitOps history.
+#
+# Characteristics:
+#   - Waits for the VyOSL3VPN reconcile loop (~15-30s to apply)
+#   - Fault is visible in the Spanner VRF table topology graph
+#   - Configuration changes are traceable through GitOps/CRD history
+#   - Applies the fault through the same pipeline used for normal provisioning
+#
+# GNN Detection Signatures:
+#   HetGNN : VRF sub-embedding of PE3/BLUE_SPOKE deviates — rt_import hash diverges
+#             from the cluster centroid shared by PE1/BLUE_SPOKE and PE4/BLUE_SPOKE.
+#             In operator mode this deviation is directly observable in the Spanner
+#             VRF.config field, not inferred from traffic alone.
+#   D-GAT  : Directed VPNv4 advertisement edges from PE2 (hub) to PE3 (spoke) are
+#             present in the RR update graph but absent from PE3's local RIB-in,
+#             revealing a selective import failure invisible at the session layer.
+#   STGNN  : bgp_pfx_rcvd on PE3/BLUE_SPOKE drops to 0 while bgp_pfx_rcvd on
+#             PE1/BLUE_SPOKE and PE4/BLUE_SPOKE remain healthy — temporal divergence
+#             within the same VPN service pinpoints PE3 as the anomalous node.
+#
+# Usage:
+#   kubectl apply  -f vrf-rt-misconfiguration.yaml    # Patch CRD → VyOSL3VPN reconciles
+#   kubectl delete -f vrf-rt-misconfiguration.yaml    # Restore CRD → VyOSL3VPN reconciles
+---
+apiVersion: google.dev/v1
+kind: NetworkFailure
+metadata:
+  name: vrf-rt-misconfiguration
+  namespace: network
+  labels:
+    scenario: l3vpn-hub-spoke
+    fault-type: vrf-rt-misconfiguration
+    severity: high
+    injection-mode: operator
+spec:
+  writeMode: direct
+  failureType: VRF_RT_MISCONFIGURATION
+  # Operator mode: the fault is injected by patching the VyOSL3VPN CRD.
+  # The VyOSL3VPN operator reconciles the change and applies it to the router.
+  # The misconfigured rt_import is visible in the Spanner VRF table alongside
+  # the FaultEvent node, providing richer GNN training signals.
+  infrastructureRef: l3vpn-infra
+  target:
+    router: pe3
+    # BLUE_SPOKE VRF on PE3 serves CE2-spoke (10.60.60.0/24).
+    # The operator patches l3vpn-blue-service spec.routers[pe3].vrfs[BLUE_SPOKE].rt_import.
+    vrf: BLUE_SPOKE
+  parameters:
+    # The correct import RT is the hub's export RT (65035:1030). All BLUE_SPOKE
+    # VRFs must import this community to receive hub routes.
+    correct_rt: "65035:1030"
+    # Replaced with a non-existent community (65035:9999). The VyOSL3VPN operator
+    # applies this to PE3 via its normal reconcile pipeline. PE3's BLUE_SPOKE VRF
+    # routing table empties of hub-originated prefixes. CE2-spoke becomes unreachable
+    # from all other sites in the BLUE VPN.
+    wrong_rt: "65035:9999"

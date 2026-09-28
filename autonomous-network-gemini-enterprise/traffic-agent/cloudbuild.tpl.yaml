@@ -1,0 +1,22 @@
+# Copyright 2024-2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Cloud Build pipeline for traffic-agent.
+# Builds the Go binary inside a multi-stage Docker image and pushes the
+# resulting carrier image to Artifact Registry.
+#
+# The device container Dockerfile references this image with:
+#   COPY --from=${GOOGLE_REGION}-docker.pkg.dev/${GOOGLE_PROJECT}/${GOOGLE_REPO}/traffic-agent:latest \
+#        /traffic-agent /usr/local/bin/traffic-agent
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  script: |
+    docker build -t ${GOOGLE_REGION}-docker.pkg.dev/${GOOGLE_PROJECT}/${GOOGLE_REPO}/traffic-agent:latest -f traffic-agent/Dockerfile traffic-agent/
+  automapSubstitutions: true
+images:
+- '${GOOGLE_REGION}-docker.pkg.dev/${GOOGLE_PROJECT}/${GOOGLE_REPO}/traffic-agent:latest'

@@ -1,0 +1,170 @@
+apiVersion: google.dev/v1
+kind: VyOSL3VPN
+metadata:
+  name: orange-vpn-service
+  namespace: network
+spec:
+  underlayRef: large-network-underlay
+  services:
+    - name: "ORANGE_MESH"
+      type: "l3vpn"
+      topology: "mesh"
+  routers:
+    # ===================================================================
+    # MESH PEs - All 12 PEs participate in cross-region mesh
+    # ===================================================================
+    - name: "pe1"
+      vrfs:
+        - name: "ORANGE_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 600)
+          rd: "10.0.0.7:200"  # v2.0: Loopback-based (was 10.*.*.1:4000)
+          rt_export: ["65035:4000"]
+          rt_import: ["65035:4000"]
+          interfaces: ["eth6"]
+      bgp:
+        vrfs:
+          - name: "ORANGE_MESH"
+            neighbors: [{ peer: "10.53.1.2", remote_as: 65035 }]
+
+    - name: "pe2"
+      vrfs:
+        - name: "ORANGE_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 600)
+          rd: "10.0.0.8:200"  # v2.0: Loopback-based (was 10.*.*.1:4000)
+          rt_export: ["65035:4000"]
+          rt_import: ["65035:4000"]
+          interfaces: ["eth6"]
+      bgp:
+        vrfs:
+          - name: "ORANGE_MESH"
+            neighbors: [{ peer: "10.53.2.2", remote_as: 65035 }]
+
+    - name: "pe3"
+      vrfs:
+        - name: "ORANGE_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 600)
+          rd: "10.0.0.10:200"  # v2.0: Loopback-based (was 10.*.*.1:4000)
+          rt_export: ["65035:4000"]
+          rt_import: ["65035:4000"]
+          interfaces: ["eth6"]
+      bgp:
+        vrfs:
+          - name: "ORANGE_MESH"
+            neighbors: [{ peer: "10.53.3.2", remote_as: 65035 }]
+
+    - name: "pe4"
+      vrfs:
+        - name: "ORANGE_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 600)
+          rd: "10.0.0.11:200"  # v2.0: Loopback-based (was 10.*.*.1:4000)
+          rt_export: ["65035:4000"]
+          rt_import: ["65035:4000"]
+          interfaces: ["eth6"]
+      bgp:
+        vrfs:
+          - name: "ORANGE_MESH"
+            neighbors: [{ peer: "10.53.4.2", remote_as: 65035 }]
+
+    - name: "pe5"
+      vrfs:
+        - name: "ORANGE_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 600)
+          rd: "10.0.0.60:200"  # v2.0: Loopback-based (was 10.*.*.1:4000)
+          rt_export: ["65035:4000"]
+          rt_import: ["65035:4000"]
+          interfaces: ["eth6"]
+      bgp:
+        vrfs:
+          - name: "ORANGE_MESH"
+            neighbors: [{ peer: "10.53.5.2", remote_as: 65035 }]
+
+    - name: "pe6"
+      vrfs:
+        - name: "ORANGE_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 600)
+          rd: "10.0.0.61:200"  # v2.0: Loopback-based (was 10.*.*.1:4000)
+          rt_export: ["65035:4000"]
+          rt_import: ["65035:4000"]
+          interfaces: ["eth6"]
+      bgp:
+        vrfs:
+          - name: "ORANGE_MESH"
+            neighbors: [{ peer: "10.53.6.2", remote_as: 65035 }]
+
+    - name: "pe7"
+      vrfs:
+        - name: "ORANGE_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 600)
+          rd: "10.0.0.62:200"  # v2.0: Loopback-based (was 10.*.*.1:4000)
+          rt_export: ["65035:4000"]
+          rt_import: ["65035:4000"]
+          interfaces: ["eth6"]
+      bgp:
+        vrfs:
+          - name: "ORANGE_MESH"
+            neighbors: [{ peer: "10.53.7.2", remote_as: 65035 }]
+
+    - name: "pe8"
+      vrfs:
+        - name: "ORANGE_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 600)
+          rd: "10.0.0.63:200"  # v2.0: Loopback-based (was 10.*.*.1:4000)
+          rt_export: ["65035:4000"]
+          rt_import: ["65035:4000"]
+          interfaces: ["eth6"]
+      bgp:
+        vrfs:
+          - name: "ORANGE_MESH"
+            neighbors: [{ peer: "10.53.8.2", remote_as: 65035 }]
+
+    - name: "pe9"
+      vrfs:
+        - name: "ORANGE_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 600)
+          rd: "10.0.0.64:200"  # v2.0: Loopback-based (was 10.*.*.1:4000)
+          rt_export: ["65035:4000"]
+          rt_import: ["65035:4000"]
+          interfaces: ["eth6"]
+      bgp:
+        vrfs:
+          - name: "ORANGE_MESH"
+            neighbors: [{ peer: "10.53.9.2", remote_as: 65035 }]
+
+    - name: "pe10"
+      vrfs:
+        - name: "ORANGE_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 600)
+          rd: "10.0.0.65:200"  # v2.0: Loopback-based (was 10.*.*.1:4000)
+          rt_export: ["65035:4000"]
+          rt_import: ["65035:4000"]
+          interfaces: ["eth6"]
+      bgp:
+        vrfs:
+          - name: "ORANGE_MESH"
+            neighbors: [{ peer: "10.53.10.2", remote_as: 65035 }]
+
+    - name: "pe11"
+      vrfs:
+        - name: "ORANGE_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 600)
+          rd: "10.0.0.66:200"  # v2.0: Loopback-based (was 10.*.*.1:4000)
+          rt_export: ["65035:4000"]
+          rt_import: ["65035:4000"]
+          interfaces: ["eth6"]
+      bgp:
+        vrfs:
+          - name: "ORANGE_MESH"
+            neighbors: [{ peer: "10.53.11.2", remote_as: 65035 }]
+
+    - name: "pe12"
+      vrfs:
+        - name: "ORANGE_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 600)
+          rd: "10.0.0.67:200"  # v2.0: Loopback-based (was 10.*.*.1:4000)
+          rt_export: ["65035:4000"]
+          rt_import: ["65035:4000"]
+          interfaces: ["eth6"]
+      bgp:
+        vrfs:
+          - name: "ORANGE_MESH"
+            neighbors: [{ peer: "10.53.12.2", remote_as: 65035 }]

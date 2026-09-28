@@ -1,0 +1,39 @@
+# NetworkFailure: Session Teardown / BGP Down
+#
+# Fault Type   : BGP_SESSION_DOWN
+# Target       : PE2, VRF BLUE_HUB — eBGP session to CE1-HUB (10.80.80.2)
+# Impact       : Total blackout of spoke-to-spoke traffic. PE2 withdraws all
+#                customer VPNv4 routes. Spoke VRFs (BLUE_SPOKE) lose all imported
+#                hub routes. dev1 and dev2 can no longer communicate.
+#
+# GNN Detection Signatures:
+#   HetGNN : BGP_Session sub-node for PE2↔CE1-HUB flips to Established=0
+#   STGNN  : Detects simultaneous collapse of bgp_pfx_rcvd on Spoke VRFs
+#   D-GAT  : Pinpoints PE2 as origin node whose outgoing VPNv4 advertisement edges collapsed
+#
+# Usage:
+#   kubectl apply  -f nf-fault2-bgp-session-down.yaml    # Tear down BGP session
+#   kubectl delete -f nf-fault2-bgp-session-down.yaml    # Restore BGP session
+---
+apiVersion: google.dev/v1
+kind: NetworkFailure
+metadata:
+  name: fault2-bgp-session-down
+  namespace: network
+  labels:
+    scenario: l3vpn-hub-spoke
+    fault-type: bgp-session-down
+    severity: critical
+spec:
+  writeMode: direct
+  failureType: BGP_SESSION_DOWN
+  infrastructureRef: l3vpn-infra
+  target:
+    router: pe2
+    # The eBGP peer to CE1-HUB — removing this neighbor from the VRF causes
+    # PE2 to withdraw all hub routes from the VPNv4 table.
+    peer_ip: "10.80.80.2"
+    vrf: BLUE_HUB
+  parameters:
+    # CE1-HUB is in customer AS 65035
+    remote_as: 65035

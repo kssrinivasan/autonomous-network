@@ -1,0 +1,55 @@
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: orange-vpn-mesh-test
+  namespace: network
+spec:
+  description: "ORANGE VPN cross-region mesh - complementary traffic pattern to GREEN"
+  vpnRef: orange-vpn-service
+  source_devices:
+    - "orange2"   # pe2 (Cambridge, Area 1)
+    - "orange4"   # pe4 (Southampton, Area 1)
+    - "orange6"   # pe6 (Strasbourg, Area 3)
+    - "orange8"   # pe8 (Hanover, Area 2)
+    - "orange10"  # pe10 (Leipzig, Area 2)
+    - "orange12"  # pe12 (Bilbao, Area 4)
+  destination_device: "orange1"   # pe1 (Oxford, Area 1)
+  protocol: TCP
+  duration: 3600    # 1 hour for steady-state analysis
+
+  # Cross-region mesh traffic: 50 Mbps with variation and phase offset for diversity
+  bandwidth: 70Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: wall_clock
+    base_rate: 40Mbps
+    components:
+      - period: 3600       # 1-hour cycle
+        amplitude: 20Mbps
+        phase_offset: 1800    # 30-minute phase shift from GREEN for traffic diversity
+    noise_stddev_pct: 5.0
+    min_rate: 15Mbps
+    max_rate: 70Mbps
+
+  bidirectional: false
+  concurrent_users: 8
+
+  expected_paths:
+    - source: "orange2"
+      expected: ["ce2-orange", "pe2", "ar1", "pa1", "p1", "p2", "pa1", "ar1", "pe1", "ce1-orange", "orange1"]
+      description: "Cambridge to Oxford mesh - direct Area 1 path"
+    - source: "orange4"
+      expected: ["ce4-orange", "pe4", "ar3", "pa2", "p1", "p2", "pa1", "ar1", "pe1", "ce1-orange", "orange1"]
+      description: "Southampton to Oxford mesh - Area 1 path"
+    - source: "orange6"
+      expected: ["ce6-orange", "pe6", "ar4", "pa2", "p1", "p2", "pa1", "ar1", "pe1", "ce1-orange", "orange1"]
+      description: "Strasbourg to Oxford mesh - Area 3 → Area 0 → Area 1 (cross-area)"
+    - source: "orange8"
+      expected: ["ce8-orange", "pe8", "ar5", "pa3", "p2", "p1", "pa1", "ar1", "pe1", "ce1-orange", "orange1"]
+      description: "Hanover to Oxford mesh - Area 2 → Area 0 → Area 1 (cross-area)"
+    - source: "orange10"
+      expected: ["ce10-orange", "pe10", "ar7", "pa4", "p2", "p1", "pa1", "ar1", "pe1", "ce1-orange", "orange1"]
+      description: "Leipzig to Oxford mesh - Area 2 → Area 0 → Area 1 (cross-area)"
+    - source: "orange12"
+      expected: ["ce12-orange", "pe12", "ar10", "pa6", "p4", "p1", "pa1", "ar1", "pe1", "ce1-orange", "orange1"]
+      description: "Bilbao to Oxford mesh - Area 4 → Area 0 → Area 1 (cross-area)"

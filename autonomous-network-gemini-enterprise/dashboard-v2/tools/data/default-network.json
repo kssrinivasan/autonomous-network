@@ -1,0 +1,2946 @@
+{
+  "id": "network:default",
+  "name": "default",
+  "description": "Telco-lab UK hub-spoke L3VPN with BLUE (hub-spoke) and RED (any-to-any mesh) VPNs",
+  "infrastructure": {
+    "apiVersion": "google.dev/v1",
+    "kind": "VyOSInfrastructure",
+    "metadata": {
+      "name": "l3vpn-infra",
+      "namespace": "network",
+      "labels": {
+        "type": "telco-lab",
+        "environment": "lab"
+      }
+    },
+    "spec": {
+      "description": "L3VPN Infrastructure",
+      "networks": [
+        {
+          "name": "p1-p2",
+          "subnet": "172.16.30.0/24",
+          "bandwidth": "1gbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "p1",
+              "interface": "eth1",
+              "ip_address": "172.16.30.1"
+            },
+            {
+              "router_name": "p2",
+              "interface": "eth1",
+              "ip_address": "172.16.30.2"
+            }
+          ]
+        },
+        {
+          "name": "p1-p3",
+          "subnet": "172.16.40.0/24",
+          "bandwidth": "1gbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "p1",
+              "interface": "eth2",
+              "ip_address": "172.16.40.1"
+            },
+            {
+              "router_name": "p3",
+              "interface": "eth2",
+              "ip_address": "172.16.40.2"
+            }
+          ]
+        },
+        {
+          "name": "p2-p4",
+          "subnet": "172.16.60.0/24",
+          "bandwidth": "1gbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "p2",
+              "interface": "eth2",
+              "ip_address": "172.16.60.1"
+            },
+            {
+              "router_name": "p4",
+              "interface": "eth2",
+              "ip_address": "172.16.60.2"
+            }
+          ]
+        },
+        {
+          "name": "p3-p4",
+          "subnet": "172.16.50.0/24",
+          "bandwidth": "1gbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "p3",
+              "interface": "eth3",
+              "ip_address": "172.16.50.1"
+            },
+            {
+              "router_name": "p4",
+              "interface": "eth3",
+              "ip_address": "172.16.50.2"
+            }
+          ]
+        },
+        {
+          "name": "p1-rr1",
+          "subnet": "172.16.10.0/24",
+          "bandwidth": "1gbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "p1",
+              "interface": "eth4",
+              "ip_address": "172.16.10.1"
+            },
+            {
+              "router_name": "rr1",
+              "interface": "eth2",
+              "ip_address": "172.16.10.2"
+            }
+          ]
+        },
+        {
+          "name": "p2-rr1",
+          "subnet": "172.16.20.0/24",
+          "bandwidth": "1gbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "p2",
+              "interface": "eth3",
+              "ip_address": "172.16.20.1"
+            },
+            {
+              "router_name": "rr1",
+              "interface": "eth1",
+              "ip_address": "172.16.20.2"
+            }
+          ]
+        },
+        {
+          "name": "p3-rr2",
+          "subnet": "172.16.70.0/24",
+          "bandwidth": "1gbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "p3",
+              "interface": "eth4",
+              "ip_address": "172.16.70.1"
+            },
+            {
+              "router_name": "rr2",
+              "interface": "eth2",
+              "ip_address": "172.16.70.2"
+            }
+          ]
+        },
+        {
+          "name": "p4-rr2",
+          "subnet": "172.16.80.0/24",
+          "bandwidth": "1gbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "p4",
+              "interface": "eth1",
+              "ip_address": "172.16.80.1"
+            },
+            {
+              "router_name": "rr2",
+              "interface": "eth1",
+              "ip_address": "172.16.80.2"
+            }
+          ]
+        },
+        {
+          "name": "p1-pe1",
+          "subnet": "172.16.90.0/24",
+          "bandwidth": "100mbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "p1",
+              "interface": "eth3",
+              "ip_address": "172.16.90.1"
+            },
+            {
+              "router_name": "pe1",
+              "interface": "eth1",
+              "ip_address": "172.16.90.2"
+            }
+          ]
+        },
+        {
+          "name": "p1-pe2",
+          "subnet": "172.16.100.0/24",
+          "bandwidth": "100mbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "p1",
+              "interface": "eth5",
+              "ip_address": "172.16.100.1"
+            },
+            {
+              "router_name": "pe2",
+              "interface": "eth1",
+              "ip_address": "172.16.100.2"
+            }
+          ]
+        },
+        {
+          "name": "p3-pe2",
+          "subnet": "172.16.110.0/24",
+          "bandwidth": "100mbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "p3",
+              "interface": "eth1",
+              "ip_address": "172.16.110.1"
+            },
+            {
+              "router_name": "pe2",
+              "interface": "eth2",
+              "ip_address": "172.16.110.2"
+            }
+          ]
+        },
+        {
+          "name": "p4-pe3",
+          "subnet": "172.16.140.0/24",
+          "bandwidth": "100mbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "p4",
+              "interface": "eth4",
+              "ip_address": "172.16.140.1"
+            },
+            {
+              "router_name": "pe3",
+              "interface": "eth1",
+              "ip_address": "172.16.140.2"
+            }
+          ]
+        },
+        {
+          "name": "p2-pe4",
+          "subnet": "172.16.150.0/24",
+          "bandwidth": "100mbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "p2",
+              "interface": "eth4",
+              "ip_address": "172.16.150.1"
+            },
+            {
+              "router_name": "pe4",
+              "interface": "eth1",
+              "ip_address": "172.16.150.2"
+            }
+          ]
+        },
+        {
+          "name": "p3-pe1",
+          "subnet": "172.16.160.0/24",
+          "bandwidth": "100mbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "p3",
+              "interface": "eth5",
+              "ip_address": "172.16.160.1"
+            },
+            {
+              "router_name": "pe1",
+              "interface": "eth4",
+              "ip_address": "172.16.160.2"
+            }
+          ]
+        },
+        {
+          "name": "p2-pe3",
+          "subnet": "172.16.170.0/24",
+          "bandwidth": "100mbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "p2",
+              "interface": "eth5",
+              "ip_address": "172.16.170.1"
+            },
+            {
+              "router_name": "pe3",
+              "interface": "eth4",
+              "ip_address": "172.16.170.2"
+            }
+          ]
+        },
+        {
+          "name": "p4-pe4",
+          "subnet": "172.16.180.0/24",
+          "bandwidth": "100mbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "p4",
+              "interface": "eth5",
+              "ip_address": "172.16.180.1"
+            },
+            {
+              "router_name": "pe4",
+              "interface": "eth4",
+              "ip_address": "172.16.180.2"
+            }
+          ]
+        },
+        {
+          "name": "mgmt",
+          "subnet": "192.168.122.0/24",
+          "bandwidth": "unlimited",
+          "gateway": "192.168.122.1",
+          "network_type": "management",
+          "connected_routers": [
+            {
+              "router_name": "p1",
+              "interface": "eth0",
+              "ip_address": "192.168.122.11"
+            },
+            {
+              "router_name": "p2",
+              "interface": "eth0",
+              "ip_address": "192.168.122.12"
+            },
+            {
+              "router_name": "p3",
+              "interface": "eth0",
+              "ip_address": "192.168.122.13"
+            },
+            {
+              "router_name": "p4",
+              "interface": "eth0",
+              "ip_address": "192.168.122.14"
+            },
+            {
+              "router_name": "rr1",
+              "interface": "eth0",
+              "ip_address": "192.168.122.21"
+            },
+            {
+              "router_name": "rr2",
+              "interface": "eth0",
+              "ip_address": "192.168.122.22"
+            },
+            {
+              "router_name": "pe1",
+              "interface": "eth0",
+              "ip_address": "192.168.122.31"
+            },
+            {
+              "router_name": "pe2",
+              "interface": "eth0",
+              "ip_address": "192.168.122.32"
+            },
+            {
+              "router_name": "pe3",
+              "interface": "eth0",
+              "ip_address": "192.168.122.33"
+            },
+            {
+              "router_name": "ce1-spoke",
+              "interface": "eth0",
+              "ip_address": "192.168.122.40"
+            },
+            {
+              "router_name": "ce1-hub",
+              "interface": "eth0",
+              "ip_address": "192.168.122.41"
+            },
+            {
+              "router_name": "ce2-spoke",
+              "interface": "eth0",
+              "ip_address": "192.168.122.42"
+            },
+            {
+              "router_name": "pe4",
+              "interface": "eth0",
+              "ip_address": "192.168.122.34"
+            },
+            {
+              "router_name": "ce3-spoke",
+              "interface": "eth0",
+              "ip_address": "192.168.122.43"
+            },
+            {
+              "router_name": "ce1-red",
+              "interface": "eth0",
+              "ip_address": "192.168.122.44"
+            },
+            {
+              "router_name": "ce2-red",
+              "interface": "eth0",
+              "ip_address": "192.168.122.45"
+            },
+            {
+              "router_name": "ce3-red",
+              "interface": "eth0",
+              "ip_address": "192.168.122.46"
+            },
+            {
+              "router_name": "ce4-red",
+              "interface": "eth0",
+              "ip_address": "192.168.122.47"
+            }
+          ]
+        },
+        {
+          "name": "loopbacks",
+          "subnet": "10.0.0.0/24",
+          "bandwidth": "unlimited",
+          "network_type": "loopback"
+        },
+        {
+          "name": "pe1-ce1-spoke",
+          "subnet": "10.50.50.0/24",
+          "bandwidth": "100mbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "pe1",
+              "interface": "eth2",
+              "ip_address": "10.50.50.1"
+            },
+            {
+              "router_name": "ce1-spoke",
+              "interface": "eth1",
+              "ip_address": "10.50.50.2"
+            }
+          ]
+        },
+        {
+          "name": "pe2-ce1-hub",
+          "subnet": "10.80.80.0/24",
+          "bandwidth": "100mbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "pe2",
+              "interface": "eth3",
+              "ip_address": "10.80.80.1"
+            },
+            {
+              "router_name": "ce1-hub",
+              "interface": "eth1",
+              "ip_address": "10.80.80.2"
+            }
+          ]
+        },
+        {
+          "name": "pe3-ce2-spoke",
+          "subnet": "10.60.60.0/24",
+          "bandwidth": "100mbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "pe3",
+              "interface": "eth2",
+              "ip_address": "10.60.60.1"
+            },
+            {
+              "router_name": "ce2-spoke",
+              "interface": "eth1",
+              "ip_address": "10.60.60.2"
+            }
+          ]
+        },
+        {
+          "name": "pe4-ce3-spoke",
+          "subnet": "10.70.70.0/24",
+          "bandwidth": "100mbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "pe4",
+              "interface": "eth2",
+              "ip_address": "10.70.70.1"
+            },
+            {
+              "router_name": "ce3-spoke",
+              "interface": "eth1",
+              "ip_address": "10.70.70.2"
+            }
+          ]
+        },
+        {
+          "name": "pe1-ce1-red",
+          "subnet": "10.55.55.0/24",
+          "bandwidth": "100mbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "pe1",
+              "interface": "eth3",
+              "ip_address": "10.55.55.1"
+            },
+            {
+              "router_name": "ce1-red",
+              "interface": "eth1",
+              "ip_address": "10.55.55.2"
+            }
+          ]
+        },
+        {
+          "name": "pe2-ce2-red",
+          "subnet": "10.65.65.0/24",
+          "bandwidth": "100mbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "pe2",
+              "interface": "eth4",
+              "ip_address": "10.65.65.1"
+            },
+            {
+              "router_name": "ce2-red",
+              "interface": "eth1",
+              "ip_address": "10.65.65.2"
+            }
+          ]
+        },
+        {
+          "name": "pe3-ce3-red",
+          "subnet": "10.75.75.0/24",
+          "bandwidth": "100mbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "pe3",
+              "interface": "eth3",
+              "ip_address": "10.75.75.1"
+            },
+            {
+              "router_name": "ce3-red",
+              "interface": "eth1",
+              "ip_address": "10.75.75.2"
+            }
+          ]
+        },
+        {
+          "name": "pe4-ce4-red",
+          "subnet": "10.85.85.0/24",
+          "bandwidth": "100mbit",
+          "network_type": "p2p",
+          "connected_routers": [
+            {
+              "router_name": "pe4",
+              "interface": "eth3",
+              "ip_address": "10.85.85.1"
+            },
+            {
+              "router_name": "ce4-red",
+              "interface": "eth1",
+              "ip_address": "10.85.85.2"
+            }
+          ]
+        },
+        {
+          "name": "lan-spoke1",
+          "subnet": "10.100.1.0/24",
+          "bandwidth": "100mbit",
+          "gateway": "10.100.1.1",
+          "network_type": "multi-access",
+          "connected_routers": [
+            {
+              "router_name": "ce1-spoke",
+              "interface": "eth2",
+              "ip_address": "10.100.1.1"
+            }
+          ]
+        },
+        {
+          "name": "lan-spoke2",
+          "subnet": "10.100.3.0/24",
+          "bandwidth": "100mbit",
+          "gateway": "10.100.3.1",
+          "network_type": "multi-access",
+          "connected_routers": [
+            {
+              "router_name": "ce2-spoke",
+              "interface": "eth2",
+              "ip_address": "10.100.3.1"
+            }
+          ]
+        },
+        {
+          "name": "lan-spoke3",
+          "subnet": "10.100.4.0/24",
+          "bandwidth": "100mbit",
+          "gateway": "10.100.4.1",
+          "network_type": "multi-access",
+          "connected_routers": [
+            {
+              "router_name": "ce3-spoke",
+              "interface": "eth2",
+              "ip_address": "10.100.4.1"
+            }
+          ]
+        },
+        {
+          "name": "lan-hub",
+          "subnet": "10.100.2.0/24",
+          "bandwidth": "100mbit",
+          "gateway": "10.100.2.1",
+          "network_type": "multi-access",
+          "connected_routers": [
+            {
+              "router_name": "ce1-hub",
+              "interface": "eth2",
+              "ip_address": "10.100.2.1"
+            }
+          ]
+        },
+        {
+          "name": "lan-red1",
+          "subnet": "10.101.1.0/24",
+          "bandwidth": "100mbit",
+          "gateway": "10.101.1.1",
+          "network_type": "multi-access",
+          "connected_routers": [
+            {
+              "router_name": "ce1-red",
+              "interface": "eth2",
+              "ip_address": "10.101.1.1"
+            }
+          ]
+        },
+        {
+          "name": "lan-red2",
+          "subnet": "10.101.2.0/24",
+          "bandwidth": "100mbit",
+          "gateway": "10.101.2.1",
+          "network_type": "multi-access",
+          "connected_routers": [
+            {
+              "router_name": "ce2-red",
+              "interface": "eth2",
+              "ip_address": "10.101.2.1"
+            }
+          ]
+        },
+        {
+          "name": "lan-red3",
+          "subnet": "10.101.3.0/24",
+          "bandwidth": "100mbit",
+          "gateway": "10.101.3.1",
+          "network_type": "multi-access",
+          "connected_routers": [
+            {
+              "router_name": "ce3-red",
+              "interface": "eth2",
+              "ip_address": "10.101.3.1"
+            }
+          ]
+        },
+        {
+          "name": "lan-red4",
+          "subnet": "10.101.4.0/24",
+          "bandwidth": "100mbit",
+          "gateway": "10.101.4.1",
+          "network_type": "multi-access",
+          "connected_routers": [
+            {
+              "router_name": "ce4-red",
+              "interface": "eth2",
+              "ip_address": "10.101.4.1"
+            }
+          ]
+        }
+      ],
+      "routers": [
+        {
+          "name": "p1",
+          "hostname": "p1",
+          "router_id": "10.0.0.3",
+          "role": "P",
+          "location": {
+            "latitude": 51.5074,
+            "longitude": -0.1278,
+            "city": "London",
+            "country": "United Kingdom",
+            "site": "London-DC1"
+          },
+          "interfaces": [
+            {
+              "name": "eth0",
+              "network": "mgmt"
+            },
+            {
+              "name": "eth1",
+              "network": "p1-p2"
+            },
+            {
+              "name": "eth2",
+              "network": "p1-p3"
+            },
+            {
+              "name": "eth3",
+              "network": "p1-pe1"
+            },
+            {
+              "name": "eth4",
+              "network": "p1-rr1"
+            },
+            {
+              "name": "eth5",
+              "network": "p1-pe2"
+            },
+            {
+              "name": "lo",
+              "network": "loopbacks"
+            }
+          ]
+        },
+        {
+          "name": "p2",
+          "hostname": "p2",
+          "router_id": "10.0.0.4",
+          "role": "P",
+          "location": {
+            "latitude": 53.4808,
+            "longitude": -2.2426,
+            "city": "Manchester",
+            "country": "United Kingdom",
+            "site": "Manchester-DC1"
+          },
+          "interfaces": [
+            {
+              "name": "eth0",
+              "network": "mgmt"
+            },
+            {
+              "name": "eth1",
+              "network": "p1-p2"
+            },
+            {
+              "name": "eth2",
+              "network": "p2-p4"
+            },
+            {
+              "name": "eth3",
+              "network": "p2-rr1"
+            },
+            {
+              "name": "eth4",
+              "network": "p2-pe4"
+            },
+            {
+              "name": "eth5",
+              "network": "p2-pe3"
+            },
+            {
+              "name": "lo",
+              "network": "loopbacks"
+            }
+          ]
+        },
+        {
+          "name": "p3",
+          "hostname": "p3",
+          "router_id": "10.0.0.5",
+          "role": "P",
+          "location": {
+            "latitude": 55.9533,
+            "longitude": -3.1883,
+            "city": "Edinburgh",
+            "country": "United Kingdom",
+            "site": "Edinburgh-DC1"
+          },
+          "interfaces": [
+            {
+              "name": "eth0",
+              "network": "mgmt"
+            },
+            {
+              "name": "eth1",
+              "network": "p3-pe2"
+            },
+            {
+              "name": "eth2",
+              "network": "p1-p3"
+            },
+            {
+              "name": "eth3",
+              "network": "p3-p4"
+            },
+            {
+              "name": "eth4",
+              "network": "p3-rr2"
+            },
+            {
+              "name": "eth5",
+              "network": "p3-pe1"
+            },
+            {
+              "name": "lo",
+              "network": "loopbacks"
+            }
+          ]
+        },
+        {
+          "name": "p4",
+          "hostname": "p4",
+          "router_id": "10.0.0.6",
+          "role": "P",
+          "location": {
+            "latitude": 53.8008,
+            "longitude": -1.5491,
+            "city": "Leeds",
+            "country": "United Kingdom",
+            "site": "Leeds-DC1"
+          },
+          "interfaces": [
+            {
+              "name": "eth0",
+              "network": "mgmt"
+            },
+            {
+              "name": "eth1",
+              "network": "p4-rr2"
+            },
+            {
+              "name": "eth2",
+              "network": "p2-p4"
+            },
+            {
+              "name": "eth3",
+              "network": "p3-p4"
+            },
+            {
+              "name": "eth4",
+              "network": "p4-pe3"
+            },
+            {
+              "name": "eth5",
+              "network": "p4-pe4"
+            },
+            {
+              "name": "lo",
+              "network": "loopbacks"
+            }
+          ]
+        },
+        {
+          "name": "rr1",
+          "hostname": "rr1",
+          "router_id": "10.0.0.1",
+          "role": "RR",
+          "location": {
+            "latitude": 52.4862,
+            "longitude": -1.8904,
+            "city": "Birmingham",
+            "country": "United Kingdom",
+            "site": "Birmingham-DC1"
+          },
+          "interfaces": [
+            {
+              "name": "eth0",
+              "network": "mgmt"
+            },
+            {
+              "name": "eth1",
+              "network": "p2-rr1"
+            },
+            {
+              "name": "eth2",
+              "network": "p1-rr1"
+            },
+            {
+              "name": "lo",
+              "network": "loopbacks"
+            }
+          ]
+        },
+        {
+          "name": "rr2",
+          "hostname": "rr2",
+          "router_id": "10.0.0.2",
+          "role": "RR",
+          "location": {
+            "latitude": 51.4545,
+            "longitude": -2.5879,
+            "city": "Bristol",
+            "country": "United Kingdom",
+            "site": "Bristol-DC1"
+          },
+          "interfaces": [
+            {
+              "name": "eth0",
+              "network": "mgmt"
+            },
+            {
+              "name": "eth1",
+              "network": "p4-rr2"
+            },
+            {
+              "name": "eth2",
+              "network": "p3-rr2"
+            },
+            {
+              "name": "lo",
+              "network": "loopbacks"
+            }
+          ]
+        },
+        {
+          "name": "pe1",
+          "hostname": "pe1",
+          "router_id": "10.0.0.7",
+          "role": "PE",
+          "location": {
+            "latitude": 51.752,
+            "longitude": -1.2577,
+            "city": "Oxford",
+            "country": "United Kingdom",
+            "site": "Oxford-DC1"
+          },
+          "interfaces": [
+            {
+              "name": "eth0",
+              "network": "mgmt"
+            },
+            {
+              "name": "eth1",
+              "network": "p1-pe1"
+            },
+            {
+              "name": "eth2",
+              "network": "pe1-ce1-spoke"
+            },
+            {
+              "name": "eth3",
+              "network": "pe1-ce1-red"
+            },
+            {
+              "name": "eth4",
+              "network": "p3-pe1"
+            },
+            {
+              "name": "lo",
+              "network": "loopbacks"
+            }
+          ]
+        },
+        {
+          "name": "pe2",
+          "hostname": "pe2",
+          "router_id": "10.0.0.8",
+          "role": "PE",
+          "location": {
+            "latitude": 52.2053,
+            "longitude": 0.1218,
+            "city": "Cambridge",
+            "country": "United Kingdom",
+            "site": "Cambridge-DC1"
+          },
+          "interfaces": [
+            {
+              "name": "eth0",
+              "network": "mgmt"
+            },
+            {
+              "name": "eth1",
+              "network": "p1-pe2"
+            },
+            {
+              "name": "eth2",
+              "network": "p3-pe2"
+            },
+            {
+              "name": "eth3",
+              "network": "pe2-ce1-hub"
+            },
+            {
+              "name": "eth4",
+              "network": "pe2-ce2-red"
+            },
+            {
+              "name": "lo",
+              "network": "loopbacks"
+            }
+          ]
+        },
+        {
+          "name": "pe3",
+          "hostname": "pe3",
+          "router_id": "10.0.0.10",
+          "role": "PE",
+          "location": {
+            "latitude": 50.8198,
+            "longitude": -0.1371,
+            "city": "Brighton",
+            "country": "United Kingdom",
+            "site": "Brighton-DC1"
+          },
+          "interfaces": [
+            {
+              "name": "eth0",
+              "network": "mgmt"
+            },
+            {
+              "name": "eth1",
+              "network": "p4-pe3"
+            },
+            {
+              "name": "eth2",
+              "network": "pe3-ce2-spoke"
+            },
+            {
+              "name": "eth3",
+              "network": "pe3-ce3-red"
+            },
+            {
+              "name": "eth4",
+              "network": "p2-pe3"
+            },
+            {
+              "name": "lo",
+              "network": "loopbacks"
+            }
+          ]
+        },
+        {
+          "name": "ce1-spoke",
+          "hostname": "ce1-spoke",
+          "router_id": "10.0.0.80",
+          "role": "CE",
+          "location": {
+            "latitude": 53.3811,
+            "longitude": -1.4701,
+            "city": "Sheffield",
+            "country": "United Kingdom",
+            "site": "Sheffield-Site1"
+          },
+          "interfaces": [
+            {
+              "name": "eth0",
+              "network": "mgmt"
+            },
+            {
+              "name": "eth1",
+              "network": "pe1-ce1-spoke"
+            },
+            {
+              "name": "eth2",
+              "network": "lan-spoke1"
+            },
+            {
+              "name": "lo",
+              "network": "loopbacks"
+            }
+          ]
+        },
+        {
+          "name": "ce1-hub",
+          "hostname": "ce1-hub",
+          "router_id": "10.0.0.100",
+          "role": "CE",
+          "location": {
+            "latitude": 52.9548,
+            "longitude": -1.1581,
+            "city": "Nottingham",
+            "country": "United Kingdom",
+            "site": "Nottingham-Hub1"
+          },
+          "interfaces": [
+            {
+              "name": "eth0",
+              "network": "mgmt"
+            },
+            {
+              "name": "eth1",
+              "network": "pe2-ce1-hub"
+            },
+            {
+              "name": "eth2",
+              "network": "lan-hub"
+            },
+            {
+              "name": "lo",
+              "network": "loopbacks"
+            }
+          ]
+        },
+        {
+          "name": "ce2-spoke",
+          "hostname": "ce2-spoke",
+          "router_id": "10.0.0.90",
+          "role": "CE",
+          "location": {
+            "latitude": 53.4084,
+            "longitude": -2.9916,
+            "city": "Liverpool",
+            "country": "United Kingdom",
+            "site": "Liverpool-Site1"
+          },
+          "interfaces": [
+            {
+              "name": "eth0",
+              "network": "mgmt"
+            },
+            {
+              "name": "eth1",
+              "network": "pe3-ce2-spoke"
+            },
+            {
+              "name": "eth2",
+              "network": "lan-spoke2"
+            },
+            {
+              "name": "lo",
+              "network": "loopbacks"
+            }
+          ]
+        },
+        {
+          "name": "pe4",
+          "hostname": "pe4",
+          "router_id": "10.0.0.11",
+          "role": "PE",
+          "location": {
+            "latitude": 51.4816,
+            "longitude": -3.1791,
+            "city": "Cardiff",
+            "country": "United Kingdom",
+            "site": "Cardiff-DC1"
+          },
+          "interfaces": [
+            {
+              "name": "eth0",
+              "network": "mgmt"
+            },
+            {
+              "name": "eth1",
+              "network": "p2-pe4"
+            },
+            {
+              "name": "eth2",
+              "network": "pe4-ce3-spoke"
+            },
+            {
+              "name": "eth3",
+              "network": "pe4-ce4-red"
+            },
+            {
+              "name": "eth4",
+              "network": "p4-pe4"
+            },
+            {
+              "name": "lo",
+              "network": "loopbacks"
+            }
+          ]
+        },
+        {
+          "name": "ce3-spoke",
+          "hostname": "ce3-spoke",
+          "router_id": "10.0.0.91",
+          "role": "CE",
+          "location": {
+            "latitude": 53.645,
+            "longitude": -1.785,
+            "city": "Huddersfield",
+            "country": "United Kingdom",
+            "site": "Huddersfield-Site1"
+          },
+          "interfaces": [
+            {
+              "name": "eth0",
+              "network": "mgmt"
+            },
+            {
+              "name": "eth1",
+              "network": "pe4-ce3-spoke"
+            },
+            {
+              "name": "eth2",
+              "network": "lan-spoke3"
+            },
+            {
+              "name": "lo",
+              "network": "loopbacks"
+            }
+          ]
+        },
+        {
+          "name": "ce1-red",
+          "hostname": "ce1-red",
+          "router_id": "10.0.0.101",
+          "role": "CE",
+          "location": {
+            "latitude": 52.6309,
+            "longitude": 1.2974,
+            "city": "Norwich",
+            "country": "United Kingdom",
+            "site": "Norwich-Site1"
+          },
+          "interfaces": [
+            {
+              "name": "eth0",
+              "network": "mgmt"
+            },
+            {
+              "name": "eth1",
+              "network": "pe1-ce1-red"
+            },
+            {
+              "name": "eth2",
+              "network": "lan-red1"
+            },
+            {
+              "name": "lo",
+              "network": "loopbacks"
+            }
+          ]
+        },
+        {
+          "name": "ce2-red",
+          "hostname": "ce2-red",
+          "router_id": "10.0.0.102",
+          "role": "CE",
+          "location": {
+            "latitude": 52.4082,
+            "longitude": -1.5109,
+            "city": "Coventry",
+            "country": "United Kingdom",
+            "site": "Coventry-Site1"
+          },
+          "interfaces": [
+            {
+              "name": "eth0",
+              "network": "mgmt"
+            },
+            {
+              "name": "eth1",
+              "network": "pe2-ce2-red"
+            },
+            {
+              "name": "eth2",
+              "network": "lan-red2"
+            },
+            {
+              "name": "lo",
+              "network": "loopbacks"
+            }
+          ]
+        },
+        {
+          "name": "ce3-red",
+          "hostname": "ce3-red",
+          "router_id": "10.0.0.103",
+          "role": "CE",
+          "location": {
+            "latitude": 50.3755,
+            "longitude": -4.1427,
+            "city": "Plymouth",
+            "country": "United Kingdom",
+            "site": "Plymouth-Site1"
+          },
+          "interfaces": [
+            {
+              "name": "eth0",
+              "network": "mgmt"
+            },
+            {
+              "name": "eth1",
+              "network": "pe3-ce3-red"
+            },
+            {
+              "name": "eth2",
+              "network": "lan-red3"
+            },
+            {
+              "name": "lo",
+              "network": "loopbacks"
+            }
+          ]
+        },
+        {
+          "name": "ce4-red",
+          "hostname": "ce4-red",
+          "router_id": "10.0.0.104",
+          "role": "CE",
+          "location": {
+            "latitude": 52.6369,
+            "longitude": -1.1398,
+            "city": "Leicester",
+            "country": "United Kingdom",
+            "site": "Leicester-Site1"
+          },
+          "interfaces": [
+            {
+              "name": "eth0",
+              "network": "mgmt"
+            },
+            {
+              "name": "eth1",
+              "network": "pe4-ce4-red"
+            },
+            {
+              "name": "eth2",
+              "network": "lan-red4"
+            },
+            {
+              "name": "lo",
+              "network": "loopbacks"
+            }
+          ]
+        }
+      ],
+      "devices": [
+        {
+          "name": "dh-blue",
+          "network_name": "lan-hub",
+          "ip_address": "10.100.2.10",
+          "mgmt_ip": "192.168.122.50",
+          "gateway": "10.100.2.1"
+        },
+        {
+          "name": "d1-blue",
+          "network_name": "lan-spoke1",
+          "ip_address": "10.100.1.10",
+          "mgmt_ip": "192.168.122.51",
+          "gateway": "10.100.1.1"
+        },
+        {
+          "name": "d2-blue",
+          "network_name": "lan-spoke2",
+          "ip_address": "10.100.3.10",
+          "mgmt_ip": "192.168.122.52",
+          "gateway": "10.100.3.1"
+        },
+        {
+          "name": "d3-blue",
+          "network_name": "lan-spoke3",
+          "ip_address": "10.100.4.10",
+          "mgmt_ip": "192.168.122.53",
+          "gateway": "10.100.4.1"
+        },
+        {
+          "name": "d1-red",
+          "network_name": "lan-red1",
+          "ip_address": "10.101.1.10",
+          "mgmt_ip": "192.168.122.54",
+          "gateway": "10.101.1.1"
+        },
+        {
+          "name": "d2-red",
+          "network_name": "lan-red2",
+          "ip_address": "10.101.2.10",
+          "mgmt_ip": "192.168.122.55",
+          "gateway": "10.101.2.1"
+        },
+        {
+          "name": "d3-red",
+          "network_name": "lan-red3",
+          "ip_address": "10.101.3.10",
+          "mgmt_ip": "192.168.122.56",
+          "gateway": "10.101.3.1"
+        },
+        {
+          "name": "d4-red",
+          "network_name": "lan-red4",
+          "ip_address": "10.101.4.10",
+          "mgmt_ip": "192.168.122.57",
+          "gateway": "10.101.4.1"
+        }
+      ]
+    }
+  },
+  "underlay": {
+    "apiVersion": "google.dev/v1",
+    "kind": "VyOSUnderlay",
+    "metadata": {
+      "name": "l3vpn-underlay",
+      "namespace": "network"
+    },
+    "spec": {
+      "infrastructureRef": "l3vpn-infra",
+      "routing": {
+        "ospf": {
+          "router_id_source": "loopback",
+          "areas": [
+            {
+              "area_id": "0.0.0.0",
+              "type": "backbone"
+            }
+          ]
+        },
+        "bgp": {
+          "as_number": 65001,
+          "router_id_source": "loopback",
+          "route_reflectors": [
+            "10.0.0.1",
+            "10.0.0.2"
+          ]
+        }
+      },
+      "mpls": {
+        "enabled": true,
+        "ldp": {
+          "router_id_interface": "loopback"
+        }
+      },
+      "routers": [
+        {
+          "name": "p1",
+          "protocols": {
+            "ospf": {
+              "router_id": "10.0.0.3",
+              "areas": [
+                {
+                  "area": "0.0.0.0",
+                  "type": "backbone"
+                }
+              ],
+              "passive_interfaces": ["lo"]
+            },
+            "mpls": {
+              "enabled": true,
+              "ldp": {
+                "router_id": "10.0.0.3",
+                "interfaces": [
+                  "eth1",
+                  "eth2",
+                  "eth3",
+                  "eth4",
+                  "eth5"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "name": "p2",
+          "protocols": {
+            "ospf": {
+              "router_id": "10.0.0.4",
+              "areas": [
+                {
+                  "area": "0.0.0.0",
+                  "type": "backbone"
+                }
+              ],
+              "passive_interfaces": ["lo"]
+            },
+            "mpls": {
+              "enabled": true,
+              "ldp": {
+                "router_id": "10.0.0.4",
+                "interfaces": [
+                  "eth1",
+                  "eth2",
+                  "eth3",
+                  "eth4",
+                  "eth5"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "name": "p3",
+          "protocols": {
+            "ospf": {
+              "router_id": "10.0.0.5",
+              "areas": [
+                {
+                  "area": "0.0.0.0",
+                  "type": "backbone"
+                }
+              ],
+              "passive_interfaces": ["lo"]
+            },
+            "mpls": {
+              "enabled": true,
+              "ldp": {
+                "router_id": "10.0.0.5",
+                "interfaces": [
+                  "eth1",
+                  "eth2",
+                  "eth3",
+                  "eth4",
+                  "eth5"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "name": "p4",
+          "protocols": {
+            "ospf": {
+              "router_id": "10.0.0.6",
+              "areas": [
+                {
+                  "area": "0.0.0.0",
+                  "type": "backbone"
+                }
+              ],
+              "passive_interfaces": ["lo"]
+            },
+            "mpls": {
+              "enabled": true,
+              "ldp": {
+                "router_id": "10.0.0.6",
+                "interfaces": [
+                  "eth1",
+                  "eth2",
+                  "eth3",
+                  "eth4",
+                  "eth5"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "name": "rr1",
+          "protocols": {
+            "ospf": {
+              "router_id": "10.0.0.1",
+              "areas": [
+                {
+                  "area": "0.0.0.0",
+                  "type": "backbone"
+                }
+              ],
+              "passive_interfaces": ["lo"]
+            },
+            "bgp": {
+              "as_number": 65001,
+              "router_id": "10.0.0.1",
+              "route_reflector": true,
+              "neighbors": [
+                {
+                  "peer": "10.0.0.2",
+                  "remote_as": 65001,
+                  "description": "iBGP to rr2"
+                },
+                {
+                  "peer": "10.0.0.7",
+                  "remote_as": 65001,
+                  "route_reflector_client": true
+                },
+                {
+                  "peer": "10.0.0.8",
+                  "remote_as": 65001,
+                  "route_reflector_client": true
+                },
+                {
+                  "peer": "10.0.0.10",
+                  "remote_as": 65001,
+                  "route_reflector_client": true
+                },
+                {
+                  "peer": "10.0.0.11",
+                  "remote_as": 65001,
+                  "route_reflector_client": true
+                }
+              ]
+            },
+            "mpls": {
+              "enabled": true,
+              "ldp": {
+                "router_id": "10.0.0.1",
+                "interfaces": [
+                  "eth1",
+                  "eth2"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "name": "rr2",
+          "protocols": {
+            "ospf": {
+              "router_id": "10.0.0.2",
+              "areas": [
+                {
+                  "area": "0.0.0.0",
+                  "type": "backbone"
+                }
+              ],
+              "passive_interfaces": ["lo"]
+            },
+            "bgp": {
+              "as_number": 65001,
+              "router_id": "10.0.0.2",
+              "route_reflector": true,
+              "neighbors": [
+                {
+                  "peer": "10.0.0.1",
+                  "remote_as": 65001,
+                  "description": "iBGP to rr1"
+                },
+                {
+                  "peer": "10.0.0.7",
+                  "remote_as": 65001,
+                  "route_reflector_client": true
+                },
+                {
+                  "peer": "10.0.0.8",
+                  "remote_as": 65001,
+                  "route_reflector_client": true
+                },
+                {
+                  "peer": "10.0.0.10",
+                  "remote_as": 65001,
+                  "route_reflector_client": true
+                },
+                {
+                  "peer": "10.0.0.11",
+                  "remote_as": 65001,
+                  "route_reflector_client": true
+                }
+              ]
+            },
+            "mpls": {
+              "enabled": true,
+              "ldp": {
+                "router_id": "10.0.0.2",
+                "interfaces": [
+                  "eth1",
+                  "eth2"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "name": "pe1",
+          "protocols": {
+            "ospf": {
+              "router_id": "10.0.0.7",
+              "areas": [
+                {
+                  "area": "0.0.0.0",
+                  "type": "backbone"
+                }
+              ],
+              "passive_interfaces": ["lo"]
+            },
+            "bgp": {
+              "as_number": 65001,
+              "router_id": "10.0.0.7",
+              "neighbors": [
+                {
+                  "peer": "10.0.0.1",
+                  "remote_as": 65001
+                },
+                {
+                  "peer": "10.0.0.2",
+                  "remote_as": 65001
+                }
+              ]
+            },
+            "mpls": {
+              "enabled": true,
+              "ldp": {
+                "router_id": "10.0.0.7",
+                "interfaces": [
+                  "eth1",
+                  "eth4"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "name": "pe2",
+          "protocols": {
+            "ospf": {
+              "router_id": "10.0.0.8",
+              "areas": [
+                {
+                  "area": "0.0.0.0",
+                  "type": "backbone"
+                }
+              ],
+              "passive_interfaces": ["lo"]
+            },
+            "bgp": {
+              "as_number": 65001,
+              "router_id": "10.0.0.8",
+              "neighbors": [
+                {
+                  "peer": "10.0.0.1",
+                  "remote_as": 65001
+                },
+                {
+                  "peer": "10.0.0.2",
+                  "remote_as": 65001
+                }
+              ]
+            },
+            "mpls": {
+              "enabled": true,
+              "ldp": {
+                "router_id": "10.0.0.8",
+                "interfaces": [
+                  "eth1",
+                  "eth2"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "name": "pe3",
+          "protocols": {
+            "ospf": {
+              "router_id": "10.0.0.10",
+              "areas": [
+                {
+                  "area": "0.0.0.0",
+                  "type": "backbone"
+                }
+              ],
+              "passive_interfaces": ["lo"]
+            },
+            "bgp": {
+              "as_number": 65001,
+              "router_id": "10.0.0.10",
+              "neighbors": [
+                {
+                  "peer": "10.0.0.1",
+                  "remote_as": 65001
+                },
+                {
+                  "peer": "10.0.0.2",
+                  "remote_as": 65001
+                }
+              ]
+            },
+            "mpls": {
+              "enabled": true,
+              "ldp": {
+                "router_id": "10.0.0.10",
+                "interfaces": [
+                  "eth1",
+                  "eth4"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "name": "pe4",
+          "protocols": {
+            "ospf": {
+              "router_id": "10.0.0.11",
+              "areas": [
+                {
+                  "area": "0.0.0.0",
+                  "type": "backbone"
+                }
+              ],
+              "passive_interfaces": ["lo"]
+            },
+            "bgp": {
+              "as_number": 65001,
+              "router_id": "10.0.0.11",
+              "neighbors": [
+                {
+                  "peer": "10.0.0.1",
+                  "remote_as": 65001
+                },
+                {
+                  "peer": "10.0.0.2",
+                  "remote_as": 65001
+                }
+              ]
+            },
+            "mpls": {
+              "enabled": true,
+              "ldp": {
+                "router_id": "10.0.0.11",
+                "interfaces": [
+                  "eth1",
+                  "eth4"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "vpns": [
+    {
+      "apiVersion": "google.dev/v1",
+      "kind": "VyOSL3VPN",
+      "metadata": {
+        "name": "l3vpn-blue-service",
+        "namespace": "network"
+      },
+      "spec": {
+        "underlayRef": "l3vpn-underlay",
+        "services": [
+          {
+            "name": "BLUE_SPOKE",
+            "type": "l3vpn",
+            "topology": "spoke"
+          },
+          {
+            "name": "BLUE_HUB",
+            "type": "l3vpn",
+            "topology": "hub"
+          }
+        ],
+        "routers": [
+          {
+            "name": "pe1",
+            "vrfs": [
+              {
+                "name": "BLUE_SPOKE",
+                "table": 200,
+                "rd": "10.50.50.1:1011",
+                "rt_export": [
+                  "65035:1011"
+                ],
+                "rt_import": [
+                  "65035:1030"
+                ],
+                "interfaces": [
+                  "eth2"
+                ]
+              }
+            ],
+            "bgp": {
+              "vrfs": [
+                {
+                  "name": "BLUE_SPOKE",
+                  "neighbors": [
+                    {
+                      "peer": "10.50.50.2",
+                      "remote_as": 65035
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "pe2",
+            "vrfs": [
+              {
+                "name": "BLUE_HUB",
+                "table": 400,
+                "rd": "10.80.80.1:1011",
+                "rt_export": [
+                  "65035:1030"
+                ],
+                "rt_import": [
+                  "65035:1011",
+                  "65035:1030"
+                ],
+                "interfaces": [
+                  "eth3"
+                ]
+              }
+            ],
+            "bgp": {
+              "vrfs": [
+                {
+                  "name": "BLUE_HUB",
+                  "neighbors": [
+                    {
+                      "peer": "10.80.80.2",
+                      "remote_as": 65035
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "pe3",
+            "vrfs": [
+              {
+                "name": "BLUE_SPOKE",
+                "table": 200,
+                "rd": "10.60.60.1:1011",
+                "rt_export": [
+                  "65035:1011"
+                ],
+                "rt_import": [
+                  "65035:1030"
+                ],
+                "interfaces": [
+                  "eth2"
+                ]
+              }
+            ],
+            "bgp": {
+              "vrfs": [
+                {
+                  "name": "BLUE_SPOKE",
+                  "neighbors": [
+                    {
+                      "peer": "10.60.60.2",
+                      "remote_as": 65035
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "pe4",
+            "vrfs": [
+              {
+                "name": "BLUE_SPOKE",
+                "table": 200,
+                "rd": "10.70.70.1:1011",
+                "rt_export": [
+                  "65035:1011"
+                ],
+                "rt_import": [
+                  "65035:1030"
+                ],
+                "interfaces": [
+                  "eth2"
+                ]
+              }
+            ],
+            "bgp": {
+              "vrfs": [
+                {
+                  "name": "BLUE_SPOKE",
+                  "neighbors": [
+                    {
+                      "peer": "10.70.70.2",
+                      "remote_as": 65035
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "ce_routers": [
+          {
+            "name": "ce1-spoke",
+            "protocols": {
+              "bgp": {
+                "as_number": 65035,
+                "router_id": "10.0.0.80",
+                "neighbors": [
+                  {
+                    "peer": "10.50.50.1",
+                    "remote_as": 65001,
+                    "description": "eBGP to pe1 BLUE_SPOKE VRF"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "ce1-hub",
+            "protocols": {
+              "bgp": {
+                "as_number": 65035,
+                "router_id": "10.0.0.100",
+                "neighbors": [
+                  {
+                    "peer": "10.80.80.1",
+                    "remote_as": 65001,
+                    "description": "eBGP to pe2 BLUE_HUB VRF"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "ce2-spoke",
+            "protocols": {
+              "bgp": {
+                "as_number": 65035,
+                "router_id": "10.0.0.90",
+                "neighbors": [
+                  {
+                    "peer": "10.60.60.1",
+                    "remote_as": 65001,
+                    "description": "eBGP to pe3 BLUE_SPOKE VRF"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "ce3-spoke",
+            "protocols": {
+              "bgp": {
+                "as_number": 65035,
+                "router_id": "10.0.0.91",
+                "neighbors": [
+                  {
+                    "peer": "10.70.70.1",
+                    "remote_as": 65001,
+                    "description": "eBGP to pe4 BLUE_SPOKE VRF"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "google.dev/v1",
+      "kind": "VyOSL3VPN",
+      "metadata": {
+        "name": "l3vpn-red-service",
+        "namespace": "network"
+      },
+      "spec": {
+        "underlayRef": "l3vpn-underlay",
+        "services": [
+          {
+            "name": "RED_MESH",
+            "type": "l3vpn",
+            "topology": "any-to-any"
+          }
+        ],
+        "routers": [
+          {
+            "name": "pe1",
+            "vrfs": [
+              {
+                "name": "RED_MESH",
+                "table": 300,
+                "rd": "10.55.55.1:2000",
+                "rt_export": [
+                  "65035:2000"
+                ],
+                "rt_import": [
+                  "65035:2000"
+                ],
+                "interfaces": [
+                  "eth3"
+                ]
+              }
+            ],
+            "bgp": {
+              "vrfs": [
+                {
+                  "name": "RED_MESH",
+                  "neighbors": [
+                    {
+                      "peer": "10.55.55.2",
+                      "remote_as": 65035
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "pe2",
+            "vrfs": [
+              {
+                "name": "RED_MESH",
+                "table": 300,
+                "rd": "10.65.65.1:2000",
+                "rt_export": [
+                  "65035:2000"
+                ],
+                "rt_import": [
+                  "65035:2000"
+                ],
+                "interfaces": [
+                  "eth4"
+                ]
+              }
+            ],
+            "bgp": {
+              "vrfs": [
+                {
+                  "name": "RED_MESH",
+                  "neighbors": [
+                    {
+                      "peer": "10.65.65.2",
+                      "remote_as": 65035
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "pe3",
+            "vrfs": [
+              {
+                "name": "RED_MESH",
+                "table": 300,
+                "rd": "10.75.75.1:2000",
+                "rt_export": [
+                  "65035:2000"
+                ],
+                "rt_import": [
+                  "65035:2000"
+                ],
+                "interfaces": [
+                  "eth3"
+                ]
+              }
+            ],
+            "bgp": {
+              "vrfs": [
+                {
+                  "name": "RED_MESH",
+                  "neighbors": [
+                    {
+                      "peer": "10.75.75.2",
+                      "remote_as": 65035
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "pe4",
+            "vrfs": [
+              {
+                "name": "RED_MESH",
+                "table": 300,
+                "rd": "10.85.85.1:2000",
+                "rt_export": [
+                  "65035:2000"
+                ],
+                "rt_import": [
+                  "65035:2000"
+                ],
+                "interfaces": [
+                  "eth3"
+                ]
+              }
+            ],
+            "bgp": {
+              "vrfs": [
+                {
+                  "name": "RED_MESH",
+                  "neighbors": [
+                    {
+                      "peer": "10.85.85.2",
+                      "remote_as": 65035
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "ce_routers": [
+          {
+            "name": "ce1-red",
+            "protocols": {
+              "bgp": {
+                "as_number": 65035,
+                "router_id": "10.0.0.101",
+                "neighbors": [
+                  {
+                    "peer": "10.55.55.1",
+                    "remote_as": 65001,
+                    "description": "eBGP to pe1 RED_MESH VRF"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "ce2-red",
+            "protocols": {
+              "bgp": {
+                "as_number": 65035,
+                "router_id": "10.0.0.102",
+                "neighbors": [
+                  {
+                    "peer": "10.65.65.1",
+                    "remote_as": 65001,
+                    "description": "eBGP to pe2 RED_MESH VRF"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "ce3-red",
+            "protocols": {
+              "bgp": {
+                "as_number": 65035,
+                "router_id": "10.0.0.103",
+                "neighbors": [
+                  {
+                    "peer": "10.75.75.1",
+                    "remote_as": 65001,
+                    "description": "eBGP to pe3 RED_MESH VRF"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "ce4-red",
+            "protocols": {
+              "bgp": {
+                "as_number": 65035,
+                "router_id": "10.0.0.104",
+                "neighbors": [
+                  {
+                    "peer": "10.85.85.1",
+                    "remote_as": 65001,
+                    "description": "eBGP to pe4 RED_MESH VRF"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "traffic_tests": [
+    {
+      "apiVersion": "google.dev/v1",
+      "kind": "TrafficTest",
+      "metadata": {
+        "name": "d1-hub-bidir-tcp",
+        "namespace": "network",
+        "labels": {
+          "scenario": "l3vpn-spoke-hub",
+          "vpn": "blue-spoke",
+          "source": "d1-blue",
+          "destination": "dh-blue",
+          "pattern": "multi_sine",
+          "direction": "bidirectional",
+          "compression": "240x"
+        }
+      },
+      "spec": {
+        "vpnRef": "l3vpn-blue-service",
+        "source_devices": [
+          "d1-blue"
+        ],
+        "destination_device": "dh-blue",
+        "protocol": "TCP",
+        "duration": 172800,
+        "bandwidth": "30Mbps",
+        "pattern_type": "multi_sine",
+        "pattern_config": {
+          "time_reference": "elapsed",
+          "base_rate": "12Mbps",
+          "components": [
+            {
+              "period": 180,
+              "amplitude": "8Mbps",
+              "phase_offset": -75
+            },
+            {
+              "period": 360,
+              "amplitude": "3Mbps",
+              "phase_offset": -210
+            },
+            {
+              "period": 2520,
+              "amplitude": "2Mbps",
+              "phase_offset": -1470
+            }
+          ],
+          "noise_stddev_pct": 5.0,
+          "min_rate": "2Mbps",
+          "max_rate": "45Mbps"
+        },
+        "bidirectional": true,
+        "reverse_bandwidth": "70Mbps",
+        "reverse_pattern_type": "multi_sine",
+        "reverse_pattern_config": {
+          "time_reference": "elapsed",
+          "base_rate": "30Mbps",
+          "components": [
+            {
+              "period": 180,
+              "amplitude": "20Mbps",
+              "phase_offset": -75
+            },
+            {
+              "period": 360,
+              "amplitude": "8Mbps",
+              "phase_offset": -210
+            },
+            {
+              "period": 2520,
+              "amplitude": "5Mbps",
+              "phase_offset": -1470
+            }
+          ],
+          "noise_stddev_pct": 4.0,
+          "min_rate": "5Mbps",
+          "max_rate": "80Mbps"
+        },
+        "concurrent_users": 20
+      }
+    },
+    {
+      "apiVersion": "google.dev/v1",
+      "kind": "TrafficTest",
+      "metadata": {
+        "name": "d2-hub-bidir-udp",
+        "namespace": "network",
+        "labels": {
+          "scenario": "l3vpn-spoke-hub",
+          "vpn": "blue-spoke",
+          "source": "d2-blue",
+          "destination": "dh-blue",
+          "pattern": "multi_sine",
+          "direction": "bidirectional",
+          "compression": "240x"
+        }
+      },
+      "spec": {
+        "vpnRef": "l3vpn-blue-service",
+        "source_devices": [
+          "d2-blue"
+        ],
+        "destination_device": "dh-blue",
+        "protocol": "UDP",
+        "duration": 172800,
+        "bandwidth": "22Mbps",
+        "pattern_type": "multi_sine",
+        "pattern_config": {
+          "time_reference": "elapsed",
+          "base_rate": "8Mbps",
+          "components": [
+            {
+              "period": 180,
+              "amplitude": "6Mbps",
+              "phase_offset": -75
+            },
+            {
+              "period": 360,
+              "amplitude": "2Mbps",
+              "phase_offset": -210
+            },
+            {
+              "period": 2520,
+              "amplitude": "2Mbps",
+              "phase_offset": -1470
+            }
+          ],
+          "noise_stddev_pct": 4.0,
+          "min_rate": "1Mbps",
+          "max_rate": "35Mbps"
+        },
+        "bidirectional": true,
+        "reverse_bandwidth": "65Mbps",
+        "reverse_pattern_type": "multi_sine",
+        "reverse_pattern_config": {
+          "time_reference": "elapsed",
+          "base_rate": "28Mbps",
+          "components": [
+            {
+              "period": 180,
+              "amplitude": "18Mbps",
+              "phase_offset": -75
+            },
+            {
+              "period": 360,
+              "amplitude": "7Mbps",
+              "phase_offset": -210
+            },
+            {
+              "period": 2520,
+              "amplitude": "4Mbps",
+              "phase_offset": -1470
+            }
+          ],
+          "noise_stddev_pct": 4.0,
+          "min_rate": "4Mbps",
+          "max_rate": "75Mbps"
+        },
+        "concurrent_users": 12
+      }
+    },
+    {
+      "apiVersion": "google.dev/v1",
+      "kind": "TrafficTest",
+      "metadata": {
+        "name": "d3-hub-bidir-tcp",
+        "namespace": "network",
+        "labels": {
+          "scenario": "l3vpn-spoke-hub",
+          "vpn": "blue-spoke",
+          "source": "d3-blue",
+          "destination": "dh-blue",
+          "pattern": "multi_sine",
+          "direction": "bidirectional",
+          "compression": "240x"
+        }
+      },
+      "spec": {
+        "vpnRef": "l3vpn-blue-service",
+        "source_devices": [
+          "d3-blue"
+        ],
+        "destination_device": "dh-blue",
+        "protocol": "TCP",
+        "duration": 172800,
+        "bandwidth": "25Mbps",
+        "pattern_type": "multi_sine",
+        "pattern_config": {
+          "time_reference": "elapsed",
+          "base_rate": "10Mbps",
+          "components": [
+            {
+              "period": 180,
+              "amplitude": "7Mbps",
+              "phase_offset": -75
+            },
+            {
+              "period": 360,
+              "amplitude": "3Mbps",
+              "phase_offset": -225
+            },
+            {
+              "period": 2520,
+              "amplitude": "2Mbps",
+              "phase_offset": -1470
+            }
+          ],
+          "noise_stddev_pct": 5.0,
+          "min_rate": "2Mbps",
+          "max_rate": "40Mbps"
+        },
+        "bidirectional": true,
+        "reverse_bandwidth": "65Mbps",
+        "reverse_pattern_type": "multi_sine",
+        "reverse_pattern_config": {
+          "time_reference": "elapsed",
+          "base_rate": "28Mbps",
+          "components": [
+            {
+              "period": 180,
+              "amplitude": "18Mbps",
+              "phase_offset": -75
+            },
+            {
+              "period": 360,
+              "amplitude": "7Mbps",
+              "phase_offset": -225
+            },
+            {
+              "period": 2520,
+              "amplitude": "4Mbps",
+              "phase_offset": -1470
+            }
+          ],
+          "noise_stddev_pct": 4.0,
+          "min_rate": "4Mbps",
+          "max_rate": "75Mbps"
+        },
+        "concurrent_users": 18
+      }
+    },
+    {
+      "apiVersion": "google.dev/v1",
+      "kind": "TrafficTest",
+      "metadata": {
+        "name": "all-spokes-hub-udp",
+        "namespace": "network",
+        "labels": {
+          "scenario": "l3vpn-spoke-hub",
+          "vpn": "blue-spoke",
+          "source": "all-spokes",
+          "destination": "dh-blue",
+          "pattern": "multi_sine",
+          "direction": "unidirectional",
+          "compression": "240x"
+        }
+      },
+      "spec": {
+        "vpnRef": "l3vpn-blue-service",
+        "source_devices": [
+          "d1-blue",
+          "d2-blue",
+          "d3-blue"
+        ],
+        "destination_device": "dh-blue",
+        "protocol": "UDP",
+        "duration": 172800,
+        "bandwidth": "12Mbps",
+        "pattern_type": "multi_sine",
+        "pattern_config": {
+          "time_reference": "elapsed",
+          "base_rate": "4Mbps",
+          "components": [
+            {
+              "period": 180,
+              "amplitude": "3Mbps",
+              "phase_offset": -75
+            },
+            {
+              "period": 360,
+              "amplitude": "1Mbps",
+              "phase_offset": -210
+            },
+            {
+              "period": 2520,
+              "amplitude": "1Mbps",
+              "phase_offset": -1470
+            }
+          ],
+          "noise_stddev_pct": 4.0,
+          "min_rate": "500Kbps",
+          "max_rate": "15Mbps"
+        },
+        "concurrent_users": 8
+      }
+    },
+    {
+      "apiVersion": "google.dev/v1",
+      "kind": "TrafficTest",
+      "metadata": {
+        "name": "d1-red-d2-red-bidir",
+        "namespace": "network",
+        "labels": {
+          "scenario": "l3vpn-red-mesh",
+          "vpn": "red-mesh",
+          "source": "d1-red",
+          "destination": "d2-red",
+          "pattern": "multi_sine",
+          "direction": "bidirectional",
+          "compression": "240x"
+        }
+      },
+      "spec": {
+        "vpnRef": "l3vpn-red-service",
+        "source_devices": [
+          "d1-red"
+        ],
+        "destination_device": "d2-red",
+        "protocol": "TCP",
+        "duration": 172800,
+        "bandwidth": "35Mbps",
+        "pattern_type": "multi_sine",
+        "pattern_config": {
+          "time_reference": "elapsed",
+          "base_rate": "14Mbps",
+          "components": [
+            {
+              "period": 360,
+              "amplitude": "14Mbps",
+              "phase_offset": -120
+            },
+            {
+              "period": 2520,
+              "amplitude": "3Mbps",
+              "phase_offset": -450
+            }
+          ],
+          "noise_stddev_pct": 4.0,
+          "min_rate": "2Mbps",
+          "max_rate": "50Mbps"
+        },
+        "bidirectional": true,
+        "reverse_bandwidth": "45Mbps",
+        "reverse_pattern_type": "multi_sine",
+        "reverse_pattern_config": {
+          "time_reference": "elapsed",
+          "base_rate": "18Mbps",
+          "components": [
+            {
+              "period": 360,
+              "amplitude": "18Mbps",
+              "phase_offset": -120
+            },
+            {
+              "period": 2520,
+              "amplitude": "4Mbps",
+              "phase_offset": -450
+            }
+          ],
+          "noise_stddev_pct": 4.0,
+          "min_rate": "2Mbps",
+          "max_rate": "60Mbps"
+        },
+        "concurrent_users": 15
+      }
+    },
+    {
+      "apiVersion": "google.dev/v1",
+      "kind": "TrafficTest",
+      "metadata": {
+        "name": "d1-red-d3-red-bidir",
+        "namespace": "network",
+        "labels": {
+          "scenario": "l3vpn-red-mesh",
+          "vpn": "red-mesh",
+          "source": "d1-red",
+          "destination": "d3-red",
+          "pattern": "multi_sine",
+          "direction": "bidirectional",
+          "compression": "240x"
+        }
+      },
+      "spec": {
+        "vpnRef": "l3vpn-red-service",
+        "source_devices": [
+          "d1-red"
+        ],
+        "destination_device": "d3-red",
+        "protocol": "TCP",
+        "duration": 172800,
+        "bandwidth": "30Mbps",
+        "pattern_type": "multi_sine",
+        "pattern_config": {
+          "time_reference": "elapsed",
+          "base_rate": "12Mbps",
+          "components": [
+            {
+              "period": 360,
+              "amplitude": "12Mbps",
+              "phase_offset": -120
+            },
+            {
+              "period": 2520,
+              "amplitude": "3Mbps",
+              "phase_offset": -450
+            }
+          ],
+          "noise_stddev_pct": 4.0,
+          "min_rate": "2Mbps",
+          "max_rate": "45Mbps"
+        },
+        "bidirectional": true,
+        "reverse_bandwidth": "25Mbps",
+        "reverse_pattern_type": "multi_sine",
+        "reverse_pattern_config": {
+          "time_reference": "elapsed",
+          "base_rate": "10Mbps",
+          "components": [
+            {
+              "period": 360,
+              "amplitude": "10Mbps",
+              "phase_offset": -120
+            },
+            {
+              "period": 2520,
+              "amplitude": "2Mbps",
+              "phase_offset": -450
+            }
+          ],
+          "noise_stddev_pct": 3.0,
+          "min_rate": "2Mbps",
+          "max_rate": "40Mbps"
+        },
+        "concurrent_users": 15
+      }
+    },
+    {
+      "apiVersion": "google.dev/v1",
+      "kind": "TrafficTest",
+      "metadata": {
+        "name": "d1-red-d4-red-bidir",
+        "namespace": "network",
+        "labels": {
+          "scenario": "l3vpn-red-mesh",
+          "vpn": "red-mesh",
+          "source": "d1-red",
+          "destination": "d4-red",
+          "pattern": "multi_sine",
+          "direction": "bidirectional",
+          "compression": "240x"
+        }
+      },
+      "spec": {
+        "vpnRef": "l3vpn-red-service",
+        "source_devices": [
+          "d1-red"
+        ],
+        "destination_device": "d4-red",
+        "protocol": "UDP",
+        "duration": 172800,
+        "bandwidth": "20Mbps",
+        "pattern_type": "multi_sine",
+        "pattern_config": {
+          "time_reference": "elapsed",
+          "base_rate": "7Mbps",
+          "components": [
+            {
+              "period": 360,
+              "amplitude": "7Mbps",
+              "phase_offset": -120
+            },
+            {
+              "period": 2520,
+              "amplitude": "2Mbps",
+              "phase_offset": -450
+            }
+          ],
+          "noise_stddev_pct": 2.0,
+          "min_rate": "1Mbps",
+          "max_rate": "25Mbps"
+        },
+        "bidirectional": true,
+        "reverse_bandwidth": "20Mbps",
+        "reverse_pattern_type": "multi_sine",
+        "reverse_pattern_config": {
+          "time_reference": "elapsed",
+          "base_rate": "7Mbps",
+          "components": [
+            {
+              "period": 360,
+              "amplitude": "7Mbps",
+              "phase_offset": -120
+            },
+            {
+              "period": 2520,
+              "amplitude": "2Mbps",
+              "phase_offset": -450
+            }
+          ],
+          "noise_stddev_pct": 2.0,
+          "min_rate": "1Mbps",
+          "max_rate": "25Mbps"
+        },
+        "concurrent_users": 10
+      }
+    },
+    {
+      "apiVersion": "google.dev/v1",
+      "kind": "TrafficTest",
+      "metadata": {
+        "name": "d2-red-d3-red-bidir",
+        "namespace": "network",
+        "labels": {
+          "scenario": "l3vpn-red-mesh",
+          "vpn": "red-mesh",
+          "source": "d2-red",
+          "destination": "d3-red",
+          "pattern": "multi_sine",
+          "direction": "bidirectional",
+          "compression": "240x"
+        }
+      },
+      "spec": {
+        "vpnRef": "l3vpn-red-service",
+        "source_devices": [
+          "d2-red"
+        ],
+        "destination_device": "d3-red",
+        "protocol": "TCP",
+        "duration": 172800,
+        "bandwidth": "25Mbps",
+        "pattern_type": "multi_sine",
+        "pattern_config": {
+          "time_reference": "elapsed",
+          "base_rate": "10Mbps",
+          "components": [
+            {
+              "period": 360,
+              "amplitude": "10Mbps",
+              "phase_offset": -120
+            },
+            {
+              "period": 2520,
+              "amplitude": "2Mbps",
+              "phase_offset": -450
+            }
+          ],
+          "noise_stddev_pct": 4.0,
+          "min_rate": "2Mbps",
+          "max_rate": "40Mbps"
+        },
+        "bidirectional": true,
+        "reverse_bandwidth": "35Mbps",
+        "reverse_pattern_type": "multi_sine",
+        "reverse_pattern_config": {
+          "time_reference": "elapsed",
+          "base_rate": "14Mbps",
+          "components": [
+            {
+              "period": 360,
+              "amplitude": "14Mbps",
+              "phase_offset": -120
+            },
+            {
+              "period": 2520,
+              "amplitude": "3Mbps",
+              "phase_offset": -450
+            }
+          ],
+          "noise_stddev_pct": 3.0,
+          "min_rate": "2Mbps",
+          "max_rate": "50Mbps"
+        },
+        "concurrent_users": 15
+      }
+    },
+    {
+      "apiVersion": "google.dev/v1",
+      "kind": "TrafficTest",
+      "metadata": {
+        "name": "d2-red-d4-red-bidir",
+        "namespace": "network",
+        "labels": {
+          "scenario": "l3vpn-red-mesh",
+          "vpn": "red-mesh",
+          "source": "d2-red",
+          "destination": "d4-red",
+          "pattern": "multi_sine",
+          "direction": "bidirectional",
+          "compression": "240x"
+        }
+      },
+      "spec": {
+        "vpnRef": "l3vpn-red-service",
+        "source_devices": [
+          "d2-red"
+        ],
+        "destination_device": "d4-red",
+        "protocol": "UDP",
+        "duration": 172800,
+        "bandwidth": "22Mbps",
+        "pattern_type": "multi_sine",
+        "pattern_config": {
+          "time_reference": "elapsed",
+          "base_rate": "8Mbps",
+          "components": [
+            {
+              "period": 360,
+              "amplitude": "8Mbps",
+              "phase_offset": -120
+            },
+            {
+              "period": 2520,
+              "amplitude": "2Mbps",
+              "phase_offset": -450
+            }
+          ],
+          "noise_stddev_pct": 3.0,
+          "min_rate": "1Mbps",
+          "max_rate": "30Mbps"
+        },
+        "bidirectional": true,
+        "reverse_bandwidth": "22Mbps",
+        "reverse_pattern_type": "multi_sine",
+        "reverse_pattern_config": {
+          "time_reference": "elapsed",
+          "base_rate": "8Mbps",
+          "components": [
+            {
+              "period": 360,
+              "amplitude": "8Mbps",
+              "phase_offset": -120
+            },
+            {
+              "period": 2520,
+              "amplitude": "2Mbps",
+              "phase_offset": -450
+            }
+          ],
+          "noise_stddev_pct": 3.0,
+          "min_rate": "1Mbps",
+          "max_rate": "30Mbps"
+        },
+        "concurrent_users": 10
+      }
+    },
+    {
+      "apiVersion": "google.dev/v1",
+      "kind": "TrafficTest",
+      "metadata": {
+        "name": "d3-red-d4-red-bidir",
+        "namespace": "network",
+        "labels": {
+          "scenario": "l3vpn-red-mesh",
+          "vpn": "red-mesh",
+          "source": "d3-red",
+          "destination": "d4-red",
+          "pattern": "multi_sine",
+          "direction": "bidirectional",
+          "compression": "240x"
+        }
+      },
+      "spec": {
+        "vpnRef": "l3vpn-red-service",
+        "source_devices": [
+          "d3-red"
+        ],
+        "destination_device": "d4-red",
+        "protocol": "UDP",
+        "duration": 172800,
+        "bandwidth": "30Mbps",
+        "pattern_type": "multi_sine",
+        "pattern_config": {
+          "time_reference": "elapsed",
+          "base_rate": "12Mbps",
+          "components": [
+            {
+              "period": 360,
+              "amplitude": "12Mbps",
+              "phase_offset": -113
+            },
+            {
+              "period": 2520,
+              "amplitude": "3Mbps",
+              "phase_offset": -450
+            }
+          ],
+          "noise_stddev_pct": 3.0,
+          "min_rate": "2Mbps",
+          "max_rate": "45Mbps"
+        },
+        "bidirectional": true,
+        "reverse_bandwidth": "30Mbps",
+        "reverse_pattern_type": "multi_sine",
+        "reverse_pattern_config": {
+          "time_reference": "elapsed",
+          "base_rate": "12Mbps",
+          "components": [
+            {
+              "period": 360,
+              "amplitude": "12Mbps",
+              "phase_offset": -113
+            },
+            {
+              "period": 2520,
+              "amplitude": "3Mbps",
+              "phase_offset": -450
+            }
+          ],
+          "noise_stddev_pct": 3.0,
+          "min_rate": "2Mbps",
+          "max_rate": "45Mbps"
+        },
+        "concurrent_users": 10
+      }
+    }
+  ],
+  "labels": {
+    "environment": "lab",
+    "type": "telco-lab"
+  }
+}

@@ -1,0 +1,47 @@
+info:
+  version: 1.0.2
+  description: PCF initial local configuration
+
+configuration:
+  pcfName: PCF
+  sbi:
+    scheme: http
+    registerIPv4: {{ nf_ip }}
+    bindingIPv4: {{ nf_ip }}
+    port: 8000
+    tls:
+      pem: cert/pcf.pem
+      key: cert/pcf.key
+  timeFormat: 2019-01-02 15:04:05
+  defaultBdtRefId: BdtPolicyId-
+  nrfUri: {{ nrf_uri }}
+  serviceList:
+    - serviceName: npcf-am-policy-control
+    - serviceName: npcf-smpolicycontrol
+      suppFeat: 3fff
+    - serviceName: npcf-bdtpolicycontrol
+    - serviceName: npcf-policyauthorization
+      suppFeat: 3
+    - serviceName: npcf-eventexposure
+    - serviceName: npcf-ue-policy-control
+  mongodb:
+    name: free5gc
+    url: {{ mongodb_url }}
+  locality: area1
+{% if metrics_enabled %}
+  metrics:
+    enable: true
+    scheme: {{ metrics_scheme }}
+    bindingIPv4: 0.0.0.0
+    port: {{ metrics_port }}
+    namespace: {{ metrics_namespace }}
+{% if metrics_scheme == 'https' %}
+    tls:
+      pem: cert/pcf.pem
+      key: cert/pcf.key
+{% endif %}
+{% endif %}
+logger:
+  enable: true
+  level: info
+  reportCaller: false

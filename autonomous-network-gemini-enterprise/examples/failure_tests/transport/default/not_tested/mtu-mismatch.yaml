@@ -1,0 +1,38 @@
+# NetworkFailure: MTU Mismatch / Silent Drop
+#
+# Fault Type   : MTU_MISMATCH
+# Target       : PE1, interface eth1 (uplink to P1)
+# Impact       : Large BGP UPDATE messages and payload packets > 1400 bytes are
+#                silently dropped while the VPNv4 control plane and OSPF remain
+#                fully intact. Customer file transfers from dev1 fail intermittently.
+#
+# GNN Detection Signatures:
+#   D-GAT  : Flags high drop_asymmetry on directed edge PE1(eth1) → P1(eth3)
+#   STGNN  : Correlates step change in tx_drops on PE1/eth1 with degraded VPNv4 prefix metrics
+#   HetGNN : Isolates deviation to Interface sub-embedding of PE1/eth1 (MTU config drift)
+#
+# Usage:
+#   kubectl apply  -f nf-fault1-mtu-mismatch.yaml    # Inject fault
+#   kubectl delete -f nf-fault1-mtu-mismatch.yaml    # Restore original MTU
+---
+apiVersion: google.dev/v1
+kind: NetworkFailure
+metadata:
+  name: fault1-mtu-mismatch
+  namespace: network
+  labels:
+    scenario: l3vpn-hub-spoke
+    fault-type: mtu-mismatch
+    severity: medium
+spec:
+  writeMode: direct
+  failureType: MTU_MISMATCH
+  infrastructureRef: l3vpn-infra
+  target:
+    router: pe1
+    interface: eth1
+  parameters:
+    # Lower the MTU from 1500 to 1400 — causes silent drops for packets
+    # exceeding 1400 bytes, including typical BGP UPDATE messages with many
+    # prefixes and customer data payloads larger than the reduced MTU.
+    mtu: 1400

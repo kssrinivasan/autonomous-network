@@ -1,0 +1,296 @@
+---
+- name: Manage Device Container
+  hosts: all
+  become: true
+  gather_facts: no
+  vars:
+    veth_host: "{{ device_name[:8] }}-h"    # data-plane host side:  8 + "-h"  = 10 chars
+    veth_device: "{{ device_name[:8] }}-c"  # data-plane container:  8 + "-c"  = 10 chars
+    veth_mgmt_host: "{{ device_name[:7] }}-mh"  # mgmt host side:   7 + "-mh" = 10 chars
+    veth_mgmt_dev: "{{ device_name[:7] }}-mc"   # mgmt container:   7 + "-mc" = 10 chars
+    container_name: "{{ device_name }}"
+    device_image: "{{ image | default('device:latest') }}"
+
+  tasks:
+    - name: Debug operation
+      debug:
+        msg: "Performing {{ operation }} on Device {{ device_name }}"
+
+    - block:
+
+        - name: Create Device container
+          community.docker.docker_container:
+            name: "{{ container_name }}"
+            image: "{{ device_image }}"
+            hostname: "{{ device_name }}"
+            network_mode: "none"
+            privileged: true
+            capabilities:
+              - NET_ADMIN
+          register: container_result
+
+        - name: Create data-plane veth pair, configure IP and gateway via nsenter (idempotent)
+          shell: |
+            veth_host="{{ veth_host }}"
+            veth_peer="{{ veth_device }}"
+
+            if ip link show $veth_host >/dev/null 2>&1; then
+              echo "Veth pair $veth_host already exists, skipping creation"
+            else
+              MAX_RETRIES=5
+              RETRY_DELAY=1
+              created=0
+
+              for attempt in $(seq 1 $MAX_RETRIES); do
+                echo "Attempt $attempt of $MAX_RETRIES to create veth pair $veth_host"
+
+                if ip link add $veth_host type veth peer name $veth_peer 2>/dev/null; then
+                  echo "Successfully created veth pair: $veth_host <-> $veth_peer"
+
+                  for bridge_attempt in $(seq 1 3); do
+                    if ip link set $veth_host master {{ network_name }} 2>/dev/null; then
+                      echo "Successfully attached $veth_host to bridge {{ network_name }}"
+                      break
+                    else
+                      echo "Bridge attachment attempt $bridge_attempt failed, retrying..."
+                      sleep 0.5
+                    fi
+                  done
+
+                  ip link set $veth_host up
+
+                  pid=$(docker inspect -f '{% raw %}{{.State.Pid}}{% endraw %}' {{ container_name }})
+                  if [ -n "$pid" ] && [ "$pid" != "0" ]; then
+                    ip link set $veth_peer netns $pid
+                    nsenter -t $pid -n -- ip link set $veth_peer name eth0
+                    nsenter -t $pid -n -- ip link set eth0 up
+                    echo "Moved veth into container namespace and brought up eth0"
+                    created=1
+                    break
+                  else
+                    echo "ERROR: Invalid container PID"
+                    ip link delete $veth_host 2>/dev/null || true
+                    exit 1
+                  fi
+                else
+                  echo "Veth creation attempt $attempt failed, waiting ${RETRY_DELAY}s before retry..."
+                  sleep $RETRY_DELAY
+                fi
+              done
+
+              if [ "$created" -eq 0 ]; then
+                echo "ERROR: Failed to create data-plane veth pair after $MAX_RETRIES attempts"
+                exit 1
+              fi
+            fi
+
+            # Configure IP and routing via nsenter — works for any container image
+            pid=$(docker inspect -f '{% raw %}{{.State.Pid}}{% endraw %}' {{ container_name }})
+            if [ -z "$pid" ] || [ "$pid" = "0" ]; then
+              echo "ERROR: Cannot get container PID for network configuration"
+              exit 1
+            fi
+
+            {% if vlan != '' %}
+            nsenter -t $pid -n -- ip link show eth0.{{ vlan }} > /dev/null 2>&1 || \
+              nsenter -t $pid -n -- ip link add link eth0 name eth0.{{ vlan }} type vlan id {{ vlan }}
+            nsenter -t $pid -n -- ip addr show dev eth0.{{ vlan }} | grep -q "{{ ip_address }}/24" || \
+              nsenter -t $pid -n -- ip addr add {{ ip_address }}/24 dev eth0.{{ vlan }}
+            nsenter -t $pid -n -- ip link set eth0.{{ vlan }} up
+            echo "Configured {{ ip_address }}/24 on eth0.{{ vlan }}"
+            {% else %}
+            nsenter -t $pid -n -- ip addr show dev eth0 | grep -q "{{ ip_address }}/24" || \
+              nsenter -t $pid -n -- ip addr add {{ ip_address }}/24 dev eth0
+            echo "Configured {{ ip_address }}/24 on eth0"
+            {% endif %}
+
+            {% if gateway != '' %}
+            nsenter -t $pid -n -- ip route show | grep -q "^default" || \
+              nsenter -t $pid -n -- ip route add default via {{ gateway }}
+            echo "Configured default gateway {{ gateway }}"
+            {% endif %}
+
+            echo "Data-plane network configuration complete"
+          register: veth_data_result
+
+        - name: Create management veth pair and attach to management bridge (idempotent)
+          shell: |
+            veth_host="{{ veth_mgmt_host }}"
+            veth_peer="{{ veth_mgmt_dev }}"
+
+            # Check if veth already exists (idempotency)
+            if ip link show $veth_host >/dev/null 2>&1; then
+              echo "Management veth pair $veth_host already exists, skipping creation"
+              exit 0
+            fi
+
+            MAX_RETRIES=5
+            RETRY_DELAY=1
+
+            for attempt in $(seq 1 $MAX_RETRIES); do
+              echo "Attempt $attempt of $MAX_RETRIES to create management veth pair $veth_host"
+
+              if ip link add $veth_host type veth peer name $veth_peer 2>/dev/null; then
+                echo "Successfully created management veth pair: $veth_host <-> $veth_peer"
+
+                # Attach host side to management bridge
+                for bridge_attempt in $(seq 1 3); do
+                  if ip link set $veth_host master {{ mgmt_network }} 2>/dev/null; then
+                    echo "Successfully attached $veth_host to bridge {{ mgmt_network }}"
+                    break
+                  else
+                    echo "Bridge attachment attempt $bridge_attempt failed, retrying..."
+                    sleep 0.5
+                  fi
+                done
+
+                ip link set $veth_host up
+
+                # Move container side into device namespace
+                pid=$(docker inspect -f '{% raw %}{{.State.Pid}}{% endraw %}' {{ container_name }})
+                if [ -n "$pid" ] && [ "$pid" != "0" ]; then
+                  ip link set $veth_peer netns $pid
+                  nsenter -t $pid -n -- ip link set $veth_peer name eth1
+                  nsenter -t $pid -n -- ip link set eth1 up
+                  nsenter -t $pid -n -- ip addr show dev eth1 | grep -q "{{ mgmt_ip }}/24" || \
+                    nsenter -t $pid -n -- ip addr add {{ mgmt_ip }}/24 dev eth1
+                  echo "Successfully configured management veth in container namespace"
+                  exit 0
+                else
+                  echo "ERROR: Invalid container PID"
+                  ip link delete $veth_host 2>/dev/null || true
+                  exit 1
+                fi
+              else
+                echo "Veth creation attempt $attempt failed, waiting ${RETRY_DELAY}s before retry..."
+                sleep $RETRY_DELAY
+              fi
+            done
+
+            echo "ERROR: Failed to create management veth pair after $MAX_RETRIES attempts"
+            exit 1
+          when: mgmt_ip is defined and mgmt_ip != ''
+          register: veth_mgmt_result
+
+        - name: Create extra data-plane veth pairs (eth2, eth3, ...)
+          shell: |
+            veth_host="{{ device_name[:6] }}-{{ loop.index0 }}h"
+            veth_peer="{{ device_name[:6] }}-{{ loop.index0 }}c"
+            eth_name="eth{{ loop.index0 + 2 }}"
+            bridge="{{ item.network_name }}"
+            ip_addr="{{ item.ip_address }}"
+            gateway="{{ item.gateway | default('') }}"
+            vlan="{{ item.vlan | default('') }}"
+
+            if ip link show "$veth_host" >/dev/null 2>&1; then
+              echo "Veth pair $veth_host already exists, skipping creation"
+            else
+              MAX_RETRIES=5
+              created=0
+              for attempt in $(seq 1 $MAX_RETRIES); do
+                if ip link add "$veth_host" type veth peer name "$veth_peer" 2>/dev/null; then
+                  for bridge_attempt in $(seq 1 3); do
+                    if ip link set "$veth_host" master "$bridge" 2>/dev/null; then break; fi
+                    sleep 0.5
+                  done
+                  ip link set "$veth_host" up
+                  pid=$(docker inspect -f '{% raw %}{{.State.Pid}}{% endraw %}' {{ container_name }})
+                  if [ -n "$pid" ] && [ "$pid" != "0" ]; then
+                    ip link set "$veth_peer" netns "$pid"
+                    nsenter -t "$pid" -n -- ip link set "$veth_peer" name "$eth_name"
+                    nsenter -t "$pid" -n -- ip link set "$eth_name" up
+                    created=1
+                    break
+                  else
+                    ip link delete "$veth_host" 2>/dev/null || true
+                    exit 1
+                  fi
+                fi
+                sleep 1
+              done
+              if [ "$created" -eq 0 ]; then
+                echo "ERROR: Failed to create veth pair $veth_host after $MAX_RETRIES attempts"
+                exit 1
+              fi
+            fi
+
+            pid=$(docker inspect -f '{% raw %}{{.State.Pid}}{% endraw %}' {{ container_name }})
+            if [ -z "$pid" ] || [ "$pid" = "0" ]; then exit 1; fi
+
+            if [ -n "$vlan" ]; then
+              nsenter -t "$pid" -n -- ip link show "${eth_name}.${vlan}" >/dev/null 2>&1 || \
+                nsenter -t "$pid" -n -- ip link add link "$eth_name" name "${eth_name}.${vlan}" type vlan id "$vlan"
+              nsenter -t "$pid" -n -- ip addr show dev "${eth_name}.${vlan}" | grep -q "${ip_addr}/24" || \
+                nsenter -t "$pid" -n -- ip addr add "${ip_addr}/24" dev "${eth_name}.${vlan}"
+              nsenter -t "$pid" -n -- ip link set "${eth_name}.${vlan}" up
+              echo "Configured ${ip_addr}/24 on ${eth_name}.${vlan}"
+            else
+              nsenter -t "$pid" -n -- ip addr show dev "$eth_name" | grep -q "${ip_addr}/24" || \
+                nsenter -t "$pid" -n -- ip addr add "${ip_addr}/24" dev "$eth_name"
+              echo "Configured ${ip_addr}/24 on $eth_name"
+            fi
+
+            echo "Extra interface $eth_name (bridge=$bridge) configured"
+          loop: "{{ extra_interfaces | default([]) }}"
+          when: extra_interfaces is defined and extra_interfaces | length > 0
+
+        - name: Set operation result
+          set_fact:
+            operation_result: "Device {{ device_name }} created successfully"
+
+      when: operation == "create"
+
+    - block:
+        - name: Stop and remove Device container
+          shell: "docker rm -f {{ container_name }}"
+          register: remove_result
+          failed_when: false
+
+        - name: Remove data-plane veth pair (host side)
+          shell: |
+            if ip link show {{ veth_host }} >/dev/null 2>&1; then
+              ip link delete {{ veth_host }}
+              echo "Removed veth pair {{ veth_host }}"
+            else
+              echo "Veth pair {{ veth_host }} not found (already cleaned up)"
+            fi
+            exit 0
+          register: veth_remove_result
+          failed_when: false
+
+        - name: Remove management veth pair (host side)
+          shell: |
+            if ip link show {{ veth_mgmt_host }} >/dev/null 2>&1; then
+              ip link delete {{ veth_mgmt_host }}
+              echo "Removed management veth pair {{ veth_mgmt_host }}"
+            else
+              echo "Management veth pair {{ veth_mgmt_host }} not found (already cleaned up)"
+            fi
+            exit 0
+          register: veth_mgmt_remove_result
+          failed_when: false
+          when: mgmt_ip is defined and mgmt_ip != ''
+
+        - name: Remove extra data-plane veth pairs
+          shell: |
+            veth_host="{{ device_name[:6] }}-{{ loop.index0 }}h"
+            if ip link show "$veth_host" >/dev/null 2>&1; then
+              ip link delete "$veth_host"
+              echo "Removed extra veth $veth_host"
+            else
+              echo "Extra veth $veth_host not found (already cleaned up)"
+            fi
+            exit 0
+          loop: "{{ extra_interfaces | default([]) }}"
+          failed_when: false
+          when: extra_interfaces is defined and extra_interfaces | length > 0
+
+        - name: Set operation result
+          set_fact:
+            operation_result: "Device {{ device_name }} removed successfully"
+
+      when: operation == "delete"
+
+    - name: Display result
+      debug:
+        msg: "{{ operation_result | default('Operation complete') }}"

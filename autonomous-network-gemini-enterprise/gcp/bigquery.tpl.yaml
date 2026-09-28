@@ -1,0 +1,191 @@
+# Copyright 2024-2028 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Every resource below pins namespace explicitly. Without it `kubectl apply`
+# lands them in whatever namespace the current context points at, and applying
+# from a shell that has not selected ${GOOGLE_NAMESPACE} creates a SECOND set of
+# Config Connector objects managing the same BigQuery tables -- two controllers
+# racing on one resource, where deleting either one takes the real table with it
+# unless it was abandoned first. gcp/spanner.tpl.yaml has always pinned it.
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryDataset
+metadata:
+  name: serviceperformance
+  namespace: ${GOOGLE_NAMESPACE}
+  annotations:
+    cnrm.cloud.google.com/project-id: ${GOOGLE_PROJECT}
+spec:
+  resourceID: serviceperformance
+  location: ${GOOGLE_REGION}
+---
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryTable
+metadata:
+  name: nodeembedding
+  namespace: ${GOOGLE_NAMESPACE}
+  annotations:
+    cnrm.cloud.google.com/project-id: ${GOOGLE_PROJECT}
+spec:
+  resourceID: nodeembedding
+  friendlyName: nodeembedding
+  datasetRef:
+    name: serviceperformance
+  schema: >
+    [
+      {"name": "id", "type": "STRING", "mode": "NULLABLE", "description": "Unique record identifier (UUID)"},
+      {"name": "node_id", "type": "STRING", "mode": "NULLABLE", "description": "Node identifier"},
+      {"name": "node_type", "type": "STRING", "mode": "NULLABLE", "description": "Node type"},
+      {"name": "hetgnn_embedding", "type": "FLOAT64", "mode": "REPEATED", "description": "GNN embedding vector"},
+      {"name": "hetgnn_score", "type": "FLOAT64", "mode": "NULLABLE", "description": "HetGNN anomaly score"},
+      {"name": "anomaly_explanation", "type": "JSON", "mode": "NULLABLE", "description": "Root cause anomaly explanation"},
+      {"name": "timestamp", "type": "TIMESTAMP", "mode": "NULLABLE", "description": "Inference timestamp"}
+    ]
+---
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryTable
+metadata:
+  name: routerroutingmetrics
+  namespace: ${GOOGLE_NAMESPACE}
+  annotations:
+    cnrm.cloud.google.com/project-id: ${GOOGLE_PROJECT}
+spec:
+  resourceID: routerroutingmetrics
+  friendlyName: routerroutingmetrics
+  datasetRef:
+    name: serviceperformance
+  schema: >
+    [
+      {"name": "timestamp", "type": "TIMESTAMP", "mode": "NULLABLE", "description": "Metric timestamp"},
+      {"name": "router_name", "type": "STRING", "mode": "NULLABLE", "description": "Router name"},
+      {"name": "metric_name", "type": "STRING", "mode": "NULLABLE", "description": "Metric name"},
+      {"name": "vrf", "type": "STRING", "mode": "NULLABLE", "description": "Virtual Routing and Forwarding instance"},
+      {"name": "afi", "type": "STRING", "mode": "NULLABLE", "description": "Address Family Identifier"},
+      {"name": "peer_ip", "type": "STRING", "mode": "NULLABLE", "description": "BGP peer IP address"},
+      {"name": "metric_type", "type": "STRING", "mode": "NULLABLE", "description": "Metric type"},
+      {"name": "value", "type": "FLOAT64", "mode": "NULLABLE", "description": "Metric numeric value"},
+      {"name": "labels", "type": "JSON", "mode": "NULLABLE", "description": "Metric labels"}
+    ]
+---
+# Sink for the Spanner table of the same name, which supersedes
+# RouterRoutingMetrics -- see the comment on RouterRoutingSeries in
+# gcp/spanner.tpl.yaml. BigQuery never lost these series (it has no primary key,
+# so nothing collided), but the collector writes one table per sink pair and
+# derives the BigQuery name from the Spanner one lowercased, so the new table
+# needs a twin here. routerroutingmetrics is left in place for the history it
+# already holds.
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryTable
+metadata:
+  name: routerroutingseries
+  namespace: ${GOOGLE_NAMESPACE}
+  annotations:
+    cnrm.cloud.google.com/project-id: ${GOOGLE_PROJECT}
+spec:
+  resourceID: routerroutingseries
+  friendlyName: routerroutingseries
+  datasetRef:
+    name: serviceperformance
+  schema: >
+    [
+      {"name": "timestamp", "type": "TIMESTAMP", "mode": "NULLABLE", "description": "Metric timestamp"},
+      {"name": "router_name", "type": "STRING", "mode": "NULLABLE", "description": "Router name"},
+      {"name": "metric_name", "type": "STRING", "mode": "NULLABLE", "description": "Metric name"},
+      {"name": "vrf", "type": "STRING", "mode": "NULLABLE", "description": "Virtual Routing and Forwarding instance"},
+      {"name": "afi", "type": "STRING", "mode": "NULLABLE", "description": "Address Family Identifier"},
+      {"name": "safi", "type": "STRING", "mode": "NULLABLE", "description": "Subsequent Address Family Identifier (unicast, vpn)"},
+      {"name": "peer_ip", "type": "STRING", "mode": "NULLABLE", "description": "BGP peer IP address"},
+      {"name": "iface", "type": "STRING", "mode": "NULLABLE", "description": "Interface the OSPF adjacency runs over"},
+      {"name": "area", "type": "STRING", "mode": "NULLABLE", "description": "OSPF area"},
+      {"name": "collector", "type": "STRING", "mode": "NULLABLE", "description": "FRR exporter sub-collector (bgp, ospf, route, bfd)"},
+      {"name": "metric_type", "type": "STRING", "mode": "NULLABLE", "description": "Metric type"},
+      {"name": "value", "type": "FLOAT64", "mode": "NULLABLE", "description": "Metric numeric value"},
+      {"name": "labels", "type": "JSON", "mode": "NULLABLE", "description": "Metric labels"}
+    ]
+---
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryTable
+metadata:
+  name: routersystemmetrics
+  namespace: ${GOOGLE_NAMESPACE}
+  annotations:
+    cnrm.cloud.google.com/project-id: ${GOOGLE_PROJECT}
+spec:
+  resourceID: routersystemmetrics
+  friendlyName: routersystemmetrics
+  datasetRef:
+    name: serviceperformance
+  schema: >
+    [
+      {"name": "timestamp", "type": "TIMESTAMP", "mode": "NULLABLE", "description": "Metric timestamp"},
+      {"name": "router_name", "type": "STRING", "mode": "NULLABLE", "description": "Router name"},
+      {"name": "metric_name", "type": "STRING", "mode": "NULLABLE", "description": "Metric name"},
+      {"name": "interface", "type": "STRING", "mode": "NULLABLE", "description": "Network interface name"},
+      {"name": "metric_type", "type": "STRING", "mode": "NULLABLE", "description": "Metric type"},
+      {"name": "value", "type": "FLOAT64", "mode": "NULLABLE", "description": "Metric numeric value"},
+      {"name": "labels", "type": "JSON", "mode": "NULLABLE", "description": "Metric labels"}
+    ]
+---
+# Sink for the Spanner table of the same name, which supersedes
+# TrafficFlowMetrics -- see the comment on TrafficFlowSeries in
+# gcp/spanner.tpl.yaml. As with routerroutingseries, BigQuery never lost these
+# rows (no primary key, nothing collided), but the collector derives the
+# BigQuery table name from the Spanner one lowercased, so the new table needs a
+# twin here. trafficflowmetrics is left in place for the history it holds.
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryTable
+metadata:
+  name: trafficflowseries
+  namespace: ${GOOGLE_NAMESPACE}
+  annotations:
+    cnrm.cloud.google.com/project-id: ${GOOGLE_PROJECT}
+spec:
+  resourceID: trafficflowseries
+  friendlyName: trafficflowseries
+  datasetRef:
+    name: serviceperformance
+  schema: >
+    [
+      {"name": "flow_id", "type": "STRING", "mode": "NULLABLE", "description": "Traffic flow ID"},
+      {"name": "timestamp", "type": "TIMESTAMP", "mode": "NULLABLE", "description": "Metric timestamp"},
+      {"name": "node_name", "type": "STRING", "mode": "NULLABLE", "description": "Node name"},
+      {"name": "metric_name", "type": "STRING", "mode": "NULLABLE", "description": "Metric name"},
+      {"name": "role", "type": "STRING", "mode": "NULLABLE", "description": "Reporting end of the flow (source, destination)"},
+      {"name": "metric_type", "type": "STRING", "mode": "NULLABLE", "description": "Metric type"},
+      {"name": "value", "type": "FLOAT64", "mode": "NULLABLE", "description": "Metric numeric value"},
+      {"name": "labels", "type": "JSON", "mode": "NULLABLE", "description": "Metric labels"}
+    ]
+---
+apiVersion: bigquery.cnrm.cloud.google.com/v1beta1
+kind: BigQueryTable
+metadata:
+  name: trafficflowmetrics
+  namespace: ${GOOGLE_NAMESPACE}
+  annotations:
+    cnrm.cloud.google.com/project-id: ${GOOGLE_PROJECT}
+spec:
+  resourceID: trafficflowmetrics
+  friendlyName: trafficflowmetrics
+  datasetRef:
+    name: serviceperformance
+  schema: >
+    [
+      {"name": "flow_id", "type": "STRING", "mode": "NULLABLE", "description": "Traffic flow ID"},
+      {"name": "timestamp", "type": "TIMESTAMP", "mode": "NULLABLE", "description": "Metric timestamp"},
+      {"name": "node_name", "type": "STRING", "mode": "NULLABLE", "description": "Node name"},
+      {"name": "metric_name", "type": "STRING", "mode": "NULLABLE", "description": "Metric name"},
+      {"name": "metric_type", "type": "STRING", "mode": "NULLABLE", "description": "Metric type"},
+      {"name": "value", "type": "FLOAT64", "mode": "NULLABLE", "description": "Metric numeric value"},
+      {"name": "labels", "type": "JSON", "mode": "NULLABLE", "description": "Metric labels"}
+    ]
+

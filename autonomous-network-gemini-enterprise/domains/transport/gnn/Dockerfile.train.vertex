@@ -1,0 +1,32 @@
+FROM python:3.11-slim
+
+ENV SPANNER_INSTANCE=networktopology-instance
+ENV SPANNER_DATABASE=transporttopology-db
+ENV SERVICE_DATABASE=servicetopology-db
+ENV INFRA_DATABASE=infratopology-db
+ENV GCS_BUCKET_NAME=network-model-artifacts
+ENV SNAPSHOTS_GCS_PATH=""
+ENV SCALERS_GCS_PATH=""
+ENV AIP_MODEL_DIR=""
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install CPU-only PyTorch first so pip won't pull the CUDA wheels
+RUN pip install --no-cache-dir \
+    torch==2.5.1 \
+    --index-url https://download.pytorch.org/whl/cpu
+
+ADD gnn/requirements.txt /
+RUN pip install --no-cache-dir -r /requirements.txt
+
+# Install hypertune for Vertex AI Vizier metric reporting
+RUN pip install --no-cache-dir cloudml-hypertune
+
+ADD gnn/src/ /app
+WORKDIR /app
+
+# MODEL_NAME env var selects which training script to run.
+# Set by Vertex AI Training job spec (dgat / hetgnn / stgnn).
+CMD ["sh", "-c", "python train_${MODEL_NAME}.py"]

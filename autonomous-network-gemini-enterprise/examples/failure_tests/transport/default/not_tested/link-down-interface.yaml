@@ -1,0 +1,46 @@
+# NetworkFailure: Physical Link Disconnection — Interface Mode (Asymmetric)
+#
+# Fault Type   : LINK_DOWN / interface mode
+# Target       : P1, interface eth1 (P1-to-P2 core link)
+# Mechanism    : docker exec p1 ip link set eth1 down
+#                Only P1's interface is brought down. P2 still sees the link as
+#                UP at L1/L2 and will time out via the OSPF Dead interval (~40s)
+#                before withdrawing the adjacency. Surgical — affects only P1.
+# Impact       : P1 immediately loses the P1-P2 OSPF adjacency and withdraws
+#                the link LSA. P2 detects the loss after the Dead interval.
+#                LDP tears down the LSP on this segment. Traffic reroutes via
+#                P1-P3-P4-P2. Total blackout is brief (subsecond to a few
+#                seconds depending on OSPF and LDP convergence timers).
+#
+# GNN Detection Signatures:
+#   D-GAT  : Directed edge P1(eth1) → P2(eth1) immediately flips to link_state=0
+#   STGNN  : OSPF SPF recalculation burst on P1 immediately; P2 after Dead interval
+#   HetGNN : Physical layer sub-embedding of P1/eth1 flips to DOWN
+#
+# See also: nf-fault5b-link-down-bridge.yaml for symmetric cable-pull simulation
+#
+# Usage:
+#   kubectl apply  -f nf-fault5a-link-down-interface.yaml    # Bring interface down
+#   kubectl delete -f nf-fault5a-link-down-interface.yaml    # Restore interface
+---
+apiVersion: google.dev/v1
+kind: NetworkFailure
+metadata:
+  name: fault5-link-down-interface
+  namespace: network
+  labels:
+    scenario: l3vpn-hub-spoke
+    fault-type: link-down
+    link-down-mode: interface
+    severity: high
+spec:
+  writeMode: direct
+  failureType: LINK_DOWN
+  infrastructureRef: l3vpn-infra
+  target:
+    router: p1
+    # eth1 is the P1-to-P2 provider core link (VLAN 301, 172.16.30.0/24).
+    # Bringing this interface down inside the P1 container simulates a local
+    # port failure. Only P1 sees an immediate L1/L2 down event; P2 times out
+    # via the OSPF Dead interval (~40s).
+    interface: eth1

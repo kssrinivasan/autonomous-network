@@ -1,0 +1,64 @@
+# NetworkFailure: VRF Route Target Misconfiguration (Medium Network)
+#
+# Fault Type   : VRF_RT_MISCONFIGURATION
+# Target       : PE7 (Dublin), VRF BLUE_SPOKE (Area 2 - Ireland/Scotland region)
+# Mode         : operator — injects the fault by patching the VyOSL3VPN CRD and
+#                letting the VyOSL3VPN operator apply it via its normal reconcile loop.
+#                This is the ONLY supported injection mode for this fault type.
+# Impact       : PE7's BLUE_SPOKE VRF stops importing hub routes. CE7-spoke loses
+#                all connectivity to the hub and other spokes. All BGP sessions
+#                remain Established, zero alarms fire. The misconfigured rt_import
+#                is visible in the Spanner topology graph. Cross-area VPN failure
+#                (Area 2 → Area 1).
+#
+# Operator Mode Flow:
+#   1. The NetworkFailure operator patches spec.routers[pe7].vrfs[BLUE_SPOKE].rt_import
+#      in the VyOSL3VPN CRD from ["65035:1030"] to ["65035:9999"].
+#   2. The VyOSL3VPN operator detects the CRD change and runs its normal reconcile
+#      loop, applying the wrong RT to PE7 via vtysh.
+#   3. The Spanner VRF table receives a new SCD row for PE7/BLUE_SPOKE with the
+#      misconfigured rt_import value. The topology graph shows the fault in the
+#      VRF node itself.
+#   4. On deletion, the CRD is patched back to rt_import=["65035:1030"] and the
+#      VyOSL3VPN operator reconciles again, restoring correct configuration.
+#
+# Traffic Impact:
+#   - CE7-spoke (connected to PE7 in Area 2) loses all connectivity to CE1-hub (Area 1)
+#   - BGP sessions show Established but routes are not imported into VRF
+#   - Zero alarms in traditional monitoring — requires GNN to detect reachability loss
+#   - Cross-area VPN failure (Area 2 → Area 1)
+#
+# GNN Detection Signatures:
+#   HetGNN : VRF sub-embedding of PE7/BLUE_SPOKE deviates — rt_import hash diverges
+#             from other BLUE_SPOKE VRFs. Deviation directly observable in Spanner.
+#   D-GAT  : Directed VPNv4 advertisement edges from hub to PE7 present in RR update
+#             graph but absent from PE7's local RIB-in (selective import failure).
+#   STGNN  : bgp_pfx_rcvd on PE7/BLUE_SPOKE drops to 0 while other BLUE_SPOKE VRFs
+#             remain healthy — temporal divergence within same VPN service.
+#
+# Related Scenario: docs/scenarios/medium/scenario_4_vrf_rt_misconfig.md
+#
+# Usage:
+#   kubectl apply  -f vrf-rt-misconfiguration-pe7.yaml    # Patch CRD → VyOSL3VPN reconciles
+#   kubectl delete -f vrf-rt-misconfiguration-pe7.yaml    # Restore CRD → VyOSL3VPN reconciles
+---
+apiVersion: google.dev/v1
+kind: NetworkFailure
+metadata:
+  name: vrf-rt-misconfiguration-pe7
+  namespace: network
+  labels:
+    scenario: medium-network
+    fault-type: vrf-rt-misconfiguration
+    severity: high
+    injection-mode: operator
+spec:
+  writeMode: direct
+  failureType: VRF_RT_MISCONFIGURATION
+  infrastructureRef: medium-network-infra
+  target:
+    router: pe7
+    vrf: BLUE_SPOKE
+  parameters:
+    correct_rt: "65035:1030"
+    wrong_rt: "65035:9999"

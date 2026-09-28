@@ -1,0 +1,202 @@
+---
+# Radio Domain Intent - Default Cell Sites
+# TMF921 Intent for gNodeB and UE provisioning (HIGH-LEVEL ABSTRACTION)
+# API Endpoint: POST http://<radio-api-host>:8080/intent
+#
+# WHAT you specify (business intent):
+#   - Coverage zone and site location
+#   - Which 5G core to connect to
+#   - Which subscribers to serve
+#   - Capacity requirements
+#
+# HOW the orchestrator derives (technical implementation):
+#   - Resolves Core NetworkFunction CRs (AMF, UPF, SMF)
+#   - Validates cross-domain consistency (PLMN, TAC, slices, IMSIs)
+#   - Auto-assigns NCI from gnbId
+#   - Retrieves subscriber credentials from Core
+#
+# NOTE: This file contains 3 separate intents (one per cell site)
+# Each intent should be submitted separately to the Radio API
+
+---
+# Cell Site 1A - Oxford Region
+"@type": "Intent"
+name: "cellsite-1a-oxford"
+description: "Cell site providing eMBB coverage for Oxford region"
+priority: 50
+intentExpression:
+  "@type": "IntentExpression"
+  expectation:
+    - "@type": "CellSiteIntent"
+      expectationVerb: "DELIVER"
+      expectationObject:
+        "@type": "CellSiteService"
+        siteName: "Oxford Cell Site 1A"
+        coverageZone: "Oxford"
+        deployment:
+          gNodeBCount: 1
+          gNodeBId: "0x1"
+        capacity:
+          peakUsers: 2
+          throughput: "200 Mbps"
+        serviceLink:
+          mobileService: "free5gc-core"
+        subscribers:
+          - "208930000000001"
+          - "208930000000002"
+
+---
+# Cell Site 2A - Cambridge Region
+"@type": "Intent"
+name: "cellsite-2a-cambridge"
+description: "Cell site providing eMBB coverage for Cambridge region"
+priority: 50
+intentExpression:
+  "@type": "IntentExpression"
+  expectation:
+    - "@type": "CellSiteIntent"
+      expectationVerb: "DELIVER"
+      expectationObject:
+        "@type": "CellSiteService"
+        siteName: "Cambridge Cell Site 2A"
+        coverageZone: "Cambridge"
+        deployment:
+          gNodeBCount: 1
+          gNodeBId: "0x2"
+        capacity:
+          peakUsers: 1
+          throughput: "100 Mbps"
+        serviceLink:
+          mobileService: "free5gc-core"
+        subscribers:
+          - "208930000000003"
+
+---
+# Cell Site 3A - Brighton Region
+"@type": "Intent"
+name: "cellsite-3a-brighton"
+description: "Cell site providing eMBB coverage for Brighton region"
+priority: 50
+intentExpression:
+  "@type": "IntentExpression"
+  expectation:
+    - "@type": "CellSiteIntent"
+      expectationVerb: "DELIVER"
+      expectationObject:
+        "@type": "CellSiteService"
+        siteName: "Brighton Cell Site 3A"
+        coverageZone: "Brighton"
+        deployment:
+          gNodeBCount: 1
+          gNodeBId: "0x3"
+        capacity:
+          peakUsers: 2
+          throughput: "200 Mbps"
+        serviceLink:
+          mobileService: "free5gc-core"
+        subscribers:
+          - "208930000000004"
+          - "208930000000005"
+
+# ============================================================================
+# ORCHESTRATOR AUTO-DERIVES (per cell site):
+# ============================================================================
+#
+# 1. Core NetworkFunction Resolution:
+#    serviceLink.mobileService "free5gc-core" resolves to:
+#    - amf_name: "free5gc-core-amf"
+#    - upf_name: "free5gc-core-upf"
+#    - smf_name: "free5gc-core-smf"
+#
+# 2. PLMN and TAC (retrieved from Core FiveGCore CR):
+#    - MCC: 208 (from FiveGCore.spec.plmnList[0].mcc)
+#    - MNC: 93 (from FiveGCore.spec.plmnList[0].mnc)
+#    - TAC: 1 (from FiveGCore.spec.network_functions[AMF].config.tac)
+#
+# 3. Network Slice Configuration (retrieved from Core):
+#    - SST: 1 (from FiveGCore.spec.slices[0].sst)
+#    - SD: "010203" (from FiveGCore.spec.slices[0].sd)
+#
+# 4. Subscriber Credentials (retrieved from Core):
+#    For each IMSI in subscribers list, retrieves from FiveGCore.spec.subscribers[]:
+#    - K (authentication key)
+#    - OPc (operator key)
+#    - MSISDN (phone number)
+#    - APN/DNN: "internet"
+#    - AMF field: "8000" (default)
+#
+# 5. gNodeB Configuration:
+#    - NCI: Auto-generated from gnbId (e.g., 0x1 → 0x000000010)
+#    - gnbIdLength: 32 (default)
+#    - AMF port: 38412 (3GPP standard N2 port)
+#
+# 6. Container Assignment:
+#    Maps coverageZone to Device CR:
+#    - Oxford → cell1a
+#    - Cambridge → cell2a
+#    - Brighton → cell3a
+#
+# 7. Cross-Domain Validation:
+#    Before creating CellSite CR, validates:
+#    ✓ FiveGCore CR "free5gc-core" exists and phase=Ready
+#    ✓ NetworkFunction CRs (AMF, UPF, SMF) exist and ready=true
+#    ✓ All subscriber IMSIs are registered in FiveGCore.spec.subscribers[]
+#    ✓ PLMN, TAC, slices match between intent and Core configuration
+#    ✓ DNN "internet" exists in FiveGCore.spec.slices[].dnnInfos[]
+#    ✗ Rejects with HTTP 422 if any validation fails
+#
+# ============================================================================
+# Generated CellSite CRs (one per intent):
+# ============================================================================
+#
+# Cell Site 1A:
+# apiVersion: google.dev/v1
+# kind: CellSite
+# metadata:
+#   name: cellsite-cell1a
+#   namespace: network
+# spec:
+#   container_name: cell1a
+#   gnb:
+#     mcc: "208"
+#     mnc: "93"
+#     tac: 1
+#     gnbId: "0x1"
+#     nci: "0x000000010"
+#     gnbIdLength: 32
+#     amf_name: free5gc-core-amf
+#     upf_name: free5gc-core-upf
+#     smf_name: free5gc-core-smf
+#     amf_port: 38412
+#     slices:
+#       - sst: 1
+#         sd: "010203"
+#   ues:
+#     - imsi: "208930000000001"
+#       key: "465B5CE8B199B49FAA5F0A2EE238A6BC"  # Retrieved from Core
+#       opc: "E8ED289DEBA952E4283B54E88E6183CA"  # Retrieved from Core
+#       amf: "8000"
+#       apn: "internet"
+#       sst: 1
+#       sd: "010203"
+#       enabled: true
+#     - imsi: "208930000000002"
+#       key: "465B5CE8B199B49FAA5F0A2EE238A6BC"  # Retrieved from Core
+#       opc: "E8ED289DEBA952E4283B54E88E6183CA"  # Retrieved from Core
+#       amf: "8000"
+#       apn: "internet"
+#       sst: 1
+#       sd: "010203"
+#       enabled: true
+#
+# Cell Site 2A and 3A similarly generated...
+#
+# Prerequisites:
+#   - FiveGCore CR "free5gc-core" must be Ready
+#   - NetworkFunction CRs must be Ready: free5gc-core-amf, free5gc-core-upf, free5gc-core-smf
+#   - Device CRs must exist and be Ready: cell1a, cell2a, cell3a
+#   - All subscriber IMSIs must be registered in Core
+#
+# Cross-Domain Dependencies:
+#   Radio → Core: Requires FiveGCore and NetworkFunction CRs to exist first
+#   Validates: PLMN, TAC, slices, IMSIs, DNN match Core configuration

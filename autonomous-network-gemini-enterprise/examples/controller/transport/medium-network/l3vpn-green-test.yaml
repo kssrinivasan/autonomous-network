@@ -1,0 +1,55 @@
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: green-vpn-mesh-test
+  namespace: network
+spec:
+  description: "GREEN VPN cross-area mesh traffic test - exercises ABR VPN routing"
+  vpnRef: green-vpn-service
+  source_devices:
+    - "green1"   # pe1 (Oxford, Area 1)
+    - "green2"   # pe2 (Cambridge, Area 1)
+    - "green3"   # pe3 (Brighton, Area 1)
+    - "green4"   # pe4 (Southampton, Area 1)
+    - "green7"   # pe7 (Cork, Area 2 - cross-area!)
+    - "green8"   # pe8 (Aberdeen, Area 2 - cross-area!)
+  destination_device: "green5"   # pe5 (Liverpool, Area 1)
+  protocol: TCP
+  duration: 3600    # 1 hour for steady-state analysis
+
+  # Cross-area mesh traffic: 40 Mbps with variation
+  bandwidth: 60Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: wall_clock
+    base_rate: 35Mbps
+    components:
+      - period: 3600       # 1-hour cycle
+        amplitude: 15Mbps
+        phase_offset: 0
+    noise_stddev_pct: 5.0
+    min_rate: 15Mbps
+    max_rate: 60Mbps
+
+  bidirectional: false
+  concurrent_users: 8
+
+  expected_paths:
+    - source: "green1"
+      expected: ["ce1-green", "pe1", "pa1", "pa2", "pe5", "ce5-green", "green5"]
+      description: "Oxford to Liverpool mesh - direct Area 1 path"
+    - source: "green2"
+      expected: ["ce2-green", "pe2", "pa1", "pa2", "pe5", "ce5-green", "green5"]
+      description: "Cambridge to Liverpool mesh - Area 1 path"
+    - source: "green3"
+      expected: ["ce3-green", "pe3", "pa1", "pa3", "pa2", "pe5", "ce5-green", "green5"]
+      description: "Brighton to Liverpool mesh - Area 1 path"
+    - source: "green4"
+      expected: ["ce4-green", "pe4", "pa2", "pa3", "pa2", "pe5", "ce5-green", "green5"]
+      description: "Southampton to Liverpool mesh - Area 1 path"
+    - source: "green7"
+      expected: ["ce7-green", "pe7", "pa3", "pa4", "p2", "p1", "pa2", "pe5", "ce5-green", "green5"]
+      description: "Cork to Liverpool mesh - Area 2 → Area 0 → Area 1 (cross-area ABR routing)"
+    - source: "green8"
+      expected: ["ce8-green", "pe8", "pa3", "pa4", "p3", "p1", "pa2", "pe5", "ce5-green", "green5"]
+      description: "Aberdeen to Liverpool mesh - Area 2 → Area 0 → Area 1 (cross-area ABR routing)"

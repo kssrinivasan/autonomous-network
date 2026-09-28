@@ -1,0 +1,104 @@
+apiVersion: google.dev/v1
+kind: VyOSL3VPN
+metadata:
+  name: red-vpn-service
+  namespace: network
+spec:
+  underlayRef: medium-network-underlay
+  services:
+    - name: "RED_MESH"
+      type: "l3vpn"
+      topology: "mesh"
+  routers:
+    # ===================================================================
+    # MESH PEs (All PEs participate in full mesh - Area 1)
+    # ===================================================================
+    - name: "pe1"
+      vrfs:
+        - name: "RED_MESH"
+          table: 201  # v2.0: Dynamic allocation, second VRF on pe1 (was 300)
+          rd: "10.0.0.60:201"  # v2.0: Loopback-based {pe-loopback}:{vrf-seq} second VRF (was 10.51.1.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]  # Symmetric - import same as export for full mesh
+          interfaces: ["eth4"]  # PE-CE interface to ce1-red
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors:
+              - peer: "10.51.1.2"   # ce1-red IP
+                remote_as: 65035
+
+    - name: "pe2"
+      vrfs:
+        - name: "RED_MESH"
+          table: 201  # v2.0: Dynamic allocation, second VRF on pe2 (was 300)
+          rd: "10.0.0.61:201"  # v2.0: Loopback-based {pe-loopback}:{vrf-seq} second VRF (was 10.51.2.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth4"]  # PE-CE interface to ce2-red
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors:
+              - peer: "10.51.2.2"   # ce2-red IP
+                remote_as: 65035
+
+    - name: "pe3"
+      vrfs:
+        - name: "RED_MESH"
+          table: 201  # v2.0: Dynamic allocation, second VRF on pe3 (was 300)
+          rd: "10.0.0.62:201"  # v2.0: Loopback-based {pe-loopback}:{vrf-seq} second VRF (was 10.51.3.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth4"]  # PE-CE interface to ce3-red
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors:
+              - peer: "10.51.3.2"   # ce3-red IP
+                remote_as: 65035
+
+    - name: "pe4"
+      vrfs:
+        - name: "RED_MESH"
+          table: 200  # v2.0: Dynamic allocation, first VRF on pe4 (was 300)
+          rd: "10.0.0.63:200"  # v2.0: Loopback-based {pe-loopback}:{vrf-seq} first VRF (was 10.51.4.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth3"]  # PE-CE interface to ce4-red
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors:
+              - peer: "10.51.4.2"   # ce4-red IP
+                remote_as: 65035
+
+    - name: "pe5"
+      vrfs:
+        - name: "RED_MESH"
+          table: 201  # v2.0: Dynamic allocation, second VRF on pe5 (was 300)
+          rd: "10.0.0.64:201"  # v2.0: Loopback-based {pe-loopback}:{vrf-seq} second VRF (was 10.51.5.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth4"]  # PE-CE interface to ce5-red
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors:
+              - peer: "10.51.5.2"   # ce5-red IP
+                remote_as: 65035
+
+    - name: "pe6"
+      vrfs:
+        - name: "RED_MESH"
+          table: 200  # v2.0: Dynamic allocation, first VRF on pe6 (was 300)
+          rd: "10.0.0.65:200"  # v2.0: Loopback-based {pe-loopback}:{vrf-seq} first VRF (was 10.51.6.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth3"]  # PE-CE interface to ce6-red
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors:
+              - peer: "10.51.6.2"   # ce6-red IP
+                remote_as: 65035

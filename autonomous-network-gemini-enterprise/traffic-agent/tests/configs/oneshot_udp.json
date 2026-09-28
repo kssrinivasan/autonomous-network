@@ -1,0 +1,21 @@
+{
+  "test_name":          "local-udp-test",
+  "source_device":      "localhost",
+  "source_ip":          "127.0.0.1",
+  "destination_device": "localhost",
+  "destination_ip":     "127.0.0.1",
+  "protocol":           "UDP",
+  "port":               19202,
+  "duration":           5,
+  "bandwidth":          "5Mbps",
+  "pattern_type":       "burst",
+  "pattern_config": {
+    "burst_duration": 2,
+    "burst_interval": 3,
+    "burst_rate":     "5Mbps",
+    "idle_rate":      "500Kbps"
+  },
+  "concurrent_users":   1,
+  "metrics_enabled":    true,
+  "metrics_interval":   1
+}

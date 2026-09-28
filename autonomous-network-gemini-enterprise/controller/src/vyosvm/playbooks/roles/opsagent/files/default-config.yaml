@@ -1,0 +1,152 @@
+# Copyright 2024-2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Minimal Ops Agent config applied at VyOSVM install time.
+# The metrics / Prometheus scrape section is intentionally absent here;
+# it is rendered dynamically by the VyOSInfrastructure operator whenever
+# a topology is created, updated, or deleted.
+
+logging:
+  receivers:
+    vyos_syslog:
+      type: syslog
+      transport_protocol: udp
+      listen_host: 0.0.0.0
+      listen_port: 5140
+  processors:
+    add_vyos_marker:
+      type: modify_fields
+      fields:
+        jsonPayload.source:
+          static_value: "vyos"
+    vyos_parser:
+      type: parse_regex
+      field: message
+      # RFC 5424 pattern: <PRI>VER TIMESTAMP HOSTNAME APP-ID PROCID MSGID [STRUCTURED-DATA] MSG
+      regex: '^<(?<pri>[0-9]{1,3})>[0-1]\s+(?<time>[^ ]+)\s+(?<host>[^ ]+)\s+(?<app_name>[^ ]+)\s+(?<proc_id>[^ ]+)\s+(?<msg_id>[^ ]+)\s+(?:\-|(?<struct_data>\[.*\]))\s+(?<msg_body>.*)$'
+    set_severity:
+      type: modify_fields
+      fields:
+        severity:
+          copy_from: jsonPayload.pri
+          default_value: "DEFAULT"
+          map_values:
+            "0": "EMERGENCY"
+            "1": "ALERT"
+            "2": "CRITICAL"
+            "3": "ERROR"
+            "4": "WARNING"
+            "5": "NOTICE"
+            "6": "INFO"
+            "7": "DEBUG"
+            "8": "EMERGENCY"
+            "9": "ALERT"
+            "10": "CRITICAL"
+            "11": "ERROR"
+            "12": "WARNING"
+            "13": "NOTICE"
+            "14": "INFO"
+            "15": "DEBUG"
+            "16": "EMERGENCY"
+            "17": "ALERT"
+            "18": "CRITICAL"
+            "19": "ERROR"
+            "20": "WARNING"
+            "21": "NOTICE"
+            "22": "INFO"
+            "23": "DEBUG"
+            "24": "EMERGENCY"
+            "25": "ALERT"
+            "26": "CRITICAL"
+            "27": "ERROR"
+            "28": "WARNING"
+            "29": "NOTICE"
+            "30": "INFO"
+            "31": "DEBUG"
+            "32": "EMERGENCY"
+            "33": "ALERT"
+            "34": "CRITICAL"
+            "35": "ERROR"
+            "36": "WARNING"
+            "37": "NOTICE"
+            "38": "INFO"
+            "39": "DEBUG"
+            "40": "EMERGENCY"
+            "41": "ALERT"
+            "42": "CRITICAL"
+            "43": "ERROR"
+            "44": "WARNING"
+            "45": "NOTICE"
+            "46": "INFO"
+            "47": "DEBUG"
+    set_facility:
+      type: modify_fields
+      fields:
+        jsonPayload.facility:
+          copy_from: jsonPayload.pri
+          default_value: "kernel messages"
+          map_values:
+            "0": "0: kernel messages"
+            "1": "0: kernel messages"
+            "2": "0: kernel messages"
+            "3": "0: kernel messages"
+            "4": "0: kernel messages"
+            "5": "0: kernel messages"
+            "6": "0: kernel messages"
+            "7": "0: kernel messages"
+            "8": "1: user-level messages"
+            "9": "1: user-level messages"
+            "10": "1: user-level messages"
+            "11": "1: user-level messages"
+            "12": "1: user-level messages"
+            "13": "1: user-level messages"
+            "14": "1: user-level messages"
+            "15": "1: user-level messages"
+            "16": "2: mail system"
+            "17": "2: mail system"
+            "18": "2: mail system"
+            "19": "2: mail system"
+            "20": "2: mail system"
+            "21": "2: mail system"
+            "22": "2: mail system"
+            "23": "2: mail system"
+            "24": "3: system daemons"
+            "25": "3: system daemons"
+            "26": "3: system daemons"
+            "27": "3: system daemons"
+            "28": "3: system daemons"
+            "29": "3: system daemons"
+            "30": "3: system daemons"
+            "31": "3: system daemons"
+            "32": "4: security/authorization messages"
+            "33": "4: security/authorization messages"
+            "34": "4: security/authorization messages"
+            "35": "4: security/authorization messages"
+            "36": "4: security/authorization messages"
+            "37": "4: security/authorization messages"
+            "38": "4: security/authorization messages"
+            "39": "4: security/authorization messages"
+            "40": "5: messages generated internally by syslogd"
+            "41": "5: messages generated internally by syslogd"
+            "42": "5: messages generated internally by syslogd"
+            "43": "5: messages generated internally by syslogd"
+            "44": "5: messages generated internally by syslogd"
+            "45": "5: messages generated internally by syslogd"
+            "46": "5: messages generated internally by syslogd"
+            "47": "5: messages generated internally by syslogd"
+  service:
+    pipelines:
+      vyos_pipeline:
+        receivers: [vyos_syslog]
+        processors: [add_vyos_marker, vyos_parser, set_severity, set_facility]

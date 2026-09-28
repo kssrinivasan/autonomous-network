@@ -1,0 +1,205 @@
+---
+# NetworkFailure Restoration Playbook
+#
+# Restores the original network configuration that was saved during fault injection.
+# This playbook is the exact inverse of failure_inject.yaml and uses the
+# original_state values that were persisted in the NetworkFailure resource status.
+#
+# Variables (passed via extravars):
+#   failure_name        - Name of the NetworkFailure resource
+#   failure_type        - The failure type that was injected
+#   router              - Docker container name of the target router
+#   interface           - Router interface name (e.g., eth1)
+#   peer_ip             - BGP peer IP address (BGP_SESSION_DOWN only)
+#   vrf                 - VRF name (BGP_SESSION_DOWN only)
+#   method              - "process_kill" or "loopback_disable" (PROCESS_CRASH only)
+#   original_mtu        - MTU to restore (MTU_MISMATCH only)
+#   original_remote_as  - AS number to restore (BGP_SESSION_DOWN only)
+#   correct_area        - The correct OSPF area to restore (OSPF_AREA_MISMATCH only)
+#   wrong_area          - The wrong area that was injected (OSPF_AREA_MISMATCH only)
+#   duplicate_ip        - IP/prefix that was duplicated (DUPLICATE_IP only)
+#   had_existing_qdisc  - Whether a qdisc existed before injection (PACKET_CORRUPTION only)
+#   link_down_mode      - "interface" or "bridge" (LINK_DOWN only)
+#   bridge              - Linux bridge name to restore (LINK_DOWN bridge mode only)
+
+- name: NetworkFailure - Fault Restoration
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+
+    - name: Log restoration start
+      debug:
+        msg: >
+          [{{ failure_name }}] Restoring '{{ failure_type }}' on router '{{ router }}'
+          (interface={{ interface | default('N/A') }})
+
+    # =========================================================================
+    # PROCESS_CRASH — Restart BGP daemon or re-enable loopback
+    # =========================================================================
+    - name: "[PROCESS_CRASH] Restart BGP daemon (process_kill restoration)"
+      shell: >
+        docker exec {{ router }}
+        /bin/sh -c "vtysh -c 'clear bgp *' 2>/dev/null || true; \
+          supervisorctl restart bgpd 2>/dev/null || \
+          service frr restart 2>/dev/null || \
+          /usr/lib/frr/frr start 2>/dev/null || true"
+      when: failure_type == 'PROCESS_CRASH' and method == 'process_kill'
+      register: bgpd_restart_result
+      failed_when: false
+
+    - name: "[PROCESS_CRASH] Re-enable loopback interface (loopback_disable restoration)"
+      shell: >
+        docker exec {{ router }} ip link set lo up
+      when: failure_type == 'PROCESS_CRASH' and method == 'loopback_disable'
+      register: loopback_up_result
+      failed_when: loopback_up_result.rc != 0
+
+    - name: "[PROCESS_CRASH] Verify loopback is back up"
+      shell: >
+        docker exec {{ router }} ip link show lo | grep -o "DOWN\|UP" | head -1
+      when: failure_type == 'PROCESS_CRASH' and method == 'loopback_disable'
+      register: loopback_restore_verify
+      failed_when: false
+
+    - name: "[PROCESS_CRASH] Wait for BGP to re-establish after loopback restore"
+      pause:
+        seconds: 5
+      when: failure_type == 'PROCESS_CRASH'
+
+    - name: "[PROCESS_CRASH] Verify BGP is recovering"
+      shell: >
+        docker exec {{ router }} vtysh -c "show bgp summary" 2>/dev/null |
+        grep -E "Established|Active|Connect" | head -5 || echo "BGP recovering"
+      when: failure_type == 'PROCESS_CRASH'
+      register: bgp_recovery_verify
+      failed_when: false
+
+    - name: "[PROCESS_CRASH] Log restoration result"
+      debug:
+        msg: >
+          [{{ failure_name }}] PROCESS_CRASH restored on {{ router }} using method={{ method }}.
+          BGP status: {{ bgp_recovery_verify.stdout | trim }}
+      when: failure_type == 'PROCESS_CRASH'
+
+    # =========================================================================
+    # LINK_DOWN — Restore link (interface mode or bridge mode)
+    # =========================================================================
+
+    # --- Interface mode ---
+    - name: "[LINK_DOWN/interface] Bring interface back up inside router container"
+      shell: >
+        docker exec {{ router }} ip link set {{ interface }} up
+      when: failure_type == 'LINK_DOWN' and link_down_mode == 'interface'
+      register: link_up_iface_result
+      failed_when: link_up_iface_result.rc != 0
+
+    - name: "[LINK_DOWN/interface] Verify interface is up"
+      shell: >
+        docker exec {{ router }} ip link show {{ interface }} | grep -o "DOWN\|UP"
+      when: failure_type == 'LINK_DOWN' and link_down_mode == 'interface'
+      register: link_iface_restore_verify
+      failed_when: false
+
+    - name: "[LINK_DOWN/interface] Log restoration result"
+      debug:
+        msg: >
+          [{{ failure_name }}] Interface {{ router }}/{{ interface }} state restored:
+          {{ link_iface_restore_verify.stdout | trim }}
+      when: failure_type == 'LINK_DOWN' and link_down_mode == 'interface'
+
+    # --- Bridge mode ---
+    - name: "[LINK_DOWN/bridge] Skip restore — bridge name unknown (injection may have failed)"
+      debug:
+        msg: >
+          [{{ failure_name }}] Cannot restore bridge — bridge name is empty.
+          The injection may have failed before the bridge was brought down.
+          No action needed; the bridge was never taken down.
+      when: failure_type == 'LINK_DOWN' and link_down_mode == 'bridge' and (bridge is not defined or bridge == '')
+
+    - name: "[LINK_DOWN/bridge] Bring Linux bridge back up on host"
+      shell: >
+        ip link set {{ bridge }} up
+      when: failure_type == 'LINK_DOWN' and link_down_mode == 'bridge' and bridge is defined and bridge != ''
+      register: link_up_bridge_result
+      failed_when: link_up_bridge_result.rc != 0
+
+    - name: "[LINK_DOWN/bridge] Verify bridge is up"
+      shell: >
+        ip link show {{ bridge }} | grep -o "DOWN\|UP"
+      when: failure_type == 'LINK_DOWN' and link_down_mode == 'bridge' and bridge is defined and bridge != ''
+      register: link_bridge_restore_verify
+      failed_when: false
+
+    - name: "[LINK_DOWN/bridge] Log restoration result"
+      debug:
+        msg: >
+          [{{ failure_name }}] Bridge {{ bridge }} state restored:
+          {{ link_bridge_restore_verify.stdout | trim }}
+      when: failure_type == 'LINK_DOWN' and link_down_mode == 'bridge' and bridge is defined and bridge != ''
+
+    # --- Wait for OSPF/LDP reconvergence (both modes) ---
+    - name: "[LINK_DOWN] Wait for OSPF/LDP reconvergence"
+      pause:
+        seconds: 5
+      when: failure_type == 'LINK_DOWN'
+
+    # =========================================================================
+    # DUPLICATE_IP — Remove the duplicate IP address
+    # =========================================================================
+    - name: "[DUPLICATE_IP] Remove duplicate IP address from interface"
+      shell: >
+        docker exec {{ router }} ip addr del {{ duplicate_ip }} dev {{ interface }} 2>/dev/null || true
+      when: failure_type == 'DUPLICATE_IP'
+      register: dup_ip_remove_result
+      failed_when: false
+
+    - name: "[DUPLICATE_IP] Verify duplicate IP was removed"
+      shell: >
+        docker exec {{ router }} ip addr show {{ interface }} |
+        grep "{{ duplicate_ip.split('/')[0] }}" || echo "IP removed"
+      when: failure_type == 'DUPLICATE_IP'
+      register: dup_ip_restore_verify
+      failed_when: false
+
+    - name: "[DUPLICATE_IP] Log restoration result"
+      debug:
+        msg: >
+          [{{ failure_name }}] Duplicate IP {{ duplicate_ip }} removed from
+          {{ router }}/{{ interface }}. Verification: {{ dup_ip_restore_verify.stdout | trim }}
+      when: failure_type == 'DUPLICATE_IP'
+
+    # =========================================================================
+    # TXQUEUE_STARVATION — Restore original txqueuelen
+    # =========================================================================
+    - name: "[TXQUEUE_STARVATION] Restore original txqueuelen via ip link"
+      shell: >
+        docker exec {{ router }}
+        ip link set {{ interface }} txqueuelen {{ original_queue_length | default(1000) }}
+      when: failure_type == 'TXQUEUE_STARVATION'
+      register: txqueue_restore_result
+      failed_when: txqueue_restore_result.rc != 0
+
+    - name: "[TXQUEUE_STARVATION] Verify txqueuelen was restored"
+      shell: >
+        docker exec {{ router }}
+        ip link show {{ interface }} | awk '/qlen/ {for(i=1;i<=NF;i++) if ($i=="qlen") print $(i+1)}'
+      register: txqueue_restore_verify
+      when: failure_type == 'TXQUEUE_STARVATION'
+      failed_when: false
+
+    - name: "[TXQUEUE_STARVATION] Log restoration result"
+      debug:
+        msg: >
+          [{{ failure_name }}] txqueuelen on {{ router }}/{{ interface }} restored to
+          {{ txqueue_restore_verify.stdout | trim }} (expected: {{ original_queue_length | default(1000) }})
+      when: failure_type == 'TXQUEUE_STARVATION'
+
+    # =========================================================================
+    # Final summary
+    # =========================================================================
+    - name: Log restoration completion
+      debug:
+        msg: >
+          [{{ failure_name }}] Fault '{{ failure_type }}' successfully restored on router
+          '{{ router }}'. Network configuration reverted to original state.

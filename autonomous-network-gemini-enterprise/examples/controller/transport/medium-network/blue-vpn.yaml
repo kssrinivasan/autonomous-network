@@ -1,0 +1,113 @@
+apiVersion: google.dev/v1
+kind: VyOSL3VPN
+metadata:
+  name: blue-vpn-service
+  namespace: network
+spec:
+  underlayRef: medium-network-underlay
+  services:
+    - name: "BLUE_HUB"
+      type: "l3vpn"
+      topology: "hub"
+    - name: "BLUE_SPOKE"
+      type: "l3vpn"
+      topology: "spoke"
+  routers:
+    # ===================================================================
+    # HUB PE (pe2 - Cambridge HQ)
+    # ===================================================================
+    - name: "pe2"
+      vrfs:
+        - name: "BLUE_HUB"
+          table: 200  # v2.0: Dynamic allocation (was 400)
+          rd: "10.0.0.61:200"  # v2.0: Loopback-based {pe-loopback}:{vrf-seq} (was 10.50.2.1:1030)
+          rt_export: ["65035:1030"]
+          rt_import: ["65035:1011", "65035:1030"]  # Import spoke routes AND self (for spoke-to-spoke via hub)
+          interfaces: ["eth3"]  # PE-CE interface to ce-hub-blue
+      bgp:
+        vrfs:
+          - name: "BLUE_HUB"
+            neighbors:
+              - peer: "10.50.2.2"   # ce-hub-blue IP
+                remote_as: 65035
+
+    # ===================================================================
+    # SPOKE PEs (Area 1)
+    # ===================================================================
+    - name: "pe1"
+      vrfs:
+        - name: "BLUE_SPOKE"
+          table: 200  # v2.0: Dynamic allocation (unchanged)
+          rd: "10.0.0.60:200"  # v2.0: Loopback-based {pe-loopback}:{vrf-seq} (was 10.50.1.1:1011)
+          rt_export: ["65035:1011"]
+          rt_import: ["65035:1030"]  # Import only hub routes
+          interfaces: ["eth3"]  # PE-CE interface to ce1-spoke
+      bgp:
+        vrfs:
+          - name: "BLUE_SPOKE"
+            neighbors:
+              - peer: "10.50.1.2"   # ce1-spoke IP
+                remote_as: 65035
+
+    - name: "pe3"
+      vrfs:
+        - name: "BLUE_SPOKE"
+          table: 200  # v2.0: Dynamic allocation (unchanged)
+          rd: "10.0.0.62:200"  # v2.0: Loopback-based {pe-loopback}:{vrf-seq} (was 10.50.3.1:1011)
+          rt_export: ["65035:1011"]
+          rt_import: ["65035:1030"]
+          interfaces: ["eth3"]  # PE-CE interface to ce2-spoke
+      bgp:
+        vrfs:
+          - name: "BLUE_SPOKE"
+            neighbors:
+              - peer: "10.50.3.2"   # ce2-spoke IP
+                remote_as: 65035
+
+    - name: "pe5"
+      vrfs:
+        - name: "BLUE_SPOKE"
+          table: 200  # v2.0: Dynamic allocation (unchanged)
+          rd: "10.0.0.64:200"  # v2.0: Loopback-based {pe-loopback}:{vrf-seq} (was 10.50.5.1:1011)
+          rt_export: ["65035:1011"]
+          rt_import: ["65035:1030"]
+          interfaces: ["eth3"]  # PE-CE interface to ce3-spoke
+      bgp:
+        vrfs:
+          - name: "BLUE_SPOKE"
+            neighbors:
+              - peer: "10.50.5.2"   # ce3-spoke IP
+                remote_as: 65035
+
+    # ===================================================================
+    # SPOKE PEs (Area 2)
+    # ===================================================================
+    - name: "pe7"
+      vrfs:
+        - name: "BLUE_SPOKE"
+          table: 200  # v2.0: Dynamic allocation (unchanged)
+          rd: "10.0.0.66:200"  # v2.0: Loopback-based {pe-loopback}:{vrf-seq} (was 10.50.7.1:1011)
+          rt_export: ["65035:1011"]
+          rt_import: ["65035:1030"]
+          interfaces: ["eth3"]  # PE-CE interface to ce4-spoke
+      bgp:
+        vrfs:
+          - name: "BLUE_SPOKE"
+            neighbors:
+              - peer: "10.50.7.2"   # ce4-spoke IP
+                remote_as: 65035
+
+    - name: "pe8"
+      vrfs:
+        - name: "BLUE_SPOKE"
+          table: 200  # v2.0: Dynamic allocation (unchanged)
+          rd: "10.0.0.67:200"  # v2.0: Loopback-based {pe-loopback}:{vrf-seq} (was 10.50.8.1:1011)
+          rt_export: ["65035:1011"]
+          rt_import: ["65035:1030"]
+          interfaces: ["eth3"]  # PE-CE interface to ce5-spoke
+      bgp:
+        vrfs:
+          - name: "BLUE_SPOKE"
+            neighbors:
+              - peer: "10.50.8.2"   # ce5-spoke IP
+                remote_as: 65035

@@ -1,0 +1,38 @@
+info:
+  version: 1.0.2
+  description: NRF initial local configuration
+
+configuration:
+  MongoDBName: free5gc
+  MongoDBUrl: {{ mongodb_url }}
+  sbi:
+    scheme: http
+    registerIPv4: {{ nf_ip }}
+    bindingIPv4: {{ nf_ip }}
+    port: 8000
+    tls:
+      pem: cert/nrf.pem
+      key: cert/nrf.key
+  DefaultPlmnId:
+    mcc: {{ plmn_list[0].mcc if plmn_list else '208' }}
+    mnc: {{ plmn_list[0].mnc if plmn_list else '93' }}
+  serviceNameList:
+    - nnrf-nfm
+    - nnrf-disc
+{% if metrics_enabled %}
+  metrics:
+    enable: true
+    scheme: {{ metrics_scheme }}
+    bindingIPv4: 0.0.0.0
+    port: {{ metrics_port }}
+    namespace: {{ metrics_namespace }}
+{% if metrics_scheme == 'https' %}
+    tls:
+      pem: cert/nrf.pem
+      key: cert/nrf.key
+{% endif %}
+{% endif %}
+logger:
+  enable: true
+  level: info
+  reportCaller: false

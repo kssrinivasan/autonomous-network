@@ -1,0 +1,1301 @@
+Metric Name,Value,Description
+go_gc_duration_seconds,2.3851e-05,A summary of the wall-time pause (stop-the-world) duration in garbage collection cycles.
+go_gc_duration_seconds,5.5045e-05,A summary of the wall-time pause (stop-the-world) duration in garbage collection cycles.
+go_gc_duration_seconds,6.5896e-05,A summary of the wall-time pause (stop-the-world) duration in garbage collection cycles.
+go_gc_duration_seconds,7.8075e-05,A summary of the wall-time pause (stop-the-world) duration in garbage collection cycles.
+go_gc_duration_seconds,0.000179727,A summary of the wall-time pause (stop-the-world) duration in garbage collection cycles.
+go_gc_duration_seconds_sum,0.012494453,
+go_gc_duration_seconds_count,183,
+go_gc_gogc_percent,100,"Heap size target percentage configured by the user, otherwise 100. This value is set by the GOGC environment variable, and the runtime/debug.SetGCPercent function. Sourced from /gc/gogc:percent"
+go_gc_gomemlimit_bytes,9.223372036854776e+18,"Go runtime memory limit configured by the user, otherwise math.MaxInt64. This value is set by the GOMEMLIMIT environment variable, and the runtime/debug.SetMemoryLimit function. Sourced from /gc/gomemlimit:bytes"
+go_goroutines,8,Number of goroutines that currently exist.
+go_info,1,Information about the Go environment.
+go_memstats_alloc_bytes,2.44132e+06,Number of bytes allocated in heap and currently in use. Equals to /memory/classes/heap/objects:bytes.
+go_memstats_alloc_bytes_total,3.27424608e+08,"Total number of bytes allocated in heap until now, even if released already. Equals to /gc/heap/allocs:bytes."
+go_memstats_buck_hash_sys_bytes,1.511975e+06,Number of bytes used by the profiling bucket hash table. Equals to /memory/classes/profiling/buckets:bytes.
+go_memstats_frees_total,3.6461e+06,Total number of heap objects frees. Equals to /gc/heap/frees:objects + /gc/heap/tiny/allocs:objects.
+go_memstats_gc_sys_bytes,3.297136e+06,Number of bytes used for garbage collection system metadata. Equals to /memory/classes/metadata/other:bytes.
+go_memstats_heap_alloc_bytes,2.44132e+06,"Number of heap bytes allocated and currently in use, same as go_memstats_alloc_bytes. Equals to /memory/classes/heap/objects:bytes."
+go_memstats_heap_idle_bytes,3.858432e+06,Number of heap bytes waiting to be used. Equals to /memory/classes/heap/released:bytes + /memory/classes/heap/free:bytes.
+go_memstats_heap_inuse_bytes,3.956736e+06,Number of heap bytes that are in use. Equals to /memory/classes/heap/objects:bytes + /memory/classes/heap/unused:bytes
+go_memstats_heap_objects,20182,Number of currently allocated objects. Equals to /gc/heap/objects:objects.
+go_memstats_heap_released_bytes,3.014656e+06,Number of heap bytes released to OS. Equals to /memory/classes/heap/released:bytes.
+go_memstats_heap_sys_bytes,7.815168e+06,Number of heap bytes obtained from system. Equals to /memory/classes/heap/objects:bytes + /memory/classes/heap/unused:bytes + /memory/classes/heap/released:bytes + /memory/classes/heap/free:bytes.
+go_memstats_last_gc_time_seconds,1.7792616105199924e+09,Number of seconds since 1970 of last garbage collection.
+go_memstats_mallocs_total,3.666282e+06,"Total number of heap objects allocated, both live and gc-ed. Semantically a counter version for go_memstats_heap_objects gauge. Equals to /gc/heap/allocs:objects + /gc/heap/tiny/allocs:objects."
+go_memstats_mcache_inuse_bytes,1200,Number of bytes in use by mcache structures. Equals to /memory/classes/metadata/mcache/inuse:bytes.
+go_memstats_mcache_sys_bytes,31200,Number of bytes used for mcache structures obtained from system. Equals to /memory/classes/metadata/mcache/inuse:bytes + /memory/classes/metadata/mcache/free:bytes.
+go_memstats_mspan_inuse_bytes,65280,Number of bytes in use by mspan structures. Equals to /memory/classes/metadata/mspan/inuse:bytes.
+go_memstats_mspan_sys_bytes,97920,Number of bytes used for mspan structures obtained from system. Equals to /memory/classes/metadata/mspan/inuse:bytes + /memory/classes/metadata/mspan/free:bytes.
+go_memstats_next_gc_bytes,4.194304e+06,Number of heap bytes when next garbage collection will take place. Equals to /gc/heap/goal:bytes.
+go_memstats_other_sys_bytes,932625,Number of bytes used for other system allocations. Equals to /memory/classes/other:bytes.
+go_memstats_stack_inuse_bytes,557056,Number of bytes obtained from system for stack allocator in non-CGO environments. Equals to /memory/classes/heap/stacks:bytes.
+go_memstats_stack_sys_bytes,557056,Number of bytes obtained from system for stack allocator. Equals to /memory/classes/heap/stacks:bytes + /memory/classes/os-stacks:bytes.
+go_memstats_sys_bytes,1.424308e+07,Number of bytes obtained from system. Equals to /memory/classes/total:byte.
+go_sched_gomaxprocs_threads,1,"The current runtime.GOMAXPROCS setting, or the number of operating system threads that can execute user-level Go code simultaneously. Sourced from /sched/gomaxprocs:threads"
+go_threads,6,Number of OS threads created.
+node_arp_entries,1,ARP entries by device
+node_arp_entries,1,ARP entries by device
+node_arp_entries,1,ARP entries by device
+node_arp_entries,1,ARP entries by device
+node_arp_entries,1,ARP entries by device
+node_boot_time_seconds,1.779203381e+09,"Node boot time, in unixtime."
+node_context_switches_total,2.858674261e+09,Total number of context switches.
+node_cooling_device_cur_state,0,Current throttle state of the cooling device
+node_cooling_device_cur_state,0,Current throttle state of the cooling device
+node_cooling_device_cur_state,0,Current throttle state of the cooling device
+node_cooling_device_cur_state,0,Current throttle state of the cooling device
+node_cooling_device_cur_state,0,Current throttle state of the cooling device
+node_cooling_device_cur_state,0,Current throttle state of the cooling device
+node_cooling_device_cur_state,0,Current throttle state of the cooling device
+node_cooling_device_cur_state,0,Current throttle state of the cooling device
+node_cooling_device_cur_state,0,Current throttle state of the cooling device
+node_cooling_device_cur_state,0,Current throttle state of the cooling device
+node_cooling_device_cur_state,0,Current throttle state of the cooling device
+node_cooling_device_cur_state,0,Current throttle state of the cooling device
+node_cooling_device_cur_state,0,Current throttle state of the cooling device
+node_cooling_device_cur_state,0,Current throttle state of the cooling device
+node_cooling_device_cur_state,0,Current throttle state of the cooling device
+node_cooling_device_cur_state,0,Current throttle state of the cooling device
+node_cooling_device_max_state,0,Maximum throttle state of the cooling device
+node_cooling_device_max_state,0,Maximum throttle state of the cooling device
+node_cooling_device_max_state,0,Maximum throttle state of the cooling device
+node_cooling_device_max_state,0,Maximum throttle state of the cooling device
+node_cooling_device_max_state,0,Maximum throttle state of the cooling device
+node_cooling_device_max_state,0,Maximum throttle state of the cooling device
+node_cooling_device_max_state,0,Maximum throttle state of the cooling device
+node_cooling_device_max_state,0,Maximum throttle state of the cooling device
+node_cooling_device_max_state,0,Maximum throttle state of the cooling device
+node_cooling_device_max_state,0,Maximum throttle state of the cooling device
+node_cooling_device_max_state,0,Maximum throttle state of the cooling device
+node_cooling_device_max_state,0,Maximum throttle state of the cooling device
+node_cooling_device_max_state,0,Maximum throttle state of the cooling device
+node_cooling_device_max_state,0,Maximum throttle state of the cooling device
+node_cooling_device_max_state,0,Maximum throttle state of the cooling device
+node_cooling_device_max_state,0,Maximum throttle state of the cooling device
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_guest_seconds_total,0,Seconds the CPUs spent in guests (VMs) for each mode.
+node_cpu_seconds_total,52097.95,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,14.89,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1.64,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,2353.12,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,28.1,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1288.19,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1278.99,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,52282.58,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,14.78,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,3.52,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1796.74,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,27.25,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1284.41,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1281.7,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,52393.7,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,10.09,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,3.34,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1515.3,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,26.14,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1278.19,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1290.7,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,52416.62,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,9.76,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0.18,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1513.37,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,26.09,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1274.36,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1278.77,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,52416.78,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,10.25,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0.27,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1524.76,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,25.61,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1274.74,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1284.78,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,52403.98,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,8.86,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1.75,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1516.12,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,26.51,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1277.29,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1286.89,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,52415.14,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,9.59,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,5.19,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1508.03,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,25.99,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1277.21,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1275.98,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,52388.62,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,26.38,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,3.47,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1521.33,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,26.39,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1257.46,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1293.9,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,52348.97,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,12.61,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0.15,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1642.65,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,26.62,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1283.01,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1295.43,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,52356.55,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,12.4,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,4.33,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1576.21,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,26.31,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1277.81,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1305.69,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,52388.56,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,13.33,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0.19,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1551.74,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,25.68,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1285.68,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1283.7,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,52396.87,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,10.7,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1.78,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1523.43,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,26.45,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1278.53,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1284.13,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,52391.15,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,10.31,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1.17,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1527.08,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,26.14,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1284.71,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1285.2,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,52414.83,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,10.58,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0.26,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1528.46,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,26.4,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1272.74,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1269.04,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,52363.51,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,9.59,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0.23,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1518.66,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,25.89,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1283.96,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1287.34,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,52403.63,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,14.46,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,0.23,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1510.51,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,26.27,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1277.05,Seconds the CPUs spent in each mode.
+node_cpu_seconds_total,1279.07,Seconds the CPUs spent in each mode.
+node_disk_discard_time_seconds_total,26.7,This is the total number of seconds spent by all discards.
+node_disk_discarded_sectors_total,1.23851344e+08,The total number of sectors discarded successfully.
+node_disk_discards_completed_total,61242,The total number of discards completed successfully.
+node_disk_discards_merged_total,0,The total number of discards merged.
+node_disk_flush_requests_time_seconds_total,11.051,This is the total number of seconds spent by all flush requests.
+node_disk_flush_requests_total,129998,The total number of flush requests completed successfully
+node_disk_info,1,Info of /sys/block/<block_device>.
+node_disk_io_now,0,The number of I/Os currently in progress.
+node_disk_io_time_seconds_total,223.982,Total seconds spent doing I/Os.
+node_disk_io_time_weighted_seconds_total,2381.158,The weighted # of seconds spent doing I/Os.
+node_disk_read_bytes_total,1.604404224e+09,The total number of bytes read successfully.
+node_disk_read_time_seconds_total,25.224,The total number of seconds spent by all reads.
+node_disk_reads_completed_total,38297,The total number of reads completed successfully.
+node_disk_reads_merged_total,5192,The total number of reads merged.
+node_disk_write_time_seconds_total,2318.1820000000002,This is the total number of seconds spent by all writes.
+node_disk_writes_completed_total,990810,The total number of writes completed successfully.
+node_disk_writes_merged_total,1.16104e+06,The number of writes merged.
+node_disk_written_bytes_total,2.8923065344e+10,The total number of bytes written successfully.
+node_dmi_info,1,"A metric with a constant '1' value labeled by bios_date, bios_release, bios_vendor, bios_version, board_asset_tag, board_name, board_serial, board_vendor, board_version, chassis_asset_tag, chassis_serial, chassis_vendor, chassis_version, product_family, product_name, product_serial, product_sku, product_uuid, product_version, system_vendor if provided by DMI."
+node_entropy_available_bits,256,Bits of available entropy.
+node_entropy_pool_size_bits,256,Bits of entropy pool.
+node_exporter_build_info,1,"A metric with a constant '1' value labeled by version, revision, branch, goversion from which node_exporter was built, and the goos and goarch for the build."
+node_filefd_allocated,14976,File descriptor statistics: allocated.
+node_filefd_maximum,9.223372036854776e+18,File descriptor statistics: maximum.
+node_filesystem_avail_bytes,1.99010177024e+11,Filesystem space available to non-root users in bytes.
+node_filesystem_avail_bytes,1.99010177024e+11,Filesystem space available to non-root users in bytes.
+node_filesystem_avail_bytes,1.99010177024e+11,Filesystem space available to non-root users in bytes.
+node_filesystem_avail_bytes,1.99010177024e+11,Filesystem space available to non-root users in bytes.
+node_filesystem_avail_bytes,3.3710825472e+10,Filesystem space available to non-root users in bytes.
+node_filesystem_avail_bytes,3.3710534656e+10,Filesystem space available to non-root users in bytes.
+node_filesystem_avail_bytes,1.3482049536e+10,Filesystem space available to non-root users in bytes.
+node_filesystem_avail_bytes,5.24288e+06,Filesystem space available to non-root users in bytes.
+node_filesystem_device_error,0,Whether an error occurred while getting statistics for the given device.
+node_filesystem_device_error,0,Whether an error occurred while getting statistics for the given device.
+node_filesystem_device_error,0,Whether an error occurred while getting statistics for the given device.
+node_filesystem_device_error,0,Whether an error occurred while getting statistics for the given device.
+node_filesystem_device_error,0,Whether an error occurred while getting statistics for the given device.
+node_filesystem_device_error,0,Whether an error occurred while getting statistics for the given device.
+node_filesystem_device_error,0,Whether an error occurred while getting statistics for the given device.
+node_filesystem_device_error,0,Whether an error occurred while getting statistics for the given device.
+node_filesystem_device_error,1,Whether an error occurred while getting statistics for the given device.
+node_filesystem_files,2.58048e+07,Filesystem total file nodes.
+node_filesystem_files,2.58048e+07,Filesystem total file nodes.
+node_filesystem_files,2.58048e+07,Filesystem total file nodes.
+node_filesystem_files,2.58048e+07,Filesystem total file nodes.
+node_filesystem_files,8.230182e+06,Filesystem total file nodes.
+node_filesystem_files,0,Filesystem total file nodes.
+node_filesystem_files,819200,Filesystem total file nodes.
+node_filesystem_files,8.230182e+06,Filesystem total file nodes.
+node_filesystem_files_free,2.5600007e+07,Filesystem total free file nodes.
+node_filesystem_files_free,2.5600007e+07,Filesystem total free file nodes.
+node_filesystem_files_free,2.5600007e+07,Filesystem total free file nodes.
+node_filesystem_files_free,2.5600007e+07,Filesystem total free file nodes.
+node_filesystem_files_free,8.230181e+06,Filesystem total free file nodes.
+node_filesystem_files_free,0,Filesystem total free file nodes.
+node_filesystem_files_free,818528,Filesystem total free file nodes.
+node_filesystem_files_free,8.230177e+06,Filesystem total free file nodes.
+node_filesystem_free_bytes,1.9902695424e+11,Filesystem free space in bytes.
+node_filesystem_free_bytes,1.9902695424e+11,Filesystem free space in bytes.
+node_filesystem_free_bytes,1.9902695424e+11,Filesystem free space in bytes.
+node_filesystem_free_bytes,1.9902695424e+11,Filesystem free space in bytes.
+node_filesystem_free_bytes,3.3710825472e+10,Filesystem free space in bytes.
+node_filesystem_free_bytes,3.3710534656e+10,Filesystem free space in bytes.
+node_filesystem_free_bytes,1.3482049536e+10,Filesystem free space in bytes.
+node_filesystem_free_bytes,5.24288e+06,Filesystem free space in bytes.
+node_filesystem_mount_info,1,Filesystem mount information.
+node_filesystem_mount_info,1,Filesystem mount information.
+node_filesystem_mount_info,1,Filesystem mount information.
+node_filesystem_mount_info,1,Filesystem mount information.
+node_filesystem_mount_info,1,Filesystem mount information.
+node_filesystem_mount_info,1,Filesystem mount information.
+node_filesystem_mount_info,1,Filesystem mount information.
+node_filesystem_mount_info,1,Filesystem mount information.
+node_filesystem_purgeable_bytes,0,Filesystem space available including purgeable space (MacOS specific).
+node_filesystem_purgeable_bytes,0,Filesystem space available including purgeable space (MacOS specific).
+node_filesystem_purgeable_bytes,0,Filesystem space available including purgeable space (MacOS specific).
+node_filesystem_purgeable_bytes,0,Filesystem space available including purgeable space (MacOS specific).
+node_filesystem_purgeable_bytes,0,Filesystem space available including purgeable space (MacOS specific).
+node_filesystem_purgeable_bytes,0,Filesystem space available including purgeable space (MacOS specific).
+node_filesystem_purgeable_bytes,0,Filesystem space available including purgeable space (MacOS specific).
+node_filesystem_purgeable_bytes,0,Filesystem space available including purgeable space (MacOS specific).
+node_filesystem_readonly,0,Filesystem read-only status.
+node_filesystem_readonly,0,Filesystem read-only status.
+node_filesystem_readonly,0,Filesystem read-only status.
+node_filesystem_readonly,1,Filesystem read-only status.
+node_filesystem_readonly,0,Filesystem read-only status.
+node_filesystem_readonly,0,Filesystem read-only status.
+node_filesystem_readonly,0,Filesystem read-only status.
+node_filesystem_readonly,0,Filesystem read-only status.
+node_filesystem_readonly,0,Filesystem read-only status.
+node_filesystem_size_bytes,2.0792991744e+11,Filesystem size in bytes.
+node_filesystem_size_bytes,2.0792991744e+11,Filesystem size in bytes.
+node_filesystem_size_bytes,2.0792991744e+11,Filesystem size in bytes.
+node_filesystem_size_bytes,2.0792991744e+11,Filesystem size in bytes.
+node_filesystem_size_bytes,3.3710825472e+10,Filesystem size in bytes.
+node_filesystem_size_bytes,3.3710825472e+10,Filesystem size in bytes.
+node_filesystem_size_bytes,1.3484331008e+10,Filesystem size in bytes.
+node_filesystem_size_bytes,5.24288e+06,Filesystem size in bytes.
+node_forks_total,1.168426e+06,Total number of forks.
+node_intr_total,2.09375349e+09,Total number of interrupts serviced.
+node_load1,3.34,1m load average.
+node_load15,8.87,15m load average.
+node_load5,4.85,5m load average.
+node_memory_Active_anon_bytes,6.062792704e+09,Memory information field Active_anon_bytes.
+node_memory_Active_bytes,6.643613696e+09,Memory information field Active_bytes.
+node_memory_Active_file_bytes,5.80820992e+08,Memory information field Active_file_bytes.
+node_memory_AnonHugePages_bytes,2.097152e+06,Memory information field AnonHugePages_bytes.
+node_memory_AnonPages_bytes,6.181871616e+09,Memory information field AnonPages_bytes.
+node_memory_Bounce_bytes,0,Memory information field Bounce_bytes.
+node_memory_Buffers_bytes,3.94141696e+08,Memory information field Buffers_bytes.
+node_memory_Cached_bytes,7.339061248e+09,Memory information field Cached_bytes.
+node_memory_CommitLimit_bytes,3.3710825472e+10,Memory information field CommitLimit_bytes.
+node_memory_Committed_AS_bytes,1.9881627648e+10,Memory information field Committed_AS_bytes.
+node_memory_DirectMap1G_bytes,6.0129542144e+10,Memory information field DirectMap1G_bytes.
+node_memory_DirectMap2M_bytes,9.518972928e+09,Memory information field DirectMap2M_bytes.
+node_memory_DirectMap4k_bytes,1.21505792e+09,Memory information field DirectMap4k_bytes.
+node_memory_Dirty_bytes,73728,Memory information field Dirty_bytes.
+node_memory_HardwareCorrupted_bytes,0,Memory information field HardwareCorrupted_bytes.
+node_memory_HugePages_Free,0,Memory information field HugePages_Free.
+node_memory_HugePages_Rsvd,0,Memory information field HugePages_Rsvd.
+node_memory_HugePages_Surp,0,Memory information field HugePages_Surp.
+node_memory_HugePages_Total,0,Memory information field HugePages_Total.
+node_memory_Hugepagesize_bytes,2.097152e+06,Memory information field Hugepagesize_bytes.
+node_memory_Inactive_anon_bytes,0,Memory information field Inactive_anon_bytes.
+node_memory_Inactive_bytes,7.099322368e+09,Memory information field Inactive_bytes.
+node_memory_Inactive_file_bytes,7.099322368e+09,Memory information field Inactive_file_bytes.
+node_memory_KernelStack_bytes,4.0321024e+07,Memory information field KernelStack_bytes.
+node_memory_Mapped_bytes,6.42265088e+08,Memory information field Mapped_bytes.
+node_memory_MemAvailable_bytes,5.9477315584e+10,Memory information field MemAvailable_bytes.
+node_memory_MemFree_bytes,5.181495296e+10,Memory information field MemFree_bytes.
+node_memory_MemTotal_bytes,6.742165504e+10,Memory information field MemTotal_bytes.
+node_memory_Mlocked_bytes,1.7166336e+08,Memory information field Mlocked_bytes.
+node_memory_NFS_Unstable_bytes,0,Memory information field NFS_Unstable_bytes.
+node_memory_PageTables_bytes,7.7508608e+07,Memory information field PageTables_bytes.
+node_memory_Percpu_bytes,8.126464e+07,Memory information field Percpu_bytes.
+node_memory_SReclaimable_bytes,7.26429696e+08,Memory information field SReclaimable_bytes.
+node_memory_SUnreclaim_bytes,4.41925632e+08,Memory information field SUnreclaim_bytes.
+node_memory_ShmemHugePages_bytes,0,Memory information field ShmemHugePages_bytes.
+node_memory_ShmemPmdMapped_bytes,0,Memory information field ShmemPmdMapped_bytes.
+node_memory_Shmem_bytes,3.9919616e+07,Memory information field Shmem_bytes.
+node_memory_Slab_bytes,1.168355328e+09,Memory information field Slab_bytes.
+node_memory_SwapCached_bytes,0,Memory information field SwapCached_bytes.
+node_memory_SwapFree_bytes,0,Memory information field SwapFree_bytes.
+node_memory_SwapTotal_bytes,0,Memory information field SwapTotal_bytes.
+node_memory_Unevictable_bytes,1.7166336e+08,Memory information field Unevictable_bytes.
+node_memory_VmallocChunk_bytes,0,Memory information field VmallocChunk_bytes.
+node_memory_VmallocTotal_bytes,3.5184372087808e+13,Memory information field VmallocTotal_bytes.
+node_memory_VmallocUsed_bytes,1.53808896e+08,Memory information field VmallocUsed_bytes.
+node_memory_WritebackTmp_bytes,0,Memory information field WritebackTmp_bytes.
+node_memory_Writeback_bytes,0,Memory information field Writeback_bytes.
+node_netstat_Icmp6_InErrors,0,Statistic Icmp6InErrors.
+node_netstat_Icmp6_InMsgs,167,Statistic Icmp6InMsgs.
+node_netstat_Icmp6_OutMsgs,55,Statistic Icmp6OutMsgs.
+node_netstat_Icmp_InErrors,0,Statistic IcmpInErrors.
+node_netstat_Icmp_InMsgs,144,Statistic IcmpInMsgs.
+node_netstat_Icmp_OutMsgs,144,Statistic IcmpOutMsgs.
+node_netstat_Ip6_InOctets,19112,Statistic Ip6InOctets.
+node_netstat_Ip6_OutOctets,4644,Statistic Ip6OutOctets.
+node_netstat_IpExt_InOctets,9.432080015e+09,Statistic IpExtInOctets.
+node_netstat_IpExt_OutOctets,3.1084945545e+10,Statistic IpExtOutOctets.
+node_netstat_Ip_Forwarding,1,Statistic IpForwarding.
+node_netstat_TcpExt_ListenDrops,0,Statistic TcpExtListenDrops.
+node_netstat_TcpExt_ListenOverflows,0,Statistic TcpExtListenOverflows.
+node_netstat_TcpExt_SyncookiesFailed,0,Statistic TcpExtSyncookiesFailed.
+node_netstat_TcpExt_SyncookiesRecv,0,Statistic TcpExtSyncookiesRecv.
+node_netstat_TcpExt_SyncookiesSent,0,Statistic TcpExtSyncookiesSent.
+node_netstat_TcpExt_TCPOFOQueue,0,Statistic TcpExtTCPOFOQueue.
+node_netstat_TcpExt_TCPRcvQDrop,0,Statistic TcpExtTCPRcvQDrop.
+node_netstat_TcpExt_TCPSynRetrans,2,Statistic TcpExtTCPSynRetrans.
+node_netstat_TcpExt_TCPTimeouts,5,Statistic TcpExtTCPTimeouts.
+node_netstat_Tcp_ActiveOpens,6,Statistic TcpActiveOpens.
+node_netstat_Tcp_CurrEstab,9,Statistic TcpCurrEstab.
+node_netstat_Tcp_InErrs,0,Statistic TcpInErrs.
+node_netstat_Tcp_InSegs,2406,Statistic TcpInSegs.
+node_netstat_Tcp_OutRsts,4,Statistic TcpOutRsts.
+node_netstat_Tcp_OutSegs,2315,Statistic TcpOutSegs.
+node_netstat_Tcp_PassiveOpens,9,Statistic TcpPassiveOpens.
+node_netstat_Tcp_RetransSegs,6,Statistic TcpRetransSegs.
+node_netstat_Udp6_InDatagrams,0,Statistic Udp6InDatagrams.
+node_netstat_Udp6_InErrors,0,Statistic Udp6InErrors.
+node_netstat_Udp6_NoPorts,0,Statistic Udp6NoPorts.
+node_netstat_Udp6_OutDatagrams,0,Statistic Udp6OutDatagrams.
+node_netstat_Udp6_RcvbufErrors,0,Statistic Udp6RcvbufErrors.
+node_netstat_Udp6_SndbufErrors,0,Statistic Udp6SndbufErrors.
+node_netstat_UdpLite6_InErrors,0,Statistic UdpLite6InErrors.
+node_netstat_UdpLite_InErrors,0,Statistic UdpLiteInErrors.
+node_netstat_Udp_InDatagrams,634,Statistic UdpInDatagrams.
+node_netstat_Udp_InErrors,0,Statistic UdpInErrors.
+node_netstat_Udp_NoPorts,144,Statistic UdpNoPorts.
+node_netstat_Udp_OutDatagrams,1145,Statistic UdpOutDatagrams.
+node_netstat_Udp_RcvbufErrors,0,Statistic UdpRcvbufErrors.
+node_netstat_Udp_SndbufErrors,0,Statistic UdpSndbufErrors.
+node_network_address_assign_type,3,Network device property: address_assign_type
+node_network_address_assign_type,3,Network device property: address_assign_type
+node_network_address_assign_type,3,Network device property: address_assign_type
+node_network_address_assign_type,3,Network device property: address_assign_type
+node_network_address_assign_type,2,Network device property: address_assign_type
+node_network_address_assign_type,3,Network device property: address_assign_type
+node_network_address_assign_type,2,Network device property: address_assign_type
+node_network_address_assign_type,3,Network device property: address_assign_type
+node_network_address_assign_type,2,Network device property: address_assign_type
+node_network_address_assign_type,3,Network device property: address_assign_type
+node_network_address_assign_type,2,Network device property: address_assign_type
+node_network_address_assign_type,0,Network device property: address_assign_type
+node_network_address_assign_type,0,Network device property: address_assign_type
+node_network_address_assign_type,0,Network device property: address_assign_type
+node_network_address_assign_type,0,Network device property: address_assign_type
+node_network_carrier,1,Network device property: carrier
+node_network_carrier,1,Network device property: carrier
+node_network_carrier,1,Network device property: carrier
+node_network_carrier,1,Network device property: carrier
+node_network_carrier,1,Network device property: carrier
+node_network_carrier,1,Network device property: carrier
+node_network_carrier,1,Network device property: carrier
+node_network_carrier,1,Network device property: carrier
+node_network_carrier,1,Network device property: carrier
+node_network_carrier,1,Network device property: carrier
+node_network_carrier,1,Network device property: carrier
+node_network_carrier,1,Network device property: carrier
+node_network_carrier,1,Network device property: carrier
+node_network_carrier,1,Network device property: carrier
+node_network_carrier,1,Network device property: carrier
+node_network_carrier_changes_total,0,Network device property: carrier_changes_total
+node_network_carrier_changes_total,0,Network device property: carrier_changes_total
+node_network_carrier_changes_total,2,Network device property: carrier_changes_total
+node_network_carrier_changes_total,2,Network device property: carrier_changes_total
+node_network_carrier_changes_total,0,Network device property: carrier_changes_total
+node_network_carrier_changes_total,2,Network device property: carrier_changes_total
+node_network_carrier_changes_total,2,Network device property: carrier_changes_total
+node_network_carrier_changes_total,2,Network device property: carrier_changes_total
+node_network_carrier_changes_total,2,Network device property: carrier_changes_total
+node_network_carrier_changes_total,2,Network device property: carrier_changes_total
+node_network_carrier_changes_total,0,Network device property: carrier_changes_total
+node_network_carrier_changes_total,0,Network device property: carrier_changes_total
+node_network_carrier_changes_total,0,Network device property: carrier_changes_total
+node_network_carrier_changes_total,0,Network device property: carrier_changes_total
+node_network_carrier_changes_total,0,Network device property: carrier_changes_total
+node_network_carrier_down_changes_total,0,Network device property: carrier_down_changes_total
+node_network_carrier_down_changes_total,0,Network device property: carrier_down_changes_total
+node_network_carrier_down_changes_total,1,Network device property: carrier_down_changes_total
+node_network_carrier_down_changes_total,1,Network device property: carrier_down_changes_total
+node_network_carrier_down_changes_total,0,Network device property: carrier_down_changes_total
+node_network_carrier_down_changes_total,1,Network device property: carrier_down_changes_total
+node_network_carrier_down_changes_total,1,Network device property: carrier_down_changes_total
+node_network_carrier_down_changes_total,1,Network device property: carrier_down_changes_total
+node_network_carrier_down_changes_total,1,Network device property: carrier_down_changes_total
+node_network_carrier_down_changes_total,1,Network device property: carrier_down_changes_total
+node_network_carrier_down_changes_total,0,Network device property: carrier_down_changes_total
+node_network_carrier_down_changes_total,0,Network device property: carrier_down_changes_total
+node_network_carrier_down_changes_total,0,Network device property: carrier_down_changes_total
+node_network_carrier_down_changes_total,0,Network device property: carrier_down_changes_total
+node_network_carrier_down_changes_total,0,Network device property: carrier_down_changes_total
+node_network_carrier_up_changes_total,0,Network device property: carrier_up_changes_total
+node_network_carrier_up_changes_total,0,Network device property: carrier_up_changes_total
+node_network_carrier_up_changes_total,1,Network device property: carrier_up_changes_total
+node_network_carrier_up_changes_total,1,Network device property: carrier_up_changes_total
+node_network_carrier_up_changes_total,0,Network device property: carrier_up_changes_total
+node_network_carrier_up_changes_total,1,Network device property: carrier_up_changes_total
+node_network_carrier_up_changes_total,1,Network device property: carrier_up_changes_total
+node_network_carrier_up_changes_total,1,Network device property: carrier_up_changes_total
+node_network_carrier_up_changes_total,1,Network device property: carrier_up_changes_total
+node_network_carrier_up_changes_total,1,Network device property: carrier_up_changes_total
+node_network_carrier_up_changes_total,0,Network device property: carrier_up_changes_total
+node_network_carrier_up_changes_total,0,Network device property: carrier_up_changes_total
+node_network_carrier_up_changes_total,0,Network device property: carrier_up_changes_total
+node_network_carrier_up_changes_total,0,Network device property: carrier_up_changes_total
+node_network_carrier_up_changes_total,0,Network device property: carrier_up_changes_total
+node_network_device_id,0,Network device property: device_id
+node_network_device_id,0,Network device property: device_id
+node_network_device_id,0,Network device property: device_id
+node_network_device_id,0,Network device property: device_id
+node_network_device_id,0,Network device property: device_id
+node_network_device_id,0,Network device property: device_id
+node_network_device_id,0,Network device property: device_id
+node_network_device_id,0,Network device property: device_id
+node_network_device_id,0,Network device property: device_id
+node_network_device_id,0,Network device property: device_id
+node_network_device_id,0,Network device property: device_id
+node_network_device_id,0,Network device property: device_id
+node_network_device_id,0,Network device property: device_id
+node_network_device_id,0,Network device property: device_id
+node_network_device_id,0,Network device property: device_id
+node_network_dormant,0,Network device property: dormant
+node_network_dormant,0,Network device property: dormant
+node_network_dormant,0,Network device property: dormant
+node_network_dormant,0,Network device property: dormant
+node_network_dormant,0,Network device property: dormant
+node_network_dormant,0,Network device property: dormant
+node_network_dormant,0,Network device property: dormant
+node_network_dormant,0,Network device property: dormant
+node_network_dormant,0,Network device property: dormant
+node_network_dormant,0,Network device property: dormant
+node_network_dormant,0,Network device property: dormant
+node_network_dormant,0,Network device property: dormant
+node_network_dormant,0,Network device property: dormant
+node_network_dormant,0,Network device property: dormant
+node_network_dormant,0,Network device property: dormant
+node_network_flags,1153,Network device property: flags
+node_network_flags,1153,Network device property: flags
+node_network_flags,4099,Network device property: flags
+node_network_flags,4099,Network device property: flags
+node_network_flags,4099,Network device property: flags
+node_network_flags,4099,Network device property: flags
+node_network_flags,4099,Network device property: flags
+node_network_flags,4099,Network device property: flags
+node_network_flags,4099,Network device property: flags
+node_network_flags,4099,Network device property: flags
+node_network_flags,4099,Network device property: flags
+node_network_flags,9,Network device property: flags
+node_network_flags,641,Network device property: flags
+node_network_flags,641,Network device property: flags
+node_network_flags,641,Network device property: flags
+node_network_iface_id,9,Network device property: iface_id
+node_network_iface_id,7,Network device property: iface_id
+node_network_iface_id,1176,Network device property: iface_id
+node_network_iface_id,1190,Network device property: iface_id
+node_network_iface_id,3,Network device property: iface_id
+node_network_iface_id,1198,Network device property: iface_id
+node_network_iface_id,4,Network device property: iface_id
+node_network_iface_id,1208,Network device property: iface_id
+node_network_iface_id,6,Network device property: iface_id
+node_network_iface_id,1212,Network device property: iface_id
+node_network_iface_id,5,Network device property: iface_id
+node_network_iface_id,1,Network device property: iface_id
+node_network_iface_id,2,Network device property: iface_id
+node_network_iface_id,10,Network device property: iface_id
+node_network_iface_id,8,Network device property: iface_id
+node_network_iface_link,9,Network device property: iface_link
+node_network_iface_link,7,Network device property: iface_link
+node_network_iface_link,1177,Network device property: iface_link
+node_network_iface_link,1191,Network device property: iface_link
+node_network_iface_link,1190,Network device property: iface_link
+node_network_iface_link,1199,Network device property: iface_link
+node_network_iface_link,1198,Network device property: iface_link
+node_network_iface_link,1209,Network device property: iface_link
+node_network_iface_link,1208,Network device property: iface_link
+node_network_iface_link,1213,Network device property: iface_link
+node_network_iface_link,1212,Network device property: iface_link
+node_network_iface_link,1,Network device property: iface_link
+node_network_iface_link,0,Network device property: iface_link
+node_network_iface_link,0,Network device property: iface_link
+node_network_iface_link,0,Network device property: iface_link
+node_network_iface_link_mode,0,Network device property: iface_link_mode
+node_network_iface_link_mode,0,Network device property: iface_link_mode
+node_network_iface_link_mode,0,Network device property: iface_link_mode
+node_network_iface_link_mode,0,Network device property: iface_link_mode
+node_network_iface_link_mode,0,Network device property: iface_link_mode
+node_network_iface_link_mode,0,Network device property: iface_link_mode
+node_network_iface_link_mode,0,Network device property: iface_link_mode
+node_network_iface_link_mode,0,Network device property: iface_link_mode
+node_network_iface_link_mode,0,Network device property: iface_link_mode
+node_network_iface_link_mode,0,Network device property: iface_link_mode
+node_network_iface_link_mode,0,Network device property: iface_link_mode
+node_network_iface_link_mode,0,Network device property: iface_link_mode
+node_network_iface_link_mode,0,Network device property: iface_link_mode
+node_network_iface_link_mode,0,Network device property: iface_link_mode
+node_network_iface_link_mode,0,Network device property: iface_link_mode
+node_network_info,1,"Non-numeric data from /sys/class/net/<iface>, value is always 1."
+node_network_info,1,"Non-numeric data from /sys/class/net/<iface>, value is always 1."
+node_network_info,1,"Non-numeric data from /sys/class/net/<iface>, value is always 1."
+node_network_info,1,"Non-numeric data from /sys/class/net/<iface>, value is always 1."
+node_network_info,1,"Non-numeric data from /sys/class/net/<iface>, value is always 1."
+node_network_info,1,"Non-numeric data from /sys/class/net/<iface>, value is always 1."
+node_network_info,1,"Non-numeric data from /sys/class/net/<iface>, value is always 1."
+node_network_info,1,"Non-numeric data from /sys/class/net/<iface>, value is always 1."
+node_network_info,1,"Non-numeric data from /sys/class/net/<iface>, value is always 1."
+node_network_info,1,"Non-numeric data from /sys/class/net/<iface>, value is always 1."
+node_network_info,1,"Non-numeric data from /sys/class/net/<iface>, value is always 1."
+node_network_info,1,"Non-numeric data from /sys/class/net/<iface>, value is always 1."
+node_network_info,1,"Non-numeric data from /sys/class/net/<iface>, value is always 1."
+node_network_info,1,"Non-numeric data from /sys/class/net/<iface>, value is always 1."
+node_network_info,1,"Non-numeric data from /sys/class/net/<iface>, value is always 1."
+node_network_mtu_bytes,65575,Network device property: mtu_bytes
+node_network_mtu_bytes,65575,Network device property: mtu_bytes
+node_network_mtu_bytes,1500,Network device property: mtu_bytes
+node_network_mtu_bytes,1500,Network device property: mtu_bytes
+node_network_mtu_bytes,1500,Network device property: mtu_bytes
+node_network_mtu_bytes,1500,Network device property: mtu_bytes
+node_network_mtu_bytes,1500,Network device property: mtu_bytes
+node_network_mtu_bytes,1500,Network device property: mtu_bytes
+node_network_mtu_bytes,1500,Network device property: mtu_bytes
+node_network_mtu_bytes,1500,Network device property: mtu_bytes
+node_network_mtu_bytes,1500,Network device property: mtu_bytes
+node_network_mtu_bytes,65536,Network device property: mtu_bytes
+node_network_mtu_bytes,1452,Network device property: mtu_bytes
+node_network_mtu_bytes,1452,Network device property: mtu_bytes
+node_network_mtu_bytes,1452,Network device property: mtu_bytes
+node_network_name_assign_type,3,Network device property: name_assign_type
+node_network_name_assign_type,3,Network device property: name_assign_type
+node_network_name_assign_type,4,Network device property: name_assign_type
+node_network_name_assign_type,4,Network device property: name_assign_type
+node_network_name_assign_type,3,Network device property: name_assign_type
+node_network_name_assign_type,4,Network device property: name_assign_type
+node_network_name_assign_type,3,Network device property: name_assign_type
+node_network_name_assign_type,4,Network device property: name_assign_type
+node_network_name_assign_type,3,Network device property: name_assign_type
+node_network_name_assign_type,4,Network device property: name_assign_type
+node_network_name_assign_type,3,Network device property: name_assign_type
+node_network_name_assign_type,2,Network device property: name_assign_type
+node_network_net_dev_group,0,Network device property: net_dev_group
+node_network_net_dev_group,0,Network device property: net_dev_group
+node_network_net_dev_group,0,Network device property: net_dev_group
+node_network_net_dev_group,0,Network device property: net_dev_group
+node_network_net_dev_group,0,Network device property: net_dev_group
+node_network_net_dev_group,0,Network device property: net_dev_group
+node_network_net_dev_group,0,Network device property: net_dev_group
+node_network_net_dev_group,0,Network device property: net_dev_group
+node_network_net_dev_group,0,Network device property: net_dev_group
+node_network_net_dev_group,0,Network device property: net_dev_group
+node_network_net_dev_group,0,Network device property: net_dev_group
+node_network_net_dev_group,0,Network device property: net_dev_group
+node_network_net_dev_group,0,Network device property: net_dev_group
+node_network_net_dev_group,0,Network device property: net_dev_group
+node_network_net_dev_group,0,Network device property: net_dev_group
+node_network_protocol_type,1,Network device property: protocol_type
+node_network_protocol_type,1,Network device property: protocol_type
+node_network_protocol_type,1,Network device property: protocol_type
+node_network_protocol_type,1,Network device property: protocol_type
+node_network_protocol_type,1,Network device property: protocol_type
+node_network_protocol_type,1,Network device property: protocol_type
+node_network_protocol_type,1,Network device property: protocol_type
+node_network_protocol_type,1,Network device property: protocol_type
+node_network_protocol_type,1,Network device property: protocol_type
+node_network_protocol_type,1,Network device property: protocol_type
+node_network_protocol_type,1,Network device property: protocol_type
+node_network_protocol_type,772,Network device property: protocol_type
+node_network_protocol_type,779,Network device property: protocol_type
+node_network_protocol_type,779,Network device property: protocol_type
+node_network_protocol_type,779,Network device property: protocol_type
+node_network_receive_bytes_total,1.946353505e+09,Network device statistic receive_bytes.
+node_network_receive_bytes_total,7.485414852e+09,Network device statistic receive_bytes.
+node_network_receive_bytes_total,241830,Network device statistic receive_bytes.
+node_network_receive_bytes_total,6.262065512e+09,Network device statistic receive_bytes.
+node_network_receive_bytes_total,6.179536022e+09,Network device statistic receive_bytes.
+node_network_receive_bytes_total,1.966634883e+09,Network device statistic receive_bytes.
+node_network_receive_bytes_total,1.946355679e+09,Network device statistic receive_bytes.
+node_network_receive_bytes_total,7.583968518e+09,Network device statistic receive_bytes.
+node_network_receive_bytes_total,7.485415204e+09,Network device statistic receive_bytes.
+node_network_receive_bytes_total,4.775788352e+09,Network device statistic receive_bytes.
+node_network_receive_bytes_total,4.684490874e+09,Network device statistic receive_bytes.
+node_network_receive_bytes_total,19728,Network device statistic receive_bytes.
+node_network_receive_bytes_total,0,Network device statistic receive_bytes.
+node_network_receive_bytes_total,0,Network device statistic receive_bytes.
+node_network_receive_bytes_total,0,Network device statistic receive_bytes.
+node_network_receive_compressed_total,0,Network device statistic receive_compressed.
+node_network_receive_compressed_total,0,Network device statistic receive_compressed.
+node_network_receive_compressed_total,0,Network device statistic receive_compressed.
+node_network_receive_compressed_total,0,Network device statistic receive_compressed.
+node_network_receive_compressed_total,0,Network device statistic receive_compressed.
+node_network_receive_compressed_total,0,Network device statistic receive_compressed.
+node_network_receive_compressed_total,0,Network device statistic receive_compressed.
+node_network_receive_compressed_total,0,Network device statistic receive_compressed.
+node_network_receive_compressed_total,0,Network device statistic receive_compressed.
+node_network_receive_compressed_total,0,Network device statistic receive_compressed.
+node_network_receive_compressed_total,0,Network device statistic receive_compressed.
+node_network_receive_compressed_total,0,Network device statistic receive_compressed.
+node_network_receive_compressed_total,0,Network device statistic receive_compressed.
+node_network_receive_compressed_total,0,Network device statistic receive_compressed.
+node_network_receive_compressed_total,0,Network device statistic receive_compressed.
+node_network_receive_drop_total,0,Network device statistic receive_drop.
+node_network_receive_drop_total,0,Network device statistic receive_drop.
+node_network_receive_drop_total,0,Network device statistic receive_drop.
+node_network_receive_drop_total,0,Network device statistic receive_drop.
+node_network_receive_drop_total,0,Network device statistic receive_drop.
+node_network_receive_drop_total,0,Network device statistic receive_drop.
+node_network_receive_drop_total,0,Network device statistic receive_drop.
+node_network_receive_drop_total,0,Network device statistic receive_drop.
+node_network_receive_drop_total,0,Network device statistic receive_drop.
+node_network_receive_drop_total,0,Network device statistic receive_drop.
+node_network_receive_drop_total,0,Network device statistic receive_drop.
+node_network_receive_drop_total,0,Network device statistic receive_drop.
+node_network_receive_drop_total,0,Network device statistic receive_drop.
+node_network_receive_drop_total,0,Network device statistic receive_drop.
+node_network_receive_drop_total,0,Network device statistic receive_drop.
+node_network_receive_errs_total,0,Network device statistic receive_errs.
+node_network_receive_errs_total,0,Network device statistic receive_errs.
+node_network_receive_errs_total,0,Network device statistic receive_errs.
+node_network_receive_errs_total,0,Network device statistic receive_errs.
+node_network_receive_errs_total,0,Network device statistic receive_errs.
+node_network_receive_errs_total,0,Network device statistic receive_errs.
+node_network_receive_errs_total,0,Network device statistic receive_errs.
+node_network_receive_errs_total,0,Network device statistic receive_errs.
+node_network_receive_errs_total,0,Network device statistic receive_errs.
+node_network_receive_errs_total,0,Network device statistic receive_errs.
+node_network_receive_errs_total,0,Network device statistic receive_errs.
+node_network_receive_errs_total,0,Network device statistic receive_errs.
+node_network_receive_errs_total,0,Network device statistic receive_errs.
+node_network_receive_errs_total,0,Network device statistic receive_errs.
+node_network_receive_errs_total,0,Network device statistic receive_errs.
+node_network_receive_fifo_total,0,Network device statistic receive_fifo.
+node_network_receive_fifo_total,0,Network device statistic receive_fifo.
+node_network_receive_fifo_total,0,Network device statistic receive_fifo.
+node_network_receive_fifo_total,0,Network device statistic receive_fifo.
+node_network_receive_fifo_total,0,Network device statistic receive_fifo.
+node_network_receive_fifo_total,0,Network device statistic receive_fifo.
+node_network_receive_fifo_total,0,Network device statistic receive_fifo.
+node_network_receive_fifo_total,0,Network device statistic receive_fifo.
+node_network_receive_fifo_total,0,Network device statistic receive_fifo.
+node_network_receive_fifo_total,0,Network device statistic receive_fifo.
+node_network_receive_fifo_total,0,Network device statistic receive_fifo.
+node_network_receive_fifo_total,0,Network device statistic receive_fifo.
+node_network_receive_fifo_total,0,Network device statistic receive_fifo.
+node_network_receive_fifo_total,0,Network device statistic receive_fifo.
+node_network_receive_fifo_total,0,Network device statistic receive_fifo.
+node_network_receive_frame_total,0,Network device statistic receive_frame.
+node_network_receive_frame_total,0,Network device statistic receive_frame.
+node_network_receive_frame_total,0,Network device statistic receive_frame.
+node_network_receive_frame_total,0,Network device statistic receive_frame.
+node_network_receive_frame_total,0,Network device statistic receive_frame.
+node_network_receive_frame_total,0,Network device statistic receive_frame.
+node_network_receive_frame_total,0,Network device statistic receive_frame.
+node_network_receive_frame_total,0,Network device statistic receive_frame.
+node_network_receive_frame_total,0,Network device statistic receive_frame.
+node_network_receive_frame_total,0,Network device statistic receive_frame.
+node_network_receive_frame_total,0,Network device statistic receive_frame.
+node_network_receive_frame_total,0,Network device statistic receive_frame.
+node_network_receive_frame_total,0,Network device statistic receive_frame.
+node_network_receive_frame_total,0,Network device statistic receive_frame.
+node_network_receive_frame_total,0,Network device statistic receive_frame.
+node_network_receive_multicast_total,0,Network device statistic receive_multicast.
+node_network_receive_multicast_total,0,Network device statistic receive_multicast.
+node_network_receive_multicast_total,0,Network device statistic receive_multicast.
+node_network_receive_multicast_total,0,Network device statistic receive_multicast.
+node_network_receive_multicast_total,514,Network device statistic receive_multicast.
+node_network_receive_multicast_total,0,Network device statistic receive_multicast.
+node_network_receive_multicast_total,0,Network device statistic receive_multicast.
+node_network_receive_multicast_total,0,Network device statistic receive_multicast.
+node_network_receive_multicast_total,0,Network device statistic receive_multicast.
+node_network_receive_multicast_total,0,Network device statistic receive_multicast.
+node_network_receive_multicast_total,513,Network device statistic receive_multicast.
+node_network_receive_multicast_total,0,Network device statistic receive_multicast.
+node_network_receive_multicast_total,0,Network device statistic receive_multicast.
+node_network_receive_multicast_total,0,Network device statistic receive_multicast.
+node_network_receive_multicast_total,0,Network device statistic receive_multicast.
+node_network_receive_nohandler_total,0,Network device statistic receive_nohandler.
+node_network_receive_nohandler_total,0,Network device statistic receive_nohandler.
+node_network_receive_nohandler_total,0,Network device statistic receive_nohandler.
+node_network_receive_nohandler_total,0,Network device statistic receive_nohandler.
+node_network_receive_nohandler_total,0,Network device statistic receive_nohandler.
+node_network_receive_nohandler_total,0,Network device statistic receive_nohandler.
+node_network_receive_nohandler_total,0,Network device statistic receive_nohandler.
+node_network_receive_nohandler_total,0,Network device statistic receive_nohandler.
+node_network_receive_nohandler_total,0,Network device statistic receive_nohandler.
+node_network_receive_nohandler_total,0,Network device statistic receive_nohandler.
+node_network_receive_nohandler_total,0,Network device statistic receive_nohandler.
+node_network_receive_nohandler_total,0,Network device statistic receive_nohandler.
+node_network_receive_nohandler_total,0,Network device statistic receive_nohandler.
+node_network_receive_nohandler_total,0,Network device statistic receive_nohandler.
+node_network_receive_nohandler_total,0,Network device statistic receive_nohandler.
+node_network_receive_packets_total,1.448227e+06,Network device statistic receive_packets.
+node_network_receive_packets_total,7.039342e+06,Network device statistic receive_packets.
+node_network_receive_packets_total,2623,Network device statistic receive_packets.
+node_network_receive_packets_total,4.585003e+06,Network device statistic receive_packets.
+node_network_receive_packets_total,4.584965e+06,Network device statistic receive_packets.
+node_network_receive_packets_total,1.448334e+06,Network device statistic receive_packets.
+node_network_receive_packets_total,1.448298e+06,Network device statistic receive_packets.
+node_network_receive_packets_total,7.039377e+06,Network device statistic receive_packets.
+node_network_receive_packets_total,7.039348e+06,Network device statistic receive_packets.
+node_network_receive_packets_total,5.072105e+06,Network device statistic receive_packets.
+node_network_receive_packets_total,5.072067e+06,Network device statistic receive_packets.
+node_network_receive_packets_total,288,Network device statistic receive_packets.
+node_network_receive_packets_total,0,Network device statistic receive_packets.
+node_network_receive_packets_total,0,Network device statistic receive_packets.
+node_network_receive_packets_total,0,Network device statistic receive_packets.
+node_network_speed_bytes,1.25e+09,Network device property: speed_bytes
+node_network_speed_bytes,1.25e+09,Network device property: speed_bytes
+node_network_speed_bytes,1.25e+09,Network device property: speed_bytes
+node_network_speed_bytes,1.25e+09,Network device property: speed_bytes
+node_network_speed_bytes,1.25e+09,Network device property: speed_bytes
+node_network_speed_bytes,1.25e+09,Network device property: speed_bytes
+node_network_speed_bytes,1.25e+09,Network device property: speed_bytes
+node_network_speed_bytes,1.25e+09,Network device property: speed_bytes
+node_network_speed_bytes,1.25e+09,Network device property: speed_bytes
+node_network_transmit_bytes_total,3.73973509e+09,Network device statistic transmit_bytes.
+node_network_transmit_bytes_total,7.22073555e+09,Network device statistic transmit_bytes.
+node_network_transmit_bytes_total,2.555099e+06,Network device statistic transmit_bytes.
+node_network_transmit_bytes_total,5.159856274e+09,Network device statistic transmit_bytes.
+node_network_transmit_bytes_total,5.139022278e+09,Network device statistic transmit_bytes.
+node_network_transmit_bytes_total,3.739744245e+09,Network device statistic transmit_bytes.
+node_network_transmit_bytes_total,3.739743229e+09,Network device statistic transmit_bytes.
+node_network_transmit_bytes_total,7.220743161e+09,Network device statistic transmit_bytes.
+node_network_transmit_bytes_total,7.220742145e+09,Network device statistic transmit_bytes.
+node_network_transmit_bytes_total,4.492708062e+09,Network device statistic transmit_bytes.
+node_network_transmit_bytes_total,4.479589484e+09,Network device statistic transmit_bytes.
+node_network_transmit_bytes_total,19728,Network device statistic transmit_bytes.
+node_network_transmit_bytes_total,0,Network device statistic transmit_bytes.
+node_network_transmit_bytes_total,0,Network device statistic transmit_bytes.
+node_network_transmit_bytes_total,0,Network device statistic transmit_bytes.
+node_network_transmit_carrier_total,0,Network device statistic transmit_carrier.
+node_network_transmit_carrier_total,0,Network device statistic transmit_carrier.
+node_network_transmit_carrier_total,0,Network device statistic transmit_carrier.
+node_network_transmit_carrier_total,0,Network device statistic transmit_carrier.
+node_network_transmit_carrier_total,0,Network device statistic transmit_carrier.
+node_network_transmit_carrier_total,0,Network device statistic transmit_carrier.
+node_network_transmit_carrier_total,0,Network device statistic transmit_carrier.
+node_network_transmit_carrier_total,0,Network device statistic transmit_carrier.
+node_network_transmit_carrier_total,0,Network device statistic transmit_carrier.
+node_network_transmit_carrier_total,0,Network device statistic transmit_carrier.
+node_network_transmit_carrier_total,0,Network device statistic transmit_carrier.
+node_network_transmit_carrier_total,0,Network device statistic transmit_carrier.
+node_network_transmit_carrier_total,0,Network device statistic transmit_carrier.
+node_network_transmit_carrier_total,0,Network device statistic transmit_carrier.
+node_network_transmit_carrier_total,0,Network device statistic transmit_carrier.
+node_network_transmit_colls_total,0,Network device statistic transmit_colls.
+node_network_transmit_colls_total,0,Network device statistic transmit_colls.
+node_network_transmit_colls_total,0,Network device statistic transmit_colls.
+node_network_transmit_colls_total,0,Network device statistic transmit_colls.
+node_network_transmit_colls_total,0,Network device statistic transmit_colls.
+node_network_transmit_colls_total,0,Network device statistic transmit_colls.
+node_network_transmit_colls_total,0,Network device statistic transmit_colls.
+node_network_transmit_colls_total,0,Network device statistic transmit_colls.
+node_network_transmit_colls_total,0,Network device statistic transmit_colls.
+node_network_transmit_colls_total,0,Network device statistic transmit_colls.
+node_network_transmit_colls_total,0,Network device statistic transmit_colls.
+node_network_transmit_colls_total,0,Network device statistic transmit_colls.
+node_network_transmit_colls_total,0,Network device statistic transmit_colls.
+node_network_transmit_colls_total,0,Network device statistic transmit_colls.
+node_network_transmit_colls_total,0,Network device statistic transmit_colls.
+node_network_transmit_compressed_total,0,Network device statistic transmit_compressed.
+node_network_transmit_compressed_total,0,Network device statistic transmit_compressed.
+node_network_transmit_compressed_total,0,Network device statistic transmit_compressed.
+node_network_transmit_compressed_total,0,Network device statistic transmit_compressed.
+node_network_transmit_compressed_total,0,Network device statistic transmit_compressed.
+node_network_transmit_compressed_total,0,Network device statistic transmit_compressed.
+node_network_transmit_compressed_total,0,Network device statistic transmit_compressed.
+node_network_transmit_compressed_total,0,Network device statistic transmit_compressed.
+node_network_transmit_compressed_total,0,Network device statistic transmit_compressed.
+node_network_transmit_compressed_total,0,Network device statistic transmit_compressed.
+node_network_transmit_compressed_total,0,Network device statistic transmit_compressed.
+node_network_transmit_compressed_total,0,Network device statistic transmit_compressed.
+node_network_transmit_compressed_total,0,Network device statistic transmit_compressed.
+node_network_transmit_compressed_total,0,Network device statistic transmit_compressed.
+node_network_transmit_compressed_total,0,Network device statistic transmit_compressed.
+node_network_transmit_drop_total,0,Network device statistic transmit_drop.
+node_network_transmit_drop_total,0,Network device statistic transmit_drop.
+node_network_transmit_drop_total,0,Network device statistic transmit_drop.
+node_network_transmit_drop_total,0,Network device statistic transmit_drop.
+node_network_transmit_drop_total,0,Network device statistic transmit_drop.
+node_network_transmit_drop_total,0,Network device statistic transmit_drop.
+node_network_transmit_drop_total,0,Network device statistic transmit_drop.
+node_network_transmit_drop_total,0,Network device statistic transmit_drop.
+node_network_transmit_drop_total,0,Network device statistic transmit_drop.
+node_network_transmit_drop_total,0,Network device statistic transmit_drop.
+node_network_transmit_drop_total,0,Network device statistic transmit_drop.
+node_network_transmit_drop_total,0,Network device statistic transmit_drop.
+node_network_transmit_drop_total,0,Network device statistic transmit_drop.
+node_network_transmit_drop_total,0,Network device statistic transmit_drop.
+node_network_transmit_drop_total,0,Network device statistic transmit_drop.
+node_network_transmit_errs_total,0,Network device statistic transmit_errs.
+node_network_transmit_errs_total,0,Network device statistic transmit_errs.
+node_network_transmit_errs_total,0,Network device statistic transmit_errs.
+node_network_transmit_errs_total,0,Network device statistic transmit_errs.
+node_network_transmit_errs_total,0,Network device statistic transmit_errs.
+node_network_transmit_errs_total,0,Network device statistic transmit_errs.
+node_network_transmit_errs_total,0,Network device statistic transmit_errs.
+node_network_transmit_errs_total,0,Network device statistic transmit_errs.
+node_network_transmit_errs_total,0,Network device statistic transmit_errs.
+node_network_transmit_errs_total,0,Network device statistic transmit_errs.
+node_network_transmit_errs_total,0,Network device statistic transmit_errs.
+node_network_transmit_errs_total,0,Network device statistic transmit_errs.
+node_network_transmit_errs_total,0,Network device statistic transmit_errs.
+node_network_transmit_errs_total,0,Network device statistic transmit_errs.
+node_network_transmit_errs_total,0,Network device statistic transmit_errs.
+node_network_transmit_fifo_total,0,Network device statistic transmit_fifo.
+node_network_transmit_fifo_total,0,Network device statistic transmit_fifo.
+node_network_transmit_fifo_total,0,Network device statistic transmit_fifo.
+node_network_transmit_fifo_total,0,Network device statistic transmit_fifo.
+node_network_transmit_fifo_total,0,Network device statistic transmit_fifo.
+node_network_transmit_fifo_total,0,Network device statistic transmit_fifo.
+node_network_transmit_fifo_total,0,Network device statistic transmit_fifo.
+node_network_transmit_fifo_total,0,Network device statistic transmit_fifo.
+node_network_transmit_fifo_total,0,Network device statistic transmit_fifo.
+node_network_transmit_fifo_total,0,Network device statistic transmit_fifo.
+node_network_transmit_fifo_total,0,Network device statistic transmit_fifo.
+node_network_transmit_fifo_total,0,Network device statistic transmit_fifo.
+node_network_transmit_fifo_total,0,Network device statistic transmit_fifo.
+node_network_transmit_fifo_total,0,Network device statistic transmit_fifo.
+node_network_transmit_fifo_total,0,Network device statistic transmit_fifo.
+node_network_transmit_packets_total,2.753855e+06,Network device statistic transmit_packets.
+node_network_transmit_packets_total,6.901651e+06,Network device statistic transmit_packets.
+node_network_transmit_packets_total,2243,Network device statistic transmit_packets.
+node_network_transmit_packets_total,5.208939e+06,Network device statistic transmit_packets.
+node_network_transmit_packets_total,5.208929e+06,Network device statistic transmit_packets.
+node_network_transmit_packets_total,2.753997e+06,Network device statistic transmit_packets.
+node_network_transmit_packets_total,2.753987e+06,Network device statistic transmit_packets.
+node_network_transmit_packets_total,6.90174e+06,Network device statistic transmit_packets.
+node_network_transmit_packets_total,6.90173e+06,Network device statistic transmit_packets.
+node_network_transmit_packets_total,3.280043e+06,Network device statistic transmit_packets.
+node_network_transmit_packets_total,3.280032e+06,Network device statistic transmit_packets.
+node_network_transmit_packets_total,288,Network device statistic transmit_packets.
+node_network_transmit_packets_total,0,Network device statistic transmit_packets.
+node_network_transmit_packets_total,0,Network device statistic transmit_packets.
+node_network_transmit_packets_total,0,Network device statistic transmit_packets.
+node_network_transmit_queue_length,1000,Network device property: transmit_queue_length
+node_network_transmit_queue_length,1000,Network device property: transmit_queue_length
+node_network_transmit_queue_length,1000,Network device property: transmit_queue_length
+node_network_transmit_queue_length,1000,Network device property: transmit_queue_length
+node_network_transmit_queue_length,1000,Network device property: transmit_queue_length
+node_network_transmit_queue_length,1000,Network device property: transmit_queue_length
+node_network_transmit_queue_length,1000,Network device property: transmit_queue_length
+node_network_transmit_queue_length,1000,Network device property: transmit_queue_length
+node_network_transmit_queue_length,1000,Network device property: transmit_queue_length
+node_network_transmit_queue_length,1000,Network device property: transmit_queue_length
+node_network_transmit_queue_length,1000,Network device property: transmit_queue_length
+node_network_transmit_queue_length,1000,Network device property: transmit_queue_length
+node_network_transmit_queue_length,1000,Network device property: transmit_queue_length
+node_network_transmit_queue_length,1000,Network device property: transmit_queue_length
+node_network_transmit_queue_length,1000,Network device property: transmit_queue_length
+node_network_up,1,"Value is 1 if operstate is 'up', 0 otherwise."
+node_network_up,1,"Value is 1 if operstate is 'up', 0 otherwise."
+node_network_up,1,"Value is 1 if operstate is 'up', 0 otherwise."
+node_network_up,1,"Value is 1 if operstate is 'up', 0 otherwise."
+node_network_up,1,"Value is 1 if operstate is 'up', 0 otherwise."
+node_network_up,1,"Value is 1 if operstate is 'up', 0 otherwise."
+node_network_up,1,"Value is 1 if operstate is 'up', 0 otherwise."
+node_network_up,1,"Value is 1 if operstate is 'up', 0 otherwise."
+node_network_up,1,"Value is 1 if operstate is 'up', 0 otherwise."
+node_network_up,1,"Value is 1 if operstate is 'up', 0 otherwise."
+node_network_up,1,"Value is 1 if operstate is 'up', 0 otherwise."
+node_network_up,0,"Value is 1 if operstate is 'up', 0 otherwise."
+node_network_up,0,"Value is 1 if operstate is 'up', 0 otherwise."
+node_network_up,0,"Value is 1 if operstate is 'up', 0 otherwise."
+node_network_up,0,"Value is 1 if operstate is 'up', 0 otherwise."
+node_nf_conntrack_entries,0,Number of currently allocated flow entries for connection tracking.
+node_nf_conntrack_entries_limit,262144,Maximum size of connection tracking table.
+node_nf_conntrack_stat_drop,0,Number of packets dropped due to conntrack failure.
+node_nf_conntrack_stat_early_drop,0,"Number of dropped conntrack entries to make room for new ones, if maximum table size was reached."
+node_nf_conntrack_stat_found,0,Number of searched entries which were successful.
+node_nf_conntrack_stat_ignore,0,Number of packets seen which are already connected to a conntrack entry.
+node_nf_conntrack_stat_insert,0,Number of entries inserted into the list.
+node_nf_conntrack_stat_insert_failed,0,Number of entries for which list insertion was attempted but failed.
+node_nf_conntrack_stat_invalid,0,Number of packets seen which can not be tracked.
+node_nf_conntrack_stat_search_restart,0,Number of conntrack table lookups which had to be restarted due to hashtable resizes.
+node_os_info,1,"A metric with a constant '1' value labeled by build_id, id, id_like, image_id, image_version, name, pretty_name, variant, variant_id, version, version_codename, version_id."
+node_os_version,2026.05,Metric containing the major.minor part of the OS version.
+node_pressure_cpu_waiting_seconds_total,1199.385564,Total time in seconds that processes have waited for CPU time
+node_pressure_io_stalled_seconds_total,19.486702,Total time in seconds no process could make progress due to IO congestion
+node_pressure_io_waiting_seconds_total,24.287637999999998,Total time in seconds that processes have waited due to IO congestion
+node_pressure_memory_stalled_seconds_total,0.001421,Total time in seconds no process could make progress due to memory congestion
+node_pressure_memory_waiting_seconds_total,0.003477,Total time in seconds that processes have waited for memory
+node_procs_blocked,0,Number of processes blocked waiting for I/O to complete.
+node_procs_running,3,Number of processes in runnable state.
+node_schedstat_running_seconds_total,4756.855211655,Number of seconds CPU spent running a process.
+node_schedstat_running_seconds_total,4774.197177193,Number of seconds CPU spent running a process.
+node_schedstat_running_seconds_total,4778.842547661,Number of seconds CPU spent running a process.
+node_schedstat_running_seconds_total,4759.577336583,Number of seconds CPU spent running a process.
+node_schedstat_running_seconds_total,4756.246122229,Number of seconds CPU spent running a process.
+node_schedstat_running_seconds_total,4770.634743342,Number of seconds CPU spent running a process.
+node_schedstat_running_seconds_total,4759.673468843,Number of seconds CPU spent running a process.
+node_schedstat_running_seconds_total,4759.422948095,Number of seconds CPU spent running a process.
+node_schedstat_running_seconds_total,4780.181378945,Number of seconds CPU spent running a process.
+node_schedstat_running_seconds_total,4787.584925088,Number of seconds CPU spent running a process.
+node_schedstat_running_seconds_total,4768.565206969,Number of seconds CPU spent running a process.
+node_schedstat_running_seconds_total,4767.414158345,Number of seconds CPU spent running a process.
+node_schedstat_running_seconds_total,4780.418994651,Number of seconds CPU spent running a process.
+node_schedstat_running_seconds_total,4750.141716829,Number of seconds CPU spent running a process.
+node_schedstat_running_seconds_total,4788.812880094,Number of seconds CPU spent running a process.
+node_schedstat_running_seconds_total,4764.89122806,Number of seconds CPU spent running a process.
+node_schedstat_timeslices_total,9.4189994e+07,Number of timeslices executed by CPU.
+node_schedstat_timeslices_total,9.3771868e+07,Number of timeslices executed by CPU.
+node_schedstat_timeslices_total,9.3342793e+07,Number of timeslices executed by CPU.
+node_schedstat_timeslices_total,9.3399081e+07,Number of timeslices executed by CPU.
+node_schedstat_timeslices_total,9.3563972e+07,Number of timeslices executed by CPU.
+node_schedstat_timeslices_total,9.3310262e+07,Number of timeslices executed by CPU.
+node_schedstat_timeslices_total,9.3266944e+07,Number of timeslices executed by CPU.
+node_schedstat_timeslices_total,9.2533912e+07,Number of timeslices executed by CPU.
+node_schedstat_timeslices_total,9.3635175e+07,Number of timeslices executed by CPU.
+node_schedstat_timeslices_total,9.3683984e+07,Number of timeslices executed by CPU.
+node_schedstat_timeslices_total,9.3963123e+07,Number of timeslices executed by CPU.
+node_schedstat_timeslices_total,9.3342227e+07,Number of timeslices executed by CPU.
+node_schedstat_timeslices_total,9.3667314e+07,Number of timeslices executed by CPU.
+node_schedstat_timeslices_total,9.3244995e+07,Number of timeslices executed by CPU.
+node_schedstat_timeslices_total,9.2916057e+07,Number of timeslices executed by CPU.
+node_schedstat_timeslices_total,9.3074999e+07,Number of timeslices executed by CPU.
+node_schedstat_waiting_seconds_total,2832.322785394,Number of seconds spent by processing waiting for this CPU.
+node_schedstat_waiting_seconds_total,2941.15294725,Number of seconds spent by processing waiting for this CPU.
+node_schedstat_waiting_seconds_total,2858.249961186,Number of seconds spent by processing waiting for this CPU.
+node_schedstat_waiting_seconds_total,2896.121157062,Number of seconds spent by processing waiting for this CPU.
+node_schedstat_waiting_seconds_total,2916.930452292,Number of seconds spent by processing waiting for this CPU.
+node_schedstat_waiting_seconds_total,2842.680550801,Number of seconds spent by processing waiting for this CPU.
+node_schedstat_waiting_seconds_total,2843.419243062,Number of seconds spent by processing waiting for this CPU.
+node_schedstat_waiting_seconds_total,1584.441866057,Number of seconds spent by processing waiting for this CPU.
+node_schedstat_waiting_seconds_total,2974.129882148,Number of seconds spent by processing waiting for this CPU.
+node_schedstat_waiting_seconds_total,2942.420886145,Number of seconds spent by processing waiting for this CPU.
+node_schedstat_waiting_seconds_total,2958.571952499,Number of seconds spent by processing waiting for this CPU.
+node_schedstat_waiting_seconds_total,2876.583256657,Number of seconds spent by processing waiting for this CPU.
+node_schedstat_waiting_seconds_total,2942.503493267,Number of seconds spent by processing waiting for this CPU.
+node_schedstat_waiting_seconds_total,2387.312897535,Number of seconds spent by processing waiting for this CPU.
+node_schedstat_waiting_seconds_total,2870.36179222,Number of seconds spent by processing waiting for this CPU.
+node_schedstat_waiting_seconds_total,2872.218122344,Number of seconds spent by processing waiting for this CPU.
+node_scrape_collector_duration_seconds,0.000520268,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,1.4999e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,1.3793e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.000201619,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.00022902,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.001942891,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.000156019,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.001456816,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,1.9623e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,3.1351e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.00010002,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,1.5321e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,4.0159e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.001786771,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,1.904e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,2.8046e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,2.8801e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,3.6406e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.000127821,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.000319449,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.020046377,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.000886736,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.000798366,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,1.705e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,1.7675e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,3.0942e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,6.9794e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,5.335e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.000210325,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,1.8207e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.000253801,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,2.364e-06,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.000131911,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.000364081,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.00028301,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,1.3395e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,2.1306e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.001208801,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.000126175,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,2.7451e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.011411203,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,1.6028e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,0.000160525,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,2.0184e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,1.1634e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_duration_seconds,4.1834e-05,node_exporter: Duration of a collector scrape.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,0,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,0,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,0,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,0,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,0,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,0,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,0,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,1,node_exporter: Whether a collector succeeded.
+node_scrape_collector_success,0,node_exporter: Whether a collector succeeded.
+node_selinux_enabled,0,"SELinux is enabled, 1 is true, 0 is false"
+node_sockstat_FRAG6_inuse,0,Number of FRAG6 sockets in state inuse.
+node_sockstat_FRAG6_memory,0,Number of FRAG6 sockets in state memory.
+node_sockstat_FRAG_inuse,0,Number of FRAG sockets in state inuse.
+node_sockstat_FRAG_memory,0,Number of FRAG sockets in state memory.
+node_sockstat_RAW6_inuse,10,Number of RAW6 sockets in state inuse.
+node_sockstat_RAW_inuse,4,Number of RAW sockets in state inuse.
+node_sockstat_TCP6_inuse,11,Number of TCP6 sockets in state inuse.
+node_sockstat_TCP_alloc,899,Number of TCP sockets in state alloc.
+node_sockstat_TCP_inuse,23,Number of TCP sockets in state inuse.
+node_sockstat_TCP_mem,0,Number of TCP sockets in state mem.
+node_sockstat_TCP_mem_bytes,0,Number of TCP sockets in state mem_bytes.
+node_sockstat_TCP_orphan,0,Number of TCP sockets in state orphan.
+node_sockstat_TCP_tw,0,Number of TCP sockets in state tw.
+node_sockstat_UDP6_inuse,11,Number of UDP6 sockets in state inuse.
+node_sockstat_UDPLITE6_inuse,0,Number of UDPLITE6 sockets in state inuse.
+node_sockstat_UDPLITE_inuse,0,Number of UDPLITE sockets in state inuse.
+node_sockstat_UDP_inuse,11,Number of UDP sockets in state inuse.
+node_sockstat_UDP_mem,0,Number of UDP sockets in state mem.
+node_sockstat_UDP_mem_bytes,0,Number of UDP sockets in state mem_bytes.
+node_sockstat_sockets_used,305,Number of IPv4 sockets in use.
+node_softnet_backlog_len,2,Softnet backlog status
+node_softnet_backlog_len,0,Softnet backlog status
+node_softnet_backlog_len,0,Softnet backlog status
+node_softnet_backlog_len,0,Softnet backlog status
+node_softnet_backlog_len,0,Softnet backlog status
+node_softnet_backlog_len,0,Softnet backlog status
+node_softnet_backlog_len,0,Softnet backlog status
+node_softnet_backlog_len,0,Softnet backlog status
+node_softnet_backlog_len,0,Softnet backlog status
+node_softnet_backlog_len,0,Softnet backlog status
+node_softnet_backlog_len,0,Softnet backlog status
+node_softnet_backlog_len,0,Softnet backlog status
+node_softnet_backlog_len,0,Softnet backlog status
+node_softnet_backlog_len,0,Softnet backlog status
+node_softnet_backlog_len,0,Softnet backlog status
+node_softnet_backlog_len,0,Softnet backlog status
+node_softnet_cpu_collision_total,0,Number of collision occur while obtaining device lock while transmitting
+node_softnet_cpu_collision_total,0,Number of collision occur while obtaining device lock while transmitting
+node_softnet_cpu_collision_total,0,Number of collision occur while obtaining device lock while transmitting
+node_softnet_cpu_collision_total,0,Number of collision occur while obtaining device lock while transmitting
+node_softnet_cpu_collision_total,0,Number of collision occur while obtaining device lock while transmitting
+node_softnet_cpu_collision_total,0,Number of collision occur while obtaining device lock while transmitting
+node_softnet_cpu_collision_total,0,Number of collision occur while obtaining device lock while transmitting
+node_softnet_cpu_collision_total,0,Number of collision occur while obtaining device lock while transmitting
+node_softnet_cpu_collision_total,0,Number of collision occur while obtaining device lock while transmitting
+node_softnet_cpu_collision_total,0,Number of collision occur while obtaining device lock while transmitting
+node_softnet_cpu_collision_total,0,Number of collision occur while obtaining device lock while transmitting
+node_softnet_cpu_collision_total,0,Number of collision occur while obtaining device lock while transmitting
+node_softnet_cpu_collision_total,0,Number of collision occur while obtaining device lock while transmitting
+node_softnet_cpu_collision_total,0,Number of collision occur while obtaining device lock while transmitting
+node_softnet_cpu_collision_total,0,Number of collision occur while obtaining device lock while transmitting
+node_softnet_cpu_collision_total,0,Number of collision occur while obtaining device lock while transmitting
+node_softnet_dropped_total,0,Number of dropped packets
+node_softnet_dropped_total,0,Number of dropped packets
+node_softnet_dropped_total,0,Number of dropped packets
+node_softnet_dropped_total,0,Number of dropped packets
+node_softnet_dropped_total,0,Number of dropped packets
+node_softnet_dropped_total,0,Number of dropped packets
+node_softnet_dropped_total,0,Number of dropped packets
+node_softnet_dropped_total,0,Number of dropped packets
+node_softnet_dropped_total,0,Number of dropped packets
+node_softnet_dropped_total,0,Number of dropped packets
+node_softnet_dropped_total,0,Number of dropped packets
+node_softnet_dropped_total,0,Number of dropped packets
+node_softnet_dropped_total,0,Number of dropped packets
+node_softnet_dropped_total,0,Number of dropped packets
+node_softnet_dropped_total,0,Number of dropped packets
+node_softnet_dropped_total,0,Number of dropped packets
+node_softnet_flow_limit_count_total,0,Number of times flow limit has been reached
+node_softnet_flow_limit_count_total,0,Number of times flow limit has been reached
+node_softnet_flow_limit_count_total,0,Number of times flow limit has been reached
+node_softnet_flow_limit_count_total,0,Number of times flow limit has been reached
+node_softnet_flow_limit_count_total,0,Number of times flow limit has been reached
+node_softnet_flow_limit_count_total,0,Number of times flow limit has been reached
+node_softnet_flow_limit_count_total,0,Number of times flow limit has been reached
+node_softnet_flow_limit_count_total,0,Number of times flow limit has been reached
+node_softnet_flow_limit_count_total,0,Number of times flow limit has been reached
+node_softnet_flow_limit_count_total,0,Number of times flow limit has been reached
+node_softnet_flow_limit_count_total,0,Number of times flow limit has been reached
+node_softnet_flow_limit_count_total,0,Number of times flow limit has been reached
+node_softnet_flow_limit_count_total,0,Number of times flow limit has been reached
+node_softnet_flow_limit_count_total,0,Number of times flow limit has been reached
+node_softnet_flow_limit_count_total,0,Number of times flow limit has been reached
+node_softnet_flow_limit_count_total,0,Number of times flow limit has been reached
+node_softnet_processed_total,4.8660751e+08,Number of processed packets
+node_softnet_processed_total,4.87719433e+08,Number of processed packets
+node_softnet_processed_total,4.88807014e+08,Number of processed packets
+node_softnet_processed_total,4.89240742e+08,Number of processed packets
+node_softnet_processed_total,4.91304213e+08,Number of processed packets
+node_softnet_processed_total,4.89134168e+08,Number of processed packets
+node_softnet_processed_total,4.89162363e+08,Number of processed packets
+node_softnet_processed_total,4.88841857e+08,Number of processed packets
+node_softnet_processed_total,4.90727688e+08,Number of processed packets
+node_softnet_processed_total,4.89737267e+08,Number of processed packets
+node_softnet_processed_total,4.91868844e+08,Number of processed packets
+node_softnet_processed_total,4.8917044e+08,Number of processed packets
+node_softnet_processed_total,4.91023202e+08,Number of processed packets
+node_softnet_processed_total,4.89610938e+08,Number of processed packets
+node_softnet_processed_total,4.88358804e+08,Number of processed packets
+node_softnet_processed_total,4.86369585e+08,Number of processed packets
+node_softnet_received_rps_total,0,Number of times cpu woken up received_rps
+node_softnet_received_rps_total,0,Number of times cpu woken up received_rps
+node_softnet_received_rps_total,0,Number of times cpu woken up received_rps
+node_softnet_received_rps_total,0,Number of times cpu woken up received_rps
+node_softnet_received_rps_total,0,Number of times cpu woken up received_rps
+node_softnet_received_rps_total,0,Number of times cpu woken up received_rps
+node_softnet_received_rps_total,0,Number of times cpu woken up received_rps
+node_softnet_received_rps_total,0,Number of times cpu woken up received_rps
+node_softnet_received_rps_total,0,Number of times cpu woken up received_rps
+node_softnet_received_rps_total,0,Number of times cpu woken up received_rps
+node_softnet_received_rps_total,0,Number of times cpu woken up received_rps
+node_softnet_received_rps_total,0,Number of times cpu woken up received_rps
+node_softnet_received_rps_total,0,Number of times cpu woken up received_rps
+node_softnet_received_rps_total,0,Number of times cpu woken up received_rps
+node_softnet_received_rps_total,0,Number of times cpu woken up received_rps
+node_softnet_received_rps_total,0,Number of times cpu woken up received_rps
+node_softnet_times_squeezed_total,25,Number of times processing packets ran out of quota
+node_softnet_times_squeezed_total,30,Number of times processing packets ran out of quota
+node_softnet_times_squeezed_total,33,Number of times processing packets ran out of quota
+node_softnet_times_squeezed_total,30,Number of times processing packets ran out of quota
+node_softnet_times_squeezed_total,25,Number of times processing packets ran out of quota
+node_softnet_times_squeezed_total,24,Number of times processing packets ran out of quota
+node_softnet_times_squeezed_total,32,Number of times processing packets ran out of quota
+node_softnet_times_squeezed_total,32,Number of times processing packets ran out of quota
+node_softnet_times_squeezed_total,26,Number of times processing packets ran out of quota
+node_softnet_times_squeezed_total,29,Number of times processing packets ran out of quota
+node_softnet_times_squeezed_total,25,Number of times processing packets ran out of quota
+node_softnet_times_squeezed_total,37,Number of times processing packets ran out of quota
+node_softnet_times_squeezed_total,33,Number of times processing packets ran out of quota
+node_softnet_times_squeezed_total,32,Number of times processing packets ran out of quota
+node_softnet_times_squeezed_total,26,Number of times processing packets ran out of quota
+node_softnet_times_squeezed_total,22,Number of times processing packets ran out of quota
+node_textfile_scrape_error,0,"1 if there was an error opening or reading a file, 0 otherwise"
+node_time_clocksource_available_info,1,Available clocksources read from '/sys/devices/system/clocksource'.
+node_time_clocksource_available_info,1,Available clocksources read from '/sys/devices/system/clocksource'.
+node_time_clocksource_available_info,1,Available clocksources read from '/sys/devices/system/clocksource'.
+node_time_clocksource_current_info,1,Current clocksource read from '/sys/devices/system/clocksource'.
+node_time_seconds,1.7792616112348337e+09,System time in seconds since epoch (1970).
+node_time_zone_offset_seconds,0,System time zone offset in seconds.
+node_timex_estimated_error_seconds,6e-06,Estimated error in seconds.
+node_timex_frequency_adjustment_ratio,0.9999860799713135,Local clock frequency adjustment.
+node_timex_loop_time_constant,2,Phase-locked loop time constant.
+node_timex_maxerror_seconds,0.242171,Maximum error in seconds.
+node_timex_offset_seconds,0,Time offset in between local system and reference clock.
+node_timex_pps_calibration_total,0,Pulse per second count of calibration intervals.
+node_timex_pps_error_total,0,Pulse per second count of calibration errors.
+node_timex_pps_frequency_hertz,0,Pulse per second frequency.
+node_timex_pps_jitter_seconds,0,Pulse per second jitter.
+node_timex_pps_jitter_total,0,Pulse per second count of jitter limit exceeded events.
+node_timex_pps_shift_seconds,0,Pulse per second interval duration.
+node_timex_pps_stability_exceeded_total,0,Pulse per second count of stability limit exceeded events.
+node_timex_pps_stability_hertz,0,"Pulse per second stability, average of recent frequency changes."
+node_timex_status,0,Value of the status array bits.
+node_timex_sync_status,1,"Is clock synchronized to a reliable server (1 = yes, 0 = no)."
+node_timex_tai_offset_seconds,37,International Atomic Time (TAI) offset.
+node_timex_tick_seconds,0.010001,Seconds between clock ticks.
+node_udp_queues,0,Number of allocated memory in the kernel for UDP datagrams in bytes.
+node_udp_queues,0,Number of allocated memory in the kernel for UDP datagrams in bytes.
+node_udp_queues,0,Number of allocated memory in the kernel for UDP datagrams in bytes.
+node_udp_queues,0,Number of allocated memory in the kernel for UDP datagrams in bytes.
+node_uname_info,1,Labeled system information as provided by the uname system call.
+node_vmstat_oom_kill,0,/proc/vmstat information field oom_kill.
+node_vmstat_pgfault,5.51875521e+08,/proc/vmstat information field pgfault.
+node_vmstat_pgmajfault,6633,/proc/vmstat information field pgmajfault.
+node_vmstat_pgpgin,3.21855e+06,/proc/vmstat information field pgpgin.
+node_vmstat_pgpgout,2.1915993e+07,/proc/vmstat information field pgpgout.
+node_vmstat_pswpin,0,/proc/vmstat information field pswpin.
+node_vmstat_pswpout,0,/proc/vmstat information field pswpout.
+process_cpu_seconds_total,4.64,Total user and system CPU time spent in seconds.
+process_max_fds,524288,Maximum number of open file descriptors.
+process_network_receive_bytes_total,9.432069263e+09,Number of bytes received by the process over the network.
+process_network_transmit_bytes_total,3.1084881033e+10,Number of bytes sent by the process over the network.
+process_open_fds,8,Number of open file descriptors.
+process_resident_memory_bytes,2.1192704e+07,Resident memory size in bytes.
+process_start_time_seconds,1.77925995852e+09,Start time of the process since unix epoch in seconds.
+process_virtual_memory_bytes,1.272365056e+09,Virtual memory size in bytes.
+process_virtual_memory_max_bytes,1.8446744073709552e+19,Maximum amount of virtual memory available in bytes.
+promhttp_metric_handler_errors_total,0,Total number of internal errors encountered by the promhttp metric handler.
+promhttp_metric_handler_errors_total,0,Total number of internal errors encountered by the promhttp metric handler.
+promhttp_metric_handler_requests_in_flight,1,Current number of scrapes being served.
+promhttp_metric_handler_requests_total,113,Total number of scrapes by HTTP status code.
+promhttp_metric_handler_requests_total,0,Total number of scrapes by HTTP status code.
+promhttp_metric_handler_requests_total,0,Total number of scrapes by HTTP status code.

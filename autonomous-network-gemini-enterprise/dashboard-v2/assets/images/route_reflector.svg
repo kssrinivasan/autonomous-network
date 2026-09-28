@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <title>Route Reflector</title>
+
+  <!-- Flat 2D Circle Base - Purple for RR -->
+  <circle cx="50" cy="50" r="45" fill="#6A1B9A" />
+
+  <!-- Router arrows (same style as other routers) -->
+  <g fill="#FFFFFF">
+    <!-- Left Arrow (pointing Right, inward) -->
+    <path d="M20,47 L35,47 L35,42 L45,50 L35,58 L35,53 L20,53 Z" />
+    <!-- Right Arrow (pointing Right, outward) -->
+    <path d="M55,47 L70,47 L70,42 L80,50 L70,58 L70,53 L55,53 Z" />
+    <!-- Top Arrow (pointing Up) -->
+    <path d="M47,45 L47,30 L42,30 L50,20 L58,30 L53,30 L53,45 Z" />
+    <!-- Bottom Arrow (pointing Down) -->
+    <path d="M47,55 L47,70 L42,70 L50,80 L58,70 L53,70 L53,55 Z" />
+  </g>
+
+  <!-- Reflect/Mirror icon - bottom left, representing BGP route reflection -->
+  <!-- Background pill -->
+  <rect x="10" y="67" width="30" height="22" rx="3" ry="3" fill="#4A148C" stroke="#FFFFFF" stroke-width="1.5"/>
+  <!-- Central vertical mirror line -->
+  <line x1="25" y1="70" x2="25" y2="86" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+  <!-- Left arrow (reflecting left) -->
+  <path d="M23,74 L14,74" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round"/>
+  <polygon points="14,74 18,71 18,77" fill="#FFFFFF"/>
+  <!-- Right arrow (reflecting right) -->
+  <path d="M27,74 L36,74" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round"/>
+  <polygon points="36,74 32,71 32,77" fill="#FFFFFF"/>
+  <!-- Left arrow (second row, reflecting left) -->
+  <path d="M23,82 L14,82" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>
+  <polygon points="14,82 18,79 18,85" fill="#FFFFFF" opacity="0.7"/>
+  <!-- Right arrow (second row, reflecting right) -->
+  <path d="M27,82 L36,82" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>
+  <polygon points="36,82 32,79 32,85" fill="#FFFFFF" opacity="0.7"/>
+</svg>

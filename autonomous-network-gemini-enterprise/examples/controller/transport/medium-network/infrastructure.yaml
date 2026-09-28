@@ -1,0 +1,1729 @@
+apiVersion: google.dev/v1
+kind: VyOSInfrastructure
+metadata:
+  name: medium-network-infra
+  namespace: network
+  labels:
+    type: telco-lab
+    environment: medium-network
+spec:
+  description: "Medium 3-tier hierarchical network with multi-area OSPF"
+  networks:
+    # ===================================================================
+    # CORE MESH (P-P links) @ 10Gbps
+    # ===================================================================
+    - name: p1-p2
+      subnet: "172.16.0.0/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "p1"
+          interface: "eth1"
+          ip_address: "172.16.0.1"
+        - router_name: "p2"
+          interface: "eth1"
+          ip_address: "172.16.0.2"
+    - name: p1-p3
+      subnet: "172.16.0.4/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "p1"
+          interface: "eth2"
+          ip_address: "172.16.0.5"
+        - router_name: "p3"
+          interface: "eth1"
+          ip_address: "172.16.0.6"
+    - name: p1-p4
+      subnet: "172.16.0.8/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "p1"
+          interface: "eth3"
+          ip_address: "172.16.0.9"
+        - router_name: "p4"
+          interface: "eth1"
+          ip_address: "172.16.0.10"
+    - name: p2-p3
+      subnet: "172.16.0.12/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "p2"
+          interface: "eth2"
+          ip_address: "172.16.0.13"
+        - router_name: "p3"
+          interface: "eth2"
+          ip_address: "172.16.0.14"
+    - name: p2-p4
+      subnet: "172.16.0.16/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "p2"
+          interface: "eth3"
+          ip_address: "172.16.0.17"
+        - router_name: "p4"
+          interface: "eth2"
+          ip_address: "172.16.0.18"
+    - name: p3-p4
+      subnet: "172.16.0.20/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "p3"
+          interface: "eth3"
+          ip_address: "172.16.0.21"
+        - router_name: "p4"
+          interface: "eth3"
+          ip_address: "172.16.0.22"
+
+    # ===================================================================
+    # CORE-RR links @ 10Gbps
+    # ===================================================================
+    - name: p1-rr1
+      subnet: "172.16.10.0/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "p1"
+          interface: "eth4"
+          ip_address: "172.16.10.1"
+        - router_name: "rr1"
+          interface: "eth1"
+          ip_address: "172.16.10.2"
+    - name: p2-rr1
+      subnet: "172.16.10.4/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "p2"
+          interface: "eth4"
+          ip_address: "172.16.10.5"
+        - router_name: "rr1"
+          interface: "eth2"
+          ip_address: "172.16.10.6"
+    - name: p3-rr2
+      subnet: "172.16.10.8/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "p3"
+          interface: "eth4"
+          ip_address: "172.16.10.9"
+        - router_name: "rr2"
+          interface: "eth1"
+          ip_address: "172.16.10.10"
+    - name: p4-rr2
+      subnet: "172.16.10.12/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "p4"
+          interface: "eth4"
+          ip_address: "172.16.10.13"
+        - router_name: "rr2"
+          interface: "eth2"
+          ip_address: "172.16.10.14"
+
+    # ===================================================================
+    # CORE-PA links @ 10Gbps (each PA dual-homed to 2 P routers)
+    # ===================================================================
+    - name: p1-pa1
+      subnet: "172.16.20.0/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "p1"
+          interface: "eth5"
+          ip_address: "172.16.20.1"
+        - router_name: "pa1"
+          interface: "eth1"
+          ip_address: "172.16.20.2"
+    - name: p2-pa1
+      subnet: "172.16.20.4/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "p2"
+          interface: "eth5"
+          ip_address: "172.16.20.5"
+        - router_name: "pa1"
+          interface: "eth2"
+          ip_address: "172.16.20.6"
+    - name: p1-pa2
+      subnet: "172.16.20.8/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "p1"
+          interface: "eth6"
+          ip_address: "172.16.20.9"
+        - router_name: "pa2"
+          interface: "eth1"
+          ip_address: "172.16.20.10"
+    - name: p3-pa2
+      subnet: "172.16.20.12/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "p3"
+          interface: "eth5"
+          ip_address: "172.16.20.13"
+        - router_name: "pa2"
+          interface: "eth2"
+          ip_address: "172.16.20.14"
+    - name: p2-pa3
+      subnet: "172.16.20.16/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "p2"
+          interface: "eth6"
+          ip_address: "172.16.20.17"
+        - router_name: "pa3"
+          interface: "eth1"
+          ip_address: "172.16.20.18"
+    - name: p4-pa3
+      subnet: "172.16.20.20/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "p4"
+          interface: "eth5"
+          ip_address: "172.16.20.21"
+        - router_name: "pa3"
+          interface: "eth2"
+          ip_address: "172.16.20.22"
+    - name: p3-pa4
+      subnet: "172.16.20.24/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "p3"
+          interface: "eth6"
+          ip_address: "172.16.20.25"
+        - router_name: "pa4"
+          interface: "eth1"
+          ip_address: "172.16.20.26"
+    - name: p4-pa4
+      subnet: "172.16.20.28/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "p4"
+          interface: "eth6"
+          ip_address: "172.16.20.29"
+        - router_name: "pa4"
+          interface: "eth2"
+          ip_address: "172.16.20.30"
+
+    # ===================================================================
+    # PA ring links @ 10Gbps (for redundancy)
+    # ===================================================================
+    - name: pa1-pa2
+      subnet: "172.16.30.0/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pa1"
+          interface: "eth3"
+          ip_address: "172.16.30.1"
+        - router_name: "pa2"
+          interface: "eth3"
+          ip_address: "172.16.30.2"
+    - name: pa2-pa3
+      subnet: "172.16.30.4/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pa2"
+          interface: "eth4"
+          ip_address: "172.16.30.5"
+        - router_name: "pa3"
+          interface: "eth3"
+          ip_address: "172.16.30.6"
+    - name: pa3-pa4
+      subnet: "172.16.30.8/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pa3"
+          interface: "eth4"
+          ip_address: "172.16.30.9"
+        - router_name: "pa4"
+          interface: "eth3"
+          ip_address: "172.16.30.10"
+    - name: pa4-pa1
+      subnet: "172.16.30.12/30"
+      bandwidth: "10gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pa4"
+          interface: "eth4"
+          ip_address: "172.16.30.13"
+        - router_name: "pa1"
+          interface: "eth4"
+          ip_address: "172.16.30.14"
+
+    # ===================================================================
+    # PA-PE links @ 1Gbps (each PE dual-homed to 2 PAs)
+    # ===================================================================
+    - name: pa1-pe1
+      subnet: "172.16.40.0/30"
+      bandwidth: "1gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pa1"
+          interface: "eth5"
+          ip_address: "172.16.40.1"
+        - router_name: "pe1"
+          interface: "eth1"
+          ip_address: "172.16.40.2"
+    - name: pa2-pe1
+      subnet: "172.16.40.4/30"
+      bandwidth: "1gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pa2"
+          interface: "eth5"
+          ip_address: "172.16.40.5"
+        - router_name: "pe1"
+          interface: "eth2"
+          ip_address: "172.16.40.6"
+    - name: pa1-pe2
+      subnet: "172.16.40.8/30"
+      bandwidth: "1gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pa1"
+          interface: "eth6"
+          ip_address: "172.16.40.9"
+        - router_name: "pe2"
+          interface: "eth1"
+          ip_address: "172.16.40.10"
+    - name: pa2-pe2
+      subnet: "172.16.40.12/30"
+      bandwidth: "1gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pa2"
+          interface: "eth6"
+          ip_address: "172.16.40.13"
+        - router_name: "pe2"
+          interface: "eth2"
+          ip_address: "172.16.40.14"
+    - name: pa1-pe3
+      subnet: "172.16.40.16/30"
+      bandwidth: "1gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pa1"
+          interface: "eth7"
+          ip_address: "172.16.40.17"
+        - router_name: "pe3"
+          interface: "eth1"
+          ip_address: "172.16.40.18"
+    - name: pa3-pe3
+      subnet: "172.16.40.20/30"
+      bandwidth: "1gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pa3"
+          interface: "eth5"
+          ip_address: "172.16.40.21"
+        - router_name: "pe3"
+          interface: "eth2"
+          ip_address: "172.16.40.22"
+    - name: pa2-pe4
+      subnet: "172.16.40.24/30"
+      bandwidth: "1gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pa2"
+          interface: "eth7"
+          ip_address: "172.16.40.25"
+        - router_name: "pe4"
+          interface: "eth1"
+          ip_address: "172.16.40.26"
+    - name: pa3-pe4
+      subnet: "172.16.40.28/30"
+      bandwidth: "1gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pa3"
+          interface: "eth6"
+          ip_address: "172.16.40.29"
+        - router_name: "pe4"
+          interface: "eth2"
+          ip_address: "172.16.40.30"
+    - name: pa2-pe5
+      subnet: "172.16.40.32/30"
+      bandwidth: "1gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pa2"
+          interface: "eth8"
+          ip_address: "172.16.40.33"
+        - router_name: "pe5"
+          interface: "eth1"
+          ip_address: "172.16.40.34"
+    - name: pa4-pe5
+      subnet: "172.16.40.36/30"
+      bandwidth: "1gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pa4"
+          interface: "eth5"
+          ip_address: "172.16.40.37"
+        - router_name: "pe5"
+          interface: "eth2"
+          ip_address: "172.16.40.38"
+    - name: pa1-pe6
+      subnet: "172.16.40.40/30"
+      bandwidth: "1gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pa1"
+          interface: "eth8"
+          ip_address: "172.16.40.41"
+        - router_name: "pe6"
+          interface: "eth1"
+          ip_address: "172.16.40.42"
+    - name: pa4-pe6
+      subnet: "172.16.40.44/30"
+      bandwidth: "1gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pa4"
+          interface: "eth6"
+          ip_address: "172.16.40.45"
+        - router_name: "pe6"
+          interface: "eth2"
+          ip_address: "172.16.40.46"
+    - name: pa3-pe7
+      subnet: "172.16.40.48/30"
+      bandwidth: "1gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pa3"
+          interface: "eth7"
+          ip_address: "172.16.40.49"
+        - router_name: "pe7"
+          interface: "eth1"
+          ip_address: "172.16.40.50"
+    - name: pa4-pe7
+      subnet: "172.16.40.52/30"
+      bandwidth: "1gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pa4"
+          interface: "eth7"
+          ip_address: "172.16.40.53"
+        - router_name: "pe7"
+          interface: "eth2"
+          ip_address: "172.16.40.54"
+    - name: pa3-pe8
+      subnet: "172.16.40.56/30"
+      bandwidth: "1gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pa3"
+          interface: "eth8"
+          ip_address: "172.16.40.57"
+        - router_name: "pe8"
+          interface: "eth1"
+          ip_address: "172.16.40.58"
+    - name: pa4-pe8
+      subnet: "172.16.40.60/30"
+      bandwidth: "1gbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pa4"
+          interface: "eth8"
+          ip_address: "172.16.40.61"
+        - router_name: "pe8"
+          interface: "eth2"
+          ip_address: "172.16.40.62"
+
+    # ===================================================================
+    # PE-CE links @ 100Mbps
+    # ===================================================================
+    - name: pe1-ce1-spoke
+      subnet: "10.50.1.0/30"
+      bandwidth: "100mbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pe1"
+          interface: "eth3"
+          ip_address: "10.50.1.1"
+        - router_name: "ce1-spoke"
+          interface: "eth1"
+          ip_address: "10.50.1.2"
+    - name: pe2-ce-hub-blue
+      subnet: "10.50.2.0/30"
+      bandwidth: "100mbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pe2"
+          interface: "eth3"
+          ip_address: "10.50.2.1"
+        - router_name: "ce-hub-blue"
+          interface: "eth1"
+          ip_address: "10.50.2.2"
+    - name: pe3-ce2-spoke
+      subnet: "10.50.3.0/30"
+      bandwidth: "100mbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pe3"
+          interface: "eth3"
+          ip_address: "10.50.3.1"
+        - router_name: "ce2-spoke"
+          interface: "eth1"
+          ip_address: "10.50.3.2"
+    - name: pe5-ce3-spoke
+      subnet: "10.50.5.0/30"
+      bandwidth: "100mbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pe5"
+          interface: "eth3"
+          ip_address: "10.50.5.1"
+        - router_name: "ce3-spoke"
+          interface: "eth1"
+          ip_address: "10.50.5.2"
+    - name: pe7-ce4-spoke
+      subnet: "10.50.7.0/30"
+      bandwidth: "100mbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pe7"
+          interface: "eth3"
+          ip_address: "10.50.7.1"
+        - router_name: "ce4-spoke"
+          interface: "eth1"
+          ip_address: "10.50.7.2"
+    - name: pe8-ce5-spoke
+      subnet: "10.50.8.0/30"
+      bandwidth: "100mbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pe8"
+          interface: "eth3"
+          ip_address: "10.50.8.1"
+        - router_name: "ce5-spoke"
+          interface: "eth1"
+          ip_address: "10.50.8.2"
+    - name: pe1-ce1-red
+      subnet: "10.51.1.0/30"
+      bandwidth: "100mbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pe1"
+          interface: "eth4"
+          ip_address: "10.51.1.1"
+        - router_name: "ce1-red"
+          interface: "eth1"
+          ip_address: "10.51.1.2"
+    - name: pe2-ce2-red
+      subnet: "10.51.2.0/30"
+      bandwidth: "100mbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pe2"
+          interface: "eth4"
+          ip_address: "10.51.2.1"
+        - router_name: "ce2-red"
+          interface: "eth1"
+          ip_address: "10.51.2.2"
+    - name: pe3-ce3-red
+      subnet: "10.51.3.0/30"
+      bandwidth: "100mbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pe3"
+          interface: "eth4"
+          ip_address: "10.51.3.1"
+        - router_name: "ce3-red"
+          interface: "eth1"
+          ip_address: "10.51.3.2"
+    - name: pe4-ce4-red
+      subnet: "10.51.4.0/30"
+      bandwidth: "100mbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pe4"
+          interface: "eth3"
+          ip_address: "10.51.4.1"
+        - router_name: "ce4-red"
+          interface: "eth1"
+          ip_address: "10.51.4.2"
+    - name: pe5-ce5-red
+      subnet: "10.51.5.0/30"
+      bandwidth: "100mbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pe5"
+          interface: "eth4"
+          ip_address: "10.51.5.1"
+        - router_name: "ce5-red"
+          interface: "eth1"
+          ip_address: "10.51.5.2"
+    - name: pe6-ce6-red
+      subnet: "10.51.6.0/30"
+      bandwidth: "100mbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pe6"
+          interface: "eth3"
+          ip_address: "10.51.6.1"
+        - router_name: "ce6-red"
+          interface: "eth1"
+          ip_address: "10.51.6.2"
+
+    # ===================================================================
+    # GREEN VPN PE-CE Links (Cross-Area Mesh)
+    # ===================================================================
+    - name: pe1-ce1-green
+      subnet: "10.52.1.0/30"
+      bandwidth: "100mbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pe1"
+          interface: "eth5"
+          ip_address: "10.52.1.1"
+        - router_name: "ce1-green"
+          interface: "eth1"
+          ip_address: "10.52.1.2"
+    - name: pe2-ce2-green
+      subnet: "10.52.2.0/30"
+      bandwidth: "100mbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pe2"
+          interface: "eth5"
+          ip_address: "10.52.2.1"
+        - router_name: "ce2-green"
+          interface: "eth1"
+          ip_address: "10.52.2.2"
+    - name: pe3-ce3-green
+      subnet: "10.52.3.0/30"
+      bandwidth: "100mbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pe3"
+          interface: "eth5"
+          ip_address: "10.52.3.1"
+        - router_name: "ce3-green"
+          interface: "eth1"
+          ip_address: "10.52.3.2"
+    - name: pe4-ce4-green
+      subnet: "10.52.4.0/30"
+      bandwidth: "100mbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pe4"
+          interface: "eth5"
+          ip_address: "10.52.4.1"
+        - router_name: "ce4-green"
+          interface: "eth1"
+          ip_address: "10.52.4.2"
+    - name: pe5-ce5-green
+      subnet: "10.52.5.0/30"
+      bandwidth: "100mbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pe5"
+          interface: "eth5"
+          ip_address: "10.52.5.1"
+        - router_name: "ce5-green"
+          interface: "eth1"
+          ip_address: "10.52.5.2"
+    - name: pe6-ce6-green
+      subnet: "10.52.6.0/30"
+      bandwidth: "100mbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pe6"
+          interface: "eth5"
+          ip_address: "10.52.6.1"
+        - router_name: "ce6-green"
+          interface: "eth1"
+          ip_address: "10.52.6.2"
+    - name: pe7-ce7-green
+      subnet: "10.52.7.0/30"
+      bandwidth: "100mbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pe7"
+          interface: "eth5"
+          ip_address: "10.52.7.1"
+        - router_name: "ce7-green"
+          interface: "eth1"
+          ip_address: "10.52.7.2"
+    - name: pe8-ce8-green
+      subnet: "10.52.8.0/30"
+      bandwidth: "100mbit"
+      network_type: "p2p"
+      connected_routers:
+        - router_name: "pe8"
+          interface: "eth5"
+          ip_address: "10.52.8.1"
+        - router_name: "ce8-green"
+          interface: "eth1"
+          ip_address: "10.52.8.2"
+
+    # ===================================================================
+    # Customer LANs (multi-access networks)
+    # ===================================================================
+    - name: lan-blue-hub
+      subnet: "10.100.2.0/24"
+      bandwidth: "100mbit"
+      gateway: "10.100.2.1"
+      network_type: "multi-access"
+      connected_routers:
+        - router_name: "ce-hub-blue"
+          interface: "eth2"
+          ip_address: "10.100.2.1"
+    - name: lan-spoke1
+      subnet: "10.100.1.0/24"
+      bandwidth: "100mbit"
+      gateway: "10.100.1.1"
+      network_type: "multi-access"
+      connected_routers:
+        - router_name: "ce1-spoke"
+          interface: "eth2"
+          ip_address: "10.100.1.1"
+    - name: lan-spoke2
+      subnet: "10.100.3.0/24"
+      bandwidth: "100mbit"
+      gateway: "10.100.3.1"
+      network_type: "multi-access"
+      connected_routers:
+        - router_name: "ce2-spoke"
+          interface: "eth2"
+          ip_address: "10.100.3.1"
+    - name: lan-spoke3
+      subnet: "10.100.5.0/24"
+      bandwidth: "100mbit"
+      gateway: "10.100.5.1"
+      network_type: "multi-access"
+      connected_routers:
+        - router_name: "ce3-spoke"
+          interface: "eth2"
+          ip_address: "10.100.5.1"
+    - name: lan-spoke4
+      subnet: "10.100.7.0/24"
+      bandwidth: "100mbit"
+      gateway: "10.100.7.1"
+      network_type: "multi-access"
+      connected_routers:
+        - router_name: "ce4-spoke"
+          interface: "eth2"
+          ip_address: "10.100.7.1"
+    - name: lan-spoke5
+      subnet: "10.100.8.0/24"
+      bandwidth: "100mbit"
+      gateway: "10.100.8.1"
+      network_type: "multi-access"
+      connected_routers:
+        - router_name: "ce5-spoke"
+          interface: "eth2"
+          ip_address: "10.100.8.1"
+    - name: lan-red1
+      subnet: "10.101.1.0/24"
+      bandwidth: "100mbit"
+      gateway: "10.101.1.1"
+      network_type: "multi-access"
+      connected_routers:
+        - router_name: "ce1-red"
+          interface: "eth2"
+          ip_address: "10.101.1.1"
+    - name: lan-red2
+      subnet: "10.101.2.0/24"
+      bandwidth: "100mbit"
+      gateway: "10.101.2.1"
+      network_type: "multi-access"
+      connected_routers:
+        - router_name: "ce2-red"
+          interface: "eth2"
+          ip_address: "10.101.2.1"
+    - name: lan-red3
+      subnet: "10.101.3.0/24"
+      bandwidth: "100mbit"
+      gateway: "10.101.3.1"
+      network_type: "multi-access"
+      connected_routers:
+        - router_name: "ce3-red"
+          interface: "eth2"
+          ip_address: "10.101.3.1"
+    - name: lan-red4
+      subnet: "10.101.4.0/24"
+      bandwidth: "100mbit"
+      gateway: "10.101.4.1"
+      network_type: "multi-access"
+      connected_routers:
+        - router_name: "ce4-red"
+          interface: "eth2"
+          ip_address: "10.101.4.1"
+    - name: lan-red5
+      subnet: "10.101.5.0/24"
+      bandwidth: "100mbit"
+      gateway: "10.101.5.1"
+      network_type: "multi-access"
+      connected_routers:
+        - router_name: "ce5-red"
+          interface: "eth2"
+          ip_address: "10.101.5.1"
+    - name: lan-red6
+      subnet: "10.101.6.0/24"
+      bandwidth: "100mbit"
+      gateway: "10.101.6.1"
+      network_type: "multi-access"
+      connected_routers:
+        - router_name: "ce6-red"
+          interface: "eth2"
+          ip_address: "10.101.6.1"
+
+    # ===================================================================
+    # GREEN VPN Customer LANs (Cross-Area Mesh)
+    # ===================================================================
+    - name: lan-green1
+      subnet: "172.30.1.0/24"
+      bandwidth: "100mbit"
+      gateway: "172.30.1.1"
+      network_type: "multi-access"
+      connected_routers:
+        - router_name: "ce1-green"
+          interface: "eth2"
+          ip_address: "172.30.1.1"
+    - name: lan-green2
+      subnet: "172.30.2.0/24"
+      bandwidth: "100mbit"
+      gateway: "172.30.2.1"
+      network_type: "multi-access"
+      connected_routers:
+        - router_name: "ce2-green"
+          interface: "eth2"
+          ip_address: "172.30.2.1"
+    - name: lan-green3
+      subnet: "172.30.3.0/24"
+      bandwidth: "100mbit"
+      gateway: "172.30.3.1"
+      network_type: "multi-access"
+      connected_routers:
+        - router_name: "ce3-green"
+          interface: "eth2"
+          ip_address: "172.30.3.1"
+    - name: lan-green4
+      subnet: "172.30.4.0/24"
+      bandwidth: "100mbit"
+      gateway: "172.30.4.1"
+      network_type: "multi-access"
+      connected_routers:
+        - router_name: "ce4-green"
+          interface: "eth2"
+          ip_address: "172.30.4.1"
+    - name: lan-green5
+      subnet: "172.30.5.0/24"
+      bandwidth: "100mbit"
+      gateway: "172.30.5.1"
+      network_type: "multi-access"
+      connected_routers:
+        - router_name: "ce5-green"
+          interface: "eth2"
+          ip_address: "172.30.5.1"
+    - name: lan-green6
+      subnet: "172.30.6.0/24"
+      bandwidth: "100mbit"
+      gateway: "172.30.6.1"
+      network_type: "multi-access"
+      connected_routers:
+        - router_name: "ce6-green"
+          interface: "eth2"
+          ip_address: "172.30.6.1"
+    - name: lan-green7
+      subnet: "172.30.7.0/24"
+      bandwidth: "100mbit"
+      gateway: "172.30.7.1"
+      network_type: "multi-access"
+      connected_routers:
+        - router_name: "ce7-green"
+          interface: "eth2"
+          ip_address: "172.30.7.1"
+    - name: lan-green8
+      subnet: "172.30.8.0/24"
+      bandwidth: "100mbit"
+      gateway: "172.30.8.1"
+      network_type: "multi-access"
+      connected_routers:
+        - router_name: "ce8-green"
+          interface: "eth2"
+          ip_address: "172.30.8.1"
+
+    # ===================================================================
+    # Management network
+    # ===================================================================
+    - name: mgmt
+      subnet: "192.168.122.0/24"
+      gateway: "192.168.122.1"
+      network_type: "management"
+      bandwidth: "unlimited"
+      connected_routers:
+        # P routers
+        - { router_name: "p1", interface: "eth0", ip_address: "192.168.122.11" }
+        - { router_name: "p2", interface: "eth0", ip_address: "192.168.122.12" }
+        - { router_name: "p3", interface: "eth0", ip_address: "192.168.122.13" }
+        - { router_name: "p4", interface: "eth0", ip_address: "192.168.122.14" }
+        # RR routers
+        - { router_name: "rr1", interface: "eth0", ip_address: "192.168.122.21" }
+        - { router_name: "rr2", interface: "eth0", ip_address: "192.168.122.22" }
+        # PA routers
+        - { router_name: "pa1", interface: "eth0", ip_address: "192.168.122.31" }
+        - { router_name: "pa2", interface: "eth0", ip_address: "192.168.122.32" }
+        - { router_name: "pa3", interface: "eth0", ip_address: "192.168.122.33" }
+        - { router_name: "pa4", interface: "eth0", ip_address: "192.168.122.34" }
+        # PE routers
+        - { router_name: "pe1", interface: "eth0", ip_address: "192.168.122.61" }
+        - { router_name: "pe2", interface: "eth0", ip_address: "192.168.122.62" }
+        - { router_name: "pe3", interface: "eth0", ip_address: "192.168.122.63" }
+        - { router_name: "pe4", interface: "eth0", ip_address: "192.168.122.64" }
+        - { router_name: "pe5", interface: "eth0", ip_address: "192.168.122.65" }
+        - { router_name: "pe6", interface: "eth0", ip_address: "192.168.122.66" }
+        - { router_name: "pe7", interface: "eth0", ip_address: "192.168.122.67" }
+        - { router_name: "pe8", interface: "eth0", ip_address: "192.168.122.68" }
+        # CE routers
+        - { router_name: "ce-hub-blue", interface: "eth0", ip_address: "192.168.122.80" }
+        - { router_name: "ce1-spoke", interface: "eth0", ip_address: "192.168.122.81" }
+        - { router_name: "ce2-spoke", interface: "eth0", ip_address: "192.168.122.82" }
+        - { router_name: "ce3-spoke", interface: "eth0", ip_address: "192.168.122.83" }
+        - { router_name: "ce4-spoke", interface: "eth0", ip_address: "192.168.122.84" }
+        - { router_name: "ce5-spoke", interface: "eth0", ip_address: "192.168.122.85" }
+        - { router_name: "ce1-red", interface: "eth0", ip_address: "192.168.122.86" }
+        - { router_name: "ce2-red", interface: "eth0", ip_address: "192.168.122.87" }
+        - { router_name: "ce3-red", interface: "eth0", ip_address: "192.168.122.88" }
+        - { router_name: "ce4-red", interface: "eth0", ip_address: "192.168.122.89" }
+        - { router_name: "ce5-red", interface: "eth0", ip_address: "192.168.122.90" }
+        - { router_name: "ce6-red", interface: "eth0", ip_address: "192.168.122.91" }
+        # GREEN VPN CE routers
+        - { router_name: "ce1-green", interface: "eth0", ip_address: "192.168.122.101" }
+        - { router_name: "ce2-green", interface: "eth0", ip_address: "192.168.122.102" }
+        - { router_name: "ce3-green", interface: "eth0", ip_address: "192.168.122.103" }
+        - { router_name: "ce4-green", interface: "eth0", ip_address: "192.168.122.104" }
+        - { router_name: "ce5-green", interface: "eth0", ip_address: "192.168.122.105" }
+        - { router_name: "ce6-green", interface: "eth0", ip_address: "192.168.122.106" }
+        - { router_name: "ce7-green", interface: "eth0", ip_address: "192.168.122.107" }
+        - { router_name: "ce8-green", interface: "eth0", ip_address: "192.168.122.108" }
+
+    # ===================================================================
+    # Loopback network
+    # ===================================================================
+    - name: loopbacks
+      subnet: "10.0.0.0/24"
+      network_type: "loopback"
+      bandwidth: "unlimited"
+
+  # ===================================================================
+  # ROUTERS
+  # ===================================================================
+  routers:
+    # ===================================================================
+    # P ROUTERS (Core)
+    # ===================================================================
+    - name: "p1"
+      hostname: "p1"
+      router_id: "10.0.0.3"
+      role: "P"
+      location:
+        latitude: 51.5074
+        longitude: -0.1278
+        city: "London"
+        country: "United Kingdom"
+        site: "London-DC1"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "p1-p2" }
+        - { name: "eth2", network: "p1-p3" }
+        - { name: "eth3", network: "p1-p4" }
+        - { name: "eth4", network: "p1-rr1" }
+        - { name: "eth5", network: "p1-pa1" }
+        - { name: "eth6", network: "p1-pa2" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "p2"
+      hostname: "p2"
+      router_id: "10.0.0.4"
+      role: "P"
+      location:
+        latitude: 53.4808
+        longitude: -2.2426
+        city: "Manchester"
+        country: "United Kingdom"
+        site: "Manchester-DC1"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "p1-p2" }
+        - { name: "eth2", network: "p2-p3" }
+        - { name: "eth3", network: "p2-p4" }
+        - { name: "eth4", network: "p2-rr1" }
+        - { name: "eth5", network: "p2-pa1" }
+        - { name: "eth6", network: "p2-pa3" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "p3"
+      hostname: "p3"
+      router_id: "10.0.0.5"
+      role: "P"
+      location:
+        latitude: 55.9533
+        longitude: -3.1883
+        city: "Edinburgh"
+        country: "United Kingdom"
+        site: "Edinburgh-DC1"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "p1-p3" }
+        - { name: "eth2", network: "p2-p3" }
+        - { name: "eth3", network: "p3-p4" }
+        - { name: "eth4", network: "p3-rr2" }
+        - { name: "eth5", network: "p3-pa2" }
+        - { name: "eth6", network: "p3-pa4" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "p4"
+      hostname: "p4"
+      router_id: "10.0.0.6"
+      role: "P"
+      location:
+        latitude: 52.4862
+        longitude: -1.8904
+        city: "Birmingham"
+        country: "United Kingdom"
+        site: "Birmingham-DC1"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "p1-p4" }
+        - { name: "eth2", network: "p2-p4" }
+        - { name: "eth3", network: "p3-p4" }
+        - { name: "eth4", network: "p4-rr2" }
+        - { name: "eth5", network: "p4-pa3" }
+        - { name: "eth6", network: "p4-pa4" }
+        - { name: "lo", network: "loopbacks" }
+
+    # ===================================================================
+    # RR ROUTERS (Route Reflectors)
+    # ===================================================================
+    - name: "rr1"
+      hostname: "rr1"
+      router_id: "10.0.0.1"
+      role: "RR"
+      location:
+        latitude: 47.3769
+        longitude: 8.5417
+        city: "Zurich"
+        country: "Switzerland"
+        site: "Zurich-RR1"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "p1-rr1" }
+        - { name: "eth2", network: "p2-rr1" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "rr2"
+      hostname: "rr2"
+      router_id: "10.0.0.2"
+      role: "RR"
+      location:
+        latitude: 50.8503
+        longitude: 4.3517
+        city: "Brussels"
+        country: "Belgium"
+        site: "Brussels-RR2"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "p3-rr2" }
+        - { name: "eth2", network: "p4-rr2" }
+        - { name: "lo", network: "loopbacks" }
+
+    # ===================================================================
+    # PA ROUTERS (Pre-Aggregation / ABRs)
+    # ===================================================================
+    - name: "pa1"
+      hostname: "pa1"
+      router_id: "10.0.0.20"
+      role: "PA"
+      location:
+        latitude: 51.4545
+        longitude: -2.5879
+        city: "Bristol"
+        country: "United Kingdom"
+        site: "Bristol-PA1"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "p1-pa1" }
+        - { name: "eth2", network: "p2-pa1" }
+        - { name: "eth3", network: "pa1-pa2" }
+        - { name: "eth4", network: "pa4-pa1" }
+        - { name: "eth5", network: "pa1-pe1" }
+        - { name: "eth6", network: "pa1-pe2" }
+        - { name: "eth7", network: "pa1-pe3" }
+        - { name: "eth8", network: "pa1-pe6" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "pa2"
+      hostname: "pa2"
+      router_id: "10.0.0.21"
+      role: "PA"
+      location:
+        latitude: 53.8008
+        longitude: -1.5491
+        city: "Leeds"
+        country: "United Kingdom"
+        site: "Leeds-PA2"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "p1-pa2" }
+        - { name: "eth2", network: "p3-pa2" }
+        - { name: "eth3", network: "pa1-pa2" }
+        - { name: "eth4", network: "pa2-pa3" }
+        - { name: "eth5", network: "pa2-pe1" }
+        - { name: "eth6", network: "pa2-pe2" }
+        - { name: "eth7", network: "pa2-pe4" }
+        - { name: "eth8", network: "pa2-pe5" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "pa3"
+      hostname: "pa3"
+      router_id: "10.0.0.22"
+      role: "PA"
+      location:
+        latitude: 53.3498
+        longitude: -6.2603
+        city: "Dublin"
+        country: "Ireland"
+        site: "Dublin-PA3"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "p2-pa3" }
+        - { name: "eth2", network: "p4-pa3" }
+        - { name: "eth3", network: "pa2-pa3" }
+        - { name: "eth4", network: "pa3-pa4" }
+        - { name: "eth5", network: "pa3-pe3" }
+        - { name: "eth6", network: "pa3-pe4" }
+        - { name: "eth7", network: "pa3-pe7" }
+        - { name: "eth8", network: "pa3-pe8" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "pa4"
+      hostname: "pa4"
+      router_id: "10.0.0.23"
+      role: "PA"
+      location:
+        latitude: 55.8642
+        longitude: -4.2518
+        city: "Glasgow"
+        country: "United Kingdom"
+        site: "Glasgow-PA4"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "p3-pa4" }
+        - { name: "eth2", network: "p4-pa4" }
+        - { name: "eth3", network: "pa3-pa4" }
+        - { name: "eth4", network: "pa4-pa1" }
+        - { name: "eth5", network: "pa4-pe5" }
+        - { name: "eth6", network: "pa4-pe6" }
+        - { name: "eth7", network: "pa4-pe7" }
+        - { name: "eth8", network: "pa4-pe8" }
+        - { name: "lo", network: "loopbacks" }
+
+    # ===================================================================
+    # PE ROUTERS (Provider Edge - Area 1)
+    # ===================================================================
+    - name: "pe1"
+      hostname: "pe1"
+      router_id: "10.0.0.60"
+      role: "PE"
+      location:
+        latitude: 51.7520
+        longitude: -1.2577
+        city: "Oxford"
+        country: "United Kingdom"
+        site: "Oxford-PE1"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pa1-pe1" }
+        - { name: "eth2", network: "pa2-pe1" }
+        - { name: "eth3", network: "pe1-ce1-spoke" }
+        - { name: "eth4", network: "pe1-ce1-red" }
+        - { name: "eth5", network: "pe1-ce1-green" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "pe2"
+      hostname: "pe2"
+      router_id: "10.0.0.61"
+      role: "PE"
+      location:
+        latitude: 52.2053
+        longitude: 0.1218
+        city: "Cambridge"
+        country: "United Kingdom"
+        site: "Cambridge-PE2"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pa1-pe2" }
+        - { name: "eth2", network: "pa2-pe2" }
+        - { name: "eth3", network: "pe2-ce-hub-blue" }
+        - { name: "eth4", network: "pe2-ce2-red" }
+        - { name: "eth5", network: "pe2-ce2-green" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "pe3"
+      hostname: "pe3"
+      router_id: "10.0.0.62"
+      role: "PE"
+      location:
+        latitude: 50.8225
+        longitude: -0.1372
+        city: "Brighton"
+        country: "United Kingdom"
+        site: "Brighton-PE3"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pa1-pe3" }
+        - { name: "eth2", network: "pa3-pe3" }
+        - { name: "eth3", network: "pe3-ce2-spoke" }
+        - { name: "eth4", network: "pe3-ce3-red" }
+        - { name: "eth5", network: "pe3-ce3-green" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "pe4"
+      hostname: "pe4"
+      router_id: "10.0.0.63"
+      role: "PE"
+      location:
+        latitude: 50.9097
+        longitude: -1.4044
+        city: "Southampton"
+        country: "United Kingdom"
+        site: "Southampton-PE4"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pa2-pe4" }
+        - { name: "eth2", network: "pa3-pe4" }
+        - { name: "eth3", network: "pe4-ce4-red" }
+        - { name: "eth5", network: "pe4-ce4-green" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "pe5"
+      hostname: "pe5"
+      router_id: "10.0.0.64"
+      role: "PE"
+      location:
+        latitude: 53.4084
+        longitude: -2.9916
+        city: "Liverpool"
+        country: "United Kingdom"
+        site: "Liverpool-PE5"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pa2-pe5" }
+        - { name: "eth2", network: "pa4-pe5" }
+        - { name: "eth3", network: "pe5-ce3-spoke" }
+        - { name: "eth4", network: "pe5-ce5-red" }
+        - { name: "eth5", network: "pe5-ce5-green" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "pe6"
+      hostname: "pe6"
+      router_id: "10.0.0.65"
+      role: "PE"
+      location:
+        latitude: 54.9783
+        longitude: -1.6178
+        city: "Newcastle"
+        country: "United Kingdom"
+        site: "Newcastle-PE6"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pa1-pe6" }
+        - { name: "eth2", network: "pa4-pe6" }
+        - { name: "eth3", network: "pe6-ce6-red" }
+        - { name: "eth5", network: "pe6-ce6-green" }
+        - { name: "lo", network: "loopbacks" }
+
+    # ===================================================================
+    # PE ROUTERS (Provider Edge - Area 2)
+    # ===================================================================
+    - name: "pe7"
+      hostname: "pe7"
+      router_id: "10.0.0.66"
+      role: "PE"
+      location:
+        latitude: 51.8969
+        longitude: -8.4863
+        city: "Cork"
+        country: "Ireland"
+        site: "Cork-PE7"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pa3-pe7" }
+        - { name: "eth2", network: "pa4-pe7" }
+        - { name: "eth3", network: "pe7-ce4-spoke" }
+        - { name: "eth5", network: "pe7-ce7-green" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "pe8"
+      hostname: "pe8"
+      router_id: "10.0.0.67"
+      role: "PE"
+      location:
+        latitude: 57.1497
+        longitude: -2.0943
+        city: "Aberdeen"
+        country: "United Kingdom"
+        site: "Aberdeen-PE8"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pa3-pe8" }
+        - { name: "eth2", network: "pa4-pe8" }
+        - { name: "eth3", network: "pe8-ce5-spoke" }
+        - { name: "eth5", network: "pe8-ce8-green" }
+        - { name: "lo", network: "loopbacks" }
+
+    # ===================================================================
+    # CE ROUTERS (Customer Edge - BLUE VPN)
+    # ===================================================================
+    - name: "ce-hub-blue"
+      hostname: "ce-hub-blue"
+      router_id: "10.0.0.80"
+      role: "CE"
+      location:
+        latitude: 52.2053
+        longitude: 0.1218
+        city: "Cambridge"
+        country: "United Kingdom"
+        site: "Cambridge-HQ"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pe2-ce-hub-blue" }
+        - { name: "eth2", network: "lan-blue-hub" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "ce1-spoke"
+      hostname: "ce1-spoke"
+      router_id: "10.0.0.81"
+      role: "CE"
+      location:
+        latitude: 51.7520
+        longitude: -1.2577
+        city: "Oxford"
+        country: "United Kingdom"
+        site: "Oxford-Branch"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pe1-ce1-spoke" }
+        - { name: "eth2", network: "lan-spoke1" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "ce2-spoke"
+      hostname: "ce2-spoke"
+      router_id: "10.0.0.82"
+      role: "CE"
+      location:
+        latitude: 50.8225
+        longitude: -0.1372
+        city: "Brighton"
+        country: "United Kingdom"
+        site: "Brighton-Branch"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pe3-ce2-spoke" }
+        - { name: "eth2", network: "lan-spoke2" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "ce3-spoke"
+      hostname: "ce3-spoke"
+      router_id: "10.0.0.83"
+      role: "CE"
+      location:
+        latitude: 53.4084
+        longitude: -2.9916
+        city: "Liverpool"
+        country: "United Kingdom"
+        site: "Liverpool-Branch"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pe5-ce3-spoke" }
+        - { name: "eth2", network: "lan-spoke3" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "ce4-spoke"
+      hostname: "ce4-spoke"
+      router_id: "10.0.0.84"
+      role: "CE"
+      location:
+        latitude: 51.8969
+        longitude: -8.4863
+        city: "Cork"
+        country: "Ireland"
+        site: "Cork-Branch"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pe7-ce4-spoke" }
+        - { name: "eth2", network: "lan-spoke4" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "ce5-spoke"
+      hostname: "ce5-spoke"
+      router_id: "10.0.0.85"
+      role: "CE"
+      location:
+        latitude: 57.1497
+        longitude: -2.0943
+        city: "Aberdeen"
+        country: "United Kingdom"
+        site: "Aberdeen-Branch"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pe8-ce5-spoke" }
+        - { name: "eth2", network: "lan-spoke5" }
+        - { name: "lo", network: "loopbacks" }
+
+    # ===================================================================
+    # CE ROUTERS (Customer Edge - RED VPN)
+    # ===================================================================
+    - name: "ce1-red"
+      hostname: "ce1-red"
+      router_id: "10.0.0.86"
+      role: "CE"
+      location:
+        latitude: 51.7520
+        longitude: -1.2577
+        city: "Oxford"
+        country: "United Kingdom"
+        site: "Oxford-DC"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pe1-ce1-red" }
+        - { name: "eth2", network: "lan-red1" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "ce2-red"
+      hostname: "ce2-red"
+      router_id: "10.0.0.87"
+      role: "CE"
+      location:
+        latitude: 52.2053
+        longitude: 0.1218
+        city: "Cambridge"
+        country: "United Kingdom"
+        site: "Cambridge-DC"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pe2-ce2-red" }
+        - { name: "eth2", network: "lan-red2" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "ce3-red"
+      hostname: "ce3-red"
+      router_id: "10.0.0.88"
+      role: "CE"
+      location:
+        latitude: 50.8225
+        longitude: -0.1372
+        city: "Brighton"
+        country: "United Kingdom"
+        site: "Brighton-DC"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pe3-ce3-red" }
+        - { name: "eth2", network: "lan-red3" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "ce4-red"
+      hostname: "ce4-red"
+      router_id: "10.0.0.89"
+      role: "CE"
+      location:
+        latitude: 50.9097
+        longitude: -1.4044
+        city: "Southampton"
+        country: "United Kingdom"
+        site: "Southampton-DC"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pe4-ce4-red" }
+        - { name: "eth2", network: "lan-red4" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "ce5-red"
+      hostname: "ce5-red"
+      router_id: "10.0.0.90"
+      role: "CE"
+      location:
+        latitude: 53.4084
+        longitude: -2.9916
+        city: "Liverpool"
+        country: "United Kingdom"
+        site: "Liverpool-DC"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pe5-ce5-red" }
+        - { name: "eth2", network: "lan-red5" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "ce6-red"
+      hostname: "ce6-red"
+      router_id: "10.0.0.91"
+      role: "CE"
+      location:
+        latitude: 54.9783
+        longitude: -1.6178
+        city: "Newcastle"
+        country: "United Kingdom"
+        site: "Newcastle-DC"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pe6-ce6-red" }
+        - { name: "eth2", network: "lan-red6" }
+        - { name: "lo", network: "loopbacks" }
+
+    # ===================================================================
+    # GREEN VPN CE Routers (Cross-Area Mesh)
+    # ===================================================================
+    - name: "ce1-green"
+      hostname: "ce1-green"
+      router_id: "10.0.0.101"
+      role: "CE"
+      location:
+        latitude: 51.7520
+        longitude: -1.2577
+        city: "Oxford"
+        country: "United Kingdom"
+        site: "Oxford-GREEN"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pe1-ce1-green" }
+        - { name: "eth2", network: "lan-green1" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "ce2-green"
+      hostname: "ce2-green"
+      router_id: "10.0.0.102"
+      role: "CE"
+      location:
+        latitude: 52.2053
+        longitude: 0.1218
+        city: "Cambridge"
+        country: "United Kingdom"
+        site: "Cambridge-GREEN"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pe2-ce2-green" }
+        - { name: "eth2", network: "lan-green2" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "ce3-green"
+      hostname: "ce3-green"
+      router_id: "10.0.0.103"
+      role: "CE"
+      location:
+        latitude: 50.8225
+        longitude: -0.1372
+        city: "Brighton"
+        country: "United Kingdom"
+        site: "Brighton-GREEN"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pe3-ce3-green" }
+        - { name: "eth2", network: "lan-green3" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "ce4-green"
+      hostname: "ce4-green"
+      router_id: "10.0.0.104"
+      role: "CE"
+      location:
+        latitude: 50.9097
+        longitude: -1.4044
+        city: "Southampton"
+        country: "United Kingdom"
+        site: "Southampton-GREEN"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pe4-ce4-green" }
+        - { name: "eth2", network: "lan-green4" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "ce5-green"
+      hostname: "ce5-green"
+      router_id: "10.0.0.105"
+      role: "CE"
+      location:
+        latitude: 53.4084
+        longitude: -2.9916
+        city: "Liverpool"
+        country: "United Kingdom"
+        site: "Liverpool-GREEN"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pe5-ce5-green" }
+        - { name: "eth2", network: "lan-green5" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "ce6-green"
+      hostname: "ce6-green"
+      router_id: "10.0.0.106"
+      role: "CE"
+      location:
+        latitude: 54.9783
+        longitude: -1.6178
+        city: "Newcastle"
+        country: "United Kingdom"
+        site: "Newcastle-GREEN"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pe6-ce6-green" }
+        - { name: "eth2", network: "lan-green6" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "ce7-green"
+      hostname: "ce7-green"
+      router_id: "10.0.0.107"
+      role: "CE"
+      location:
+        latitude: 51.8985
+        longitude: -8.4756
+        city: "Cork"
+        country: "Ireland"
+        site: "Cork-GREEN"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pe7-ce7-green" }
+        - { name: "eth2", network: "lan-green7" }
+        - { name: "lo", network: "loopbacks" }
+
+    - name: "ce8-green"
+      hostname: "ce8-green"
+      router_id: "10.0.0.108"
+      role: "CE"
+      location:
+        latitude: 57.1497
+        longitude: -2.0943
+        city: "Aberdeen"
+        country: "United Kingdom"
+        site: "Aberdeen-GREEN"
+      interfaces:
+        - { name: "eth0", network: "mgmt" }
+        - { name: "eth1", network: "pe8-ce8-green" }
+        - { name: "eth2", network: "lan-green8" }
+        - { name: "lo", network: "loopbacks" }
+
+  # ===================================================================
+  # DEVICES (End devices for traffic generation)
+  # ===================================================================
+  devices:
+    - name: "bhub"
+      network_name: "lan-blue-hub"
+      ip_address: "10.100.2.10"
+      mgmt_ip: "192.168.122.110"
+      gateway: "10.100.2.1"
+    - name: "spoke1"
+      network_name: "lan-spoke1"
+      ip_address: "10.100.1.10"
+      mgmt_ip: "192.168.122.111"
+      gateway: "10.100.1.1"
+    - name: "spoke2"
+      network_name: "lan-spoke2"
+      ip_address: "10.100.3.10"
+      mgmt_ip: "192.168.122.112"
+      gateway: "10.100.3.1"
+    - name: "spoke3"
+      network_name: "lan-spoke3"
+      ip_address: "10.100.5.10"
+      mgmt_ip: "192.168.122.113"
+      gateway: "10.100.5.1"
+    - name: "spoke4"
+      network_name: "lan-spoke4"
+      ip_address: "10.100.7.10"
+      mgmt_ip: "192.168.122.114"
+      gateway: "10.100.7.1"
+    - name: "spoke5"
+      network_name: "lan-spoke5"
+      ip_address: "10.100.8.10"
+      mgmt_ip: "192.168.122.115"
+      gateway: "10.100.8.1"
+    - name: "red1"
+      network_name: "lan-red1"
+      ip_address: "10.101.1.10"
+      mgmt_ip: "192.168.122.120"
+      gateway: "10.101.1.1"
+    - name: "red2"
+      network_name: "lan-red2"
+      ip_address: "10.101.2.10"
+      mgmt_ip: "192.168.122.121"
+      gateway: "10.101.2.1"
+    - name: "red3"
+      network_name: "lan-red3"
+      ip_address: "10.101.3.10"
+      mgmt_ip: "192.168.122.122"
+      gateway: "10.101.3.1"
+    - name: "red4"
+      network_name: "lan-red4"
+      ip_address: "10.101.4.10"
+      mgmt_ip: "192.168.122.123"
+      gateway: "10.101.4.1"
+    - name: "red5"
+      network_name: "lan-red5"
+      ip_address: "10.101.5.10"
+      mgmt_ip: "192.168.122.124"
+      gateway: "10.101.5.1"
+    - name: "red6"
+      network_name: "lan-red6"
+      ip_address: "10.101.6.10"
+      mgmt_ip: "192.168.122.125"
+      gateway: "10.101.6.1"
+
+    # GREEN VPN devices (cross-area mesh)
+    - name: "green1"
+      network_name: "lan-green1"
+      ip_address: "172.30.1.10"
+      mgmt_ip: "192.168.122.130"
+      gateway: "172.30.1.1"
+    - name: "green2"
+      network_name: "lan-green2"
+      ip_address: "172.30.2.10"
+      mgmt_ip: "192.168.122.131"
+      gateway: "172.30.2.1"
+    - name: "green3"
+      network_name: "lan-green3"
+      ip_address: "172.30.3.10"
+      mgmt_ip: "192.168.122.132"
+      gateway: "172.30.3.1"
+    - name: "green4"
+      network_name: "lan-green4"
+      ip_address: "172.30.4.10"
+      mgmt_ip: "192.168.122.133"
+      gateway: "172.30.4.1"
+    - name: "green5"
+      network_name: "lan-green5"
+      ip_address: "172.30.5.10"
+      mgmt_ip: "192.168.122.134"
+      gateway: "172.30.5.1"
+    - name: "green6"
+      network_name: "lan-green6"
+      ip_address: "172.30.6.10"
+      mgmt_ip: "192.168.122.135"
+      gateway: "172.30.6.1"
+    - name: "green7"
+      network_name: "lan-green7"
+      ip_address: "172.30.7.10"
+      mgmt_ip: "192.168.122.136"
+      gateway: "172.30.7.1"
+    - name: "green8"
+      network_name: "lan-green8"
+      ip_address: "172.30.8.10"
+      mgmt_ip: "192.168.122.137"
+      gateway: "172.30.8.1"

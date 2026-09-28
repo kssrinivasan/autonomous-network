@@ -1,0 +1,58 @@
+info:
+  version: 1.0.5
+  description: N3IWF initial local configuration
+
+configuration:
+  N3IWFInformation:
+    GlobalN3IWFID:
+      PLMNID:
+        MCC: {{ plmn_list[0].mcc if plmn_list else '208' }}
+        MNC: {{ plmn_list[0].mnc if plmn_list else '93' }}
+      N3IWFID: 135
+    Name: free5GC_N3IWF
+    SupportedTAList:
+      - TAC: {{ tac_hex }}
+        BroadcastPLMNList:
+{% for plmn in plmn_list %}
+          - PLMNID:
+              MCC: {{ plmn.mcc }}
+              MNC: {{ plmn.mnc }}
+            TAISliceSupportList:
+{% for nssai in snssai_infos %}
+              - SNSSAI:
+                  SST: {{ nssai.sNssai.sst }}
+{% if nssai.sNssai.sd %}
+                  SD: {{ nssai.sNssai.sd }}
+{% endif %}
+{% endfor %}
+{% endfor %}
+
+  AMFSCTPAddresses:
+    - IP:
+      - {{ amf_ip }}
+      Port: 38412
+  NASTCPPort: 20000
+
+  IKEBindAddress: {{ nf_ip }}
+  IPSecTunnelAddress: 10.0.0.1
+  UEIPAddressRange: 10.0.0.0/24
+  XFRMInterfaceName: xfrmi
+  XFRMInterfaceID: 1
+
+  GTPBindAddress: {{ nf_ip }}
+
+  FQDN: {{ nf_ip }}
+
+  PrivateKey: cert/n3iwf.key
+  CertificateAuthority: cert/n3iwf.pem
+  Certificate: cert/n3iwf.pem
+
+  LivenessCheck:
+    enable: true
+    transFreq: 60s
+    maxRetryTimes: 4
+
+logger:
+  enable: true
+  level: info
+  reportCaller: false

@@ -1,0 +1,15 @@
+{
+  "test_name":          "local-tcp-test",
+  "source_device":      "localhost",
+  "source_ip":          "127.0.0.1",
+  "destination_device": "localhost",
+  "destination_ip":     "127.0.0.1",
+  "protocol":           "TCP",
+  "port":               19201,
+  "duration":           5,
+  "bandwidth":          "10Mbps",
+  "pattern_type":       "constant",
+  "concurrent_users":   2,
+  "metrics_enabled":    true,
+  "metrics_interval":   1
+}

@@ -1,0 +1,404 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 880" width="1400" height="880">
+  <defs>
+    <!-- Arrow markers -->
+    <marker id="arrRed" markerWidth="8" markerHeight="7" refX="7" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L8,3.5 z" fill="#e05252"/>
+    </marker>
+    <marker id="arrBlue" markerWidth="8" markerHeight="7" refX="7" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L8,3.5 z" fill="#5281e0"/>
+    </marker>
+    <marker id="arrBidir" markerWidth="8" markerHeight="7" refX="1" refY="3.5" orient="auto-start-reverse">
+      <path d="M0,3.5 L8,0 L8,7 z" fill="#e05252" opacity="0.7"/>
+    </marker>
+    <!-- Background gradient -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+    <!-- Panel gradients -->
+    <linearGradient id="redPanelGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff5f5"/>
+      <stop offset="100%" stop-color="#ffecec"/>
+    </linearGradient>
+    <linearGradient id="bluePanelGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f2f5ff"/>
+      <stop offset="100%" stop-color="#eaeeff"/>
+    </linearGradient>
+    <!-- Wave area fills -->
+    <linearGradient id="redFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e05252" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#e05252" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="blueFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5281e0" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#5281e0" stop-opacity="0.05"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- BACKGROUND                                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <rect width="1400" height="880" fill="#ffffff"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- HEADER                                                              -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <text x="700" y="36" font-family="'Segoe UI',Arial,sans-serif" font-size="25" font-weight="700"
+        fill="#1a1a2a" text-anchor="middle">Time-Compressed Traffic Test Strategy</text>
+  <text x="700" y="57" font-family="'Segoe UI',Arial,sans-serif" font-size="13" fill="#555566" text-anchor="middle">
+    48 real hours · 240× compression · ≈1.3 simulated years of network telemetry
+  </text>
+
+  <!-- Divider -->
+  <line x1="40" y1="66" x2="1360" y2="66" stroke="#d8d8e4" stroke-width="1"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- TIME COMPRESSION KEY — 4 pill boxes                                 -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <rect x="48"   y="72" width="295" height="42" rx="7" fill="#f2f3f8" stroke="#c0c0d0" stroke-width="1"/>
+  <text x="195"  y="89" font-family="monospace" font-size="17" font-weight="700" fill="#e05252" text-anchor="middle">15 s</text>
+  <text x="195"  y="106" font-family="'Segoe UI',Arial,sans-serif" font-size="12" fill="#555566" text-anchor="middle">= 1 simulated hour</text>
+
+  <rect x="357"  y="72" width="295" height="42" rx="7" fill="#f2f3f8" stroke="#c0c0d0" stroke-width="1"/>
+  <text x="504"  y="89" font-family="monospace" font-size="17" font-weight="700" fill="#e05252" text-anchor="middle">6 min (360 s)</text>
+  <text x="504"  y="106" font-family="'Segoe UI',Arial,sans-serif" font-size="12" fill="#555566" text-anchor="middle">= 1 simulated day</text>
+
+  <rect x="666"  y="72" width="295" height="42" rx="7" fill="#f2f3f8" stroke="#c0c0d0" stroke-width="1"/>
+  <text x="813"  y="89" font-family="monospace" font-size="17" font-weight="700" fill="#e05252" text-anchor="middle">42 min (2520 s)</text>
+  <text x="813"  y="106" font-family="'Segoe UI',Arial,sans-serif" font-size="12" fill="#555566" text-anchor="middle">= 1 simulated week</text>
+
+  <rect x="975"  y="72" width="375" height="42" rx="7" fill="#f2f3f8" stroke="#c0c0d0" stroke-width="1"/>
+  <text x="1162" y="89" font-family="monospace" font-size="17" font-weight="700" fill="#e05252" text-anchor="middle">48 h (172 800 s)</text>
+  <text x="1162" y="106" font-family="'Segoe UI',Arial,sans-serif" font-size="12" fill="#555566" text-anchor="middle">≈ 480 compressed days ≈ 1.3 simulated years</text>
+
+  <!-- Central divider between VPN panels -->
+  <line x1="700" y1="122" x2="700" y2="548" stroke="#d8d8e4" stroke-width="1"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- RED VPN PANEL (left half)                                           -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <rect x="14" y="122" width="676" height="430" rx="10" fill="url(#redPanelGrad)" stroke="#e05252" stroke-width="1.2" stroke-opacity="0.45"/>
+
+  <!-- RED title -->
+  <text x="352" y="147" font-family="'Segoe UI',Arial,sans-serif" font-size="17" font-weight="700" fill="#e05252" text-anchor="middle">RED VPN — Business Enterprise</text>
+  <text x="352" y="163" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#555566" text-anchor="middle">Any-to-Any Mesh · 4 sites · 6 bidirectional flows · TCP (ERP/replication) + UDP (VoIP/telemetry)</text>
+
+  <!-- RED legend -->
+  <line x1="30"  y1="179" x2="60"  y2="179" stroke="#e05252" stroke-width="2.5" stroke-opacity="0.8"/>
+  <text x="65"   y="183" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#555566">TCP bidir (ERP · DB replication · data sync)</text>
+  <line x1="30"  y1="195" x2="60"  y2="195" stroke="#e05252" stroke-width="2.5" stroke-opacity="0.8" stroke-dasharray="6,3"/>
+  <text x="65"   y="199" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#555566">UDP bidir (VoIP · telemetry · constant monitoring reverse)</text>
+
+  <!-- ── RED MESH CONNECTIONS (draw before nodes) ── -->
+  <!-- d1(top 348,258) d2(left 207,378) d3(right 487,378) d4(bottom 348,488) -->
+
+  <!-- d1–d2 TCP -->
+  <line x1="335" y1="271" x2="222" y2="368" stroke="#e05252" stroke-width="2.2" stroke-opacity="0.75"/>
+  <!-- d1–d3 TCP -->
+  <line x1="362" y1="271" x2="466" y2="368" stroke="#e05252" stroke-width="2.2" stroke-opacity="0.75"/>
+  <!-- d1–d4 UDP (dashed) -->
+  <line x1="348" y1="278" x2="348" y2="468" stroke="#e05252" stroke-width="2.2" stroke-opacity="0.75" stroke-dasharray="7,4"/>
+  <!-- d2–d3 TCP -->
+  <line x1="267" y1="382" x2="440" y2="382" stroke="#e05252" stroke-width="2.2" stroke-opacity="0.75"/>
+  <!-- d2–d4 UDP (dashed) -->
+  <line x1="215" y1="394" x2="328" y2="470" stroke="#e05252" stroke-width="2.2" stroke-opacity="0.75" stroke-dasharray="7,4"/>
+  <!-- d3–d4 UDP (dashed) -->
+  <line x1="472" y1="393" x2="368" y2="470" stroke="#e05252" stroke-width="2.2" stroke-opacity="0.75" stroke-dasharray="7,4"/>
+
+  <!-- Bidirectional chevrons on each line (small arrows in both directions) -->
+  <!-- Just show mid-point double arrows for clarity -->
+
+  <!-- ── RED NODE DEVICES ── -->
+  <!-- d1-red (Norwich / pe1) — top -->
+  <rect x="295" y="240" width="106" height="42" rx="7" fill="#fff0f0" stroke="#e05252" stroke-width="1.8"/>
+  <text x="348" y="258" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="700" fill="#e05252" text-anchor="middle">d1-red</text>
+  <text x="348" y="273" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#555566" text-anchor="middle">Norwich · pe1 (Oxford)</text>
+
+  <!-- d2-red (Coventry / pe2) — left -->
+  <rect x="153" y="358" width="106" height="42" rx="7" fill="#fff0f0" stroke="#e05252" stroke-width="1.8"/>
+  <text x="206" y="376" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="700" fill="#e05252" text-anchor="middle">d2-red</text>
+  <text x="206" y="391" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#555566" text-anchor="middle">Coventry · pe2 (Cambridge)</text>
+
+  <!-- d3-red (Plymouth / pe3) — right -->
+  <rect x="433" y="358" width="106" height="42" rx="7" fill="#fff0f0" stroke="#e05252" stroke-width="1.8"/>
+  <text x="486" y="376" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="700" fill="#e05252" text-anchor="middle">d3-red</text>
+  <text x="486" y="391" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#555566" text-anchor="middle">Plymouth · pe3 (Brighton)</text>
+
+  <!-- d4-red (Leicester / pe4) — bottom -->
+  <rect x="295" y="468" width="106" height="42" rx="7" fill="#fff0f0" stroke="#e05252" stroke-width="1.8"/>
+  <text x="348" y="486" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="700" fill="#e05252" text-anchor="middle">d4-red</text>
+  <text x="348" y="501" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#555566" text-anchor="middle">Leicester · pe4 (Cardiff)</text>
+
+  <!-- RED "NEW" flow badges -->
+  <rect x="310" y="320" width="36" height="15" rx="3" fill="#e05252"/>
+  <text x="328" y="331" font-family="'Segoe UI',Arial,sans-serif" font-size="8" fill="#fff" text-anchor="middle" font-weight="700">NEW</text>
+  <!-- Annotation for d1-d4 and d2-d3 -->
+  <text x="130" y="445" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#e05252" font-style="italic">d2↔d3 NEW</text>
+  <text x="404" y="445" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#e05252" font-style="italic">d1↔d4 NEW</text>
+
+  <!-- RED flow badges (bottom of panel) -->
+  <rect x="30"  y="522" width="78" height="22" rx="5" fill="#e05252" fill-opacity="0.2" stroke="#e05252" stroke-width="1"/>
+  <text x="69"  y="537" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#e05252" text-anchor="middle" font-weight="700">6 flows</text>
+  <rect x="116" y="522" width="120" height="22" rx="5" fill="#e05252" fill-opacity="0.2" stroke="#e05252" stroke-width="1"/>
+  <text x="176" y="537" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#e05252" text-anchor="middle" font-weight="700">3 TCP + 3 UDP bidir</text>
+  <rect x="244" y="522" width="156" height="22" rx="5" fill="#e05252" fill-opacity="0.2" stroke="#e05252" stroke-width="1"/>
+  <text x="322" y="537" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#e05252" text-anchor="middle" font-weight="700">Peak 14:00 sim · 85-95% PE-CE</text>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- BLUE VPN PANEL (right half)                                         -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <rect x="710" y="122" width="676" height="430" rx="10" fill="url(#bluePanelGrad)" stroke="#5281e0" stroke-width="1.2" stroke-opacity="0.45"/>
+
+  <!-- BLUE title -->
+  <text x="1048" y="147" font-family="'Segoe UI',Arial,sans-serif" font-size="17" font-weight="700" fill="#5281e0" text-anchor="middle">BLUE VPN — Consumer Cell Backhaul</text>
+  <text x="1048" y="163" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#555566" text-anchor="middle">Hub-Spoke · 3 spokes + hub · 4 tests · TCP (streaming) + UDP (quality + monitoring)</text>
+
+  <!-- BLUE legend -->
+  <line x1="722" y1="179" x2="752" y2="179" stroke="#5281e0" stroke-width="6" stroke-opacity="0.35"/>
+  <line x1="722" y1="179" x2="752" y2="179" stroke="#5281e0" stroke-width="2" stroke-opacity="0.9"/>
+  <text x="758"  y="183" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#555566">Hub→Spoke downloads (2–3× heavier: video/updates)</text>
+  <line x1="722" y1="195" x2="752" y2="195" stroke="#5281e0" stroke-width="2" stroke-opacity="0.8"/>
+  <text x="758"  y="199" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#555566">Spoke→Hub uploads (telemetry/signalling)</text>
+
+  <!-- ── HUB-SPOKE CONNECTIONS ── -->
+  <!-- Hub: (1145, 360). Spokes: d1(888,248) d2(808,385) d3(895,490) -->
+
+  <!-- d1-blue to hub: thick = download, thin = upload -->
+  <line x1="944"  y1="260" x2="1135" y2="345" stroke="#5281e0" stroke-width="7" stroke-opacity="0.28"/>
+  <line x1="944"  y1="252" x2="1135" y2="337" stroke="#5281e0" stroke-width="2"   stroke-opacity="0.85"/>
+
+  <!-- d2-blue to hub -->
+  <line x1="868"  y1="390" x2="1132" y2="372" stroke="#5281e0" stroke-width="7" stroke-opacity="0.28"/>
+  <line x1="868"  y1="382" x2="1132" y2="364" stroke="#5281e0" stroke-width="2"   stroke-opacity="0.85"/>
+
+  <!-- d3-blue to hub -->
+  <line x1="951"  y1="492" x2="1136" y2="390" stroke="#5281e0" stroke-width="7" stroke-opacity="0.28"/>
+  <line x1="949"  y1="484" x2="1134" y2="382" stroke="#5281e0" stroke-width="2"   stroke-opacity="0.85"/>
+
+  <!-- multi-source aggregate dashed line (all 3 spokes → hub combined concept) -->
+  <path d="M888,268 Q900,330 1132,364" fill="none" stroke="#5281e0" stroke-width="1.5" stroke-dasharray="5,4" stroke-opacity="0.4"/>
+  <path d="M808,376 Q900,330 1132,364" fill="none" stroke="#5281e0" stroke-width="1.5" stroke-dasharray="5,4" stroke-opacity="0.4"/>
+  <path d="M895,484 Q900,430 1132,370" fill="none" stroke="#5281e0" stroke-width="1.5" stroke-dasharray="5,4" stroke-opacity="0.4"/>
+
+  <!-- ── BLUE DEVICE NODES ── -->
+  <!-- dh-blue HUB (Nottingham / pe2) — right-center -->
+  <rect x="1132" y="338" width="128" height="48" rx="8" fill="#eef2ff" stroke="#5281e0" stroke-width="2.2"/>
+  <text x="1196" y="358" font-family="'Segoe UI',Arial,sans-serif" font-size="14" font-weight="700" fill="#5281e0" text-anchor="middle">dh-blue</text>
+  <text x="1196" y="373" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#555566" text-anchor="middle">Nottingham HUB · pe2</text>
+  <text x="1196" y="383" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#5281e0" text-anchor="middle" font-style="italic">~100 Mbit at PM peak</text>
+
+  <!-- d1-blue (Sheffield / pe1) — top left -->
+  <rect x="836" y="228" width="106" height="42" rx="7" fill="#eef2ff" stroke="#5281e0" stroke-width="1.8"/>
+  <text x="889" y="246" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="700" fill="#5281e0" text-anchor="middle">d1-blue</text>
+  <text x="889" y="261" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#555566" text-anchor="middle">Sheffield · pe1 (Oxford)</text>
+
+  <!-- d2-blue (Liverpool / pe3) — left -->
+  <rect x="756" y="362" width="106" height="42" rx="7" fill="#eef2ff" stroke="#5281e0" stroke-width="1.8"/>
+  <text x="809" y="380" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="700" fill="#5281e0" text-anchor="middle">d2-blue</text>
+  <text x="809" y="395" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#555566" text-anchor="middle">Liverpool · pe3 (Brighton)</text>
+
+  <!-- d3-blue (Huddersfield / pe4) — bottom left  [NEW] -->
+  <rect x="840" y="468" width="116" height="42" rx="7" fill="#eef2ff" stroke="#5281e0" stroke-width="1.8"/>
+  <text x="898" y="486" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="700" fill="#5281e0" text-anchor="middle">d3-blue</text>
+  <text x="898" y="501" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#555566" text-anchor="middle">Huddersfield · pe4 (Cardiff)</text>
+  <!-- NEW badge -->
+  <rect x="958" y="470" width="36" height="15" rx="3" fill="#5281e0"/>
+  <text x="976" y="481" font-family="'Segoe UI',Arial,sans-serif" font-size="8" fill="#fff" text-anchor="middle" font-weight="700">NEW</text>
+
+  <!-- all-spokes-hub-udp multi-source label -->
+  <rect x="724" y="440" width="120" height="36" rx="5" fill="#e8eeff" stroke="#5281e0" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="784" y="456" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#5281e0" text-anchor="middle" font-weight="700">all-spokes-hub-udp</text>
+  <text x="784" y="469" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#555566" text-anchor="middle">Multi-src UDP aggregate</text>
+
+  <!-- d3 PM shift note -->
+  <text x="1060" y="500" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#555566" text-anchor="middle" font-style="italic">d3 PM peak shifted +1 hr (21:00)</text>
+  <text x="1060" y="512" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#555566" text-anchor="middle" font-style="italic">to stagger hub congestion windows</text>
+
+  <!-- BLUE flow badges -->
+  <rect x="722" y="522" width="70" height="22" rx="5" fill="#5281e0" fill-opacity="0.2" stroke="#5281e0" stroke-width="1"/>
+  <text x="757" y="537" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#5281e0" text-anchor="middle" font-weight="700">4 tests</text>
+  <rect x="800" y="522" width="148" height="22" rx="5" fill="#5281e0" fill-opacity="0.2" stroke="#5281e0" stroke-width="1"/>
+  <text x="874" y="537" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#5281e0" text-anchor="middle" font-weight="700">2 TCP bidir + 1 UDP + 1 multi-src</text>
+  <rect x="956" y="522" width="170" height="22" rx="5" fill="#5281e0" fill-opacity="0.2" stroke="#5281e0" stroke-width="1"/>
+  <text x="1041" y="537" font-family="'Segoe UI',Arial,sans-serif" font-size="11" fill="#5281e0" text-anchor="middle" font-weight="700">Bimodal 08:00 AM + 20:00 PM sim</text>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- WAVEFORM SECTION                                                    -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+
+  <!-- Section label -->
+  <text x="700" y="572" font-family="'Segoe UI',Arial,sans-serif" font-size="13" font-weight="600" fill="#7a7a8e" text-anchor="middle">
+    Traffic Pattern per Compressed Day (1 full cycle = 360 real seconds)
+  </text>
+
+  <!-- ── RED WAVEFORM (left) ── -->
+  <!-- Box: x=14, y=580, w=676, h=120 -->
+  <rect x="14" y="580" width="676" height="120" rx="8" fill="#ffffff" stroke="#e05252" stroke-width="1" stroke-opacity="0.3"/>
+  <text x="352" y="597" font-family="'Segoe UI',Arial,sans-serif" font-size="11" font-weight="700" fill="#e05252" text-anchor="middle">
+    RED — Single Business Peak (workday model)
+  </text>
+
+  <!-- Hour grid lines (light) -->
+  <line x1="34" y1="690" x2="670" y2="690" stroke="#d8d8e4" stroke-width="1"/>
+  <line x1="34" y1="620" x2="34"  y2="693" stroke="#d8d8e4" stroke-width="1" stroke-dasharray="2,3"/>
+  <!-- Vertical reference at peak (14:00 = 14/24 * 636 + 34 = 34+371=405) -->
+  <line x1="405" y1="606" x2="405" y2="693" stroke="#e05252" stroke-width="1" stroke-dasharray="3,3" stroke-opacity="0.5"/>
+
+  <!-- RED waveform area fill + stroke -->
+  <!-- Points (x=34+(t_h/24)*636, y=690-norm*80):
+    t=0:  x=34,  norm=0.07 → y=684
+    t=2:  x=87,  norm=0.00 → y=690  (trough)
+    t=5:  x=167, norm=0.16 → y=677
+    t=8:  x=247, norm=0.50 → y=650
+    t=11: x=326, norm=0.85 → y=622
+    t=14: x=405, norm=1.00 → y=610  (peak)
+    t=17: x=485, norm=0.85 → y=622
+    t=20: x=564, norm=0.50 → y=650
+    t=22: x=617, norm=0.25 → y=670
+    t=24: x=670, norm=0.07 → y=684
+  -->
+  <path d="M34,684 C60,690 78,690 87,690 C115,690 140,686 167,677
+           C198,666 222,655 247,643 C277,628 302,616 326,611
+           C348,607 380,606 405,606
+           C428,606 455,609 485,616
+           C515,623 540,634 564,645
+           C590,658 607,667 617,672
+           C640,678 658,682 670,684
+           L670,690 L34,690 Z"
+        fill="url(#redFill)"/>
+  <path d="M34,684 C60,690 78,690 87,690 C115,690 140,686 167,677
+           C198,666 222,655 247,643 C277,628 302,616 326,611
+           C348,607 380,606 405,606
+           C428,606 455,609 485,616
+           C515,623 540,634 564,645
+           C590,658 607,667 617,672
+           C640,678 658,682 670,684"
+        fill="none" stroke="#e05252" stroke-width="2.5"/>
+
+  <!-- RED peak dot + label -->
+  <circle cx="405" cy="606" r="4" fill="#e05252"/>
+  <text x="405" y="600" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#e05252" text-anchor="middle">peak ~30 Mbps</text>
+  <circle cx="87" cy="690" r="3" fill="#e05252" fill-opacity="0.5"/>
+
+  <!-- RED hour labels -->
+  <text x="34"  y="702" font-family="monospace" font-size="9" fill="#7a7a8e" text-anchor="middle">00:00</text>
+  <text x="140" y="702" font-family="monospace" font-size="9" fill="#7a7a8e" text-anchor="middle">05:00</text>
+  <text x="247" y="702" font-family="monospace" font-size="9" fill="#7a7a8e" text-anchor="middle">09:00</text>
+  <text x="405" y="702" font-family="monospace" font-size="9" fill="#e05252" text-anchor="middle" font-weight="700">14:00 ▲</text>
+  <text x="564" y="702" font-family="monospace" font-size="9" fill="#7a7a8e" text-anchor="middle">19:00</text>
+  <text x="670" y="702" font-family="monospace" font-size="9" fill="#7a7a8e" text-anchor="middle">24:00</text>
+
+  <!-- RED baseline label -->
+  <text x="22" y="692" font-family="'Segoe UI',Arial,sans-serif" font-size="8" fill="#7a7a8e" text-anchor="end">low</text>
+  <text x="22" y="612" font-family="'Segoe UI',Arial,sans-serif" font-size="8" fill="#7a7a8e" text-anchor="end">high</text>
+
+  <!-- RED weekly annotation -->
+  <text x="352" y="718" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#7a7a8e" text-anchor="middle">
+    + weekly component: Wednesday noon peak · weekend trough · phase_offset = -120 (daily), -450 (weekly)
+  </text>
+
+  <!-- ── BLUE WAVEFORM (right) ── -->
+  <!-- Box: x=710, y=580, w=676, h=120 -->
+  <rect x="710" y="580" width="676" height="120" rx="8" fill="#ffffff" stroke="#5281e0" stroke-width="1" stroke-opacity="0.3"/>
+  <text x="1048" y="597" font-family="'Segoe UI',Arial,sans-serif" font-size="11" font-weight="700" fill="#5281e0" text-anchor="middle">
+    BLUE — Bimodal Consumer (AM commute + PM streaming)
+  </text>
+
+  <!-- BLUE grid -->
+  <line x1="730" y1="690" x2="1366" y2="690" stroke="#d8d8e4" stroke-width="1"/>
+  <!-- AM peak ref at 08:00 = 730+(8/24)*636 = 730+212 = 942 -->
+  <line x1="942"  y1="606" x2="942"  y2="693" stroke="#5281e0" stroke-width="1" stroke-dasharray="3,3" stroke-opacity="0.5"/>
+  <!-- PM peak ref at 20:00 = 730+(20/24)*636 = 730+530 = 1260 -->
+  <line x1="1260" y1="606" x2="1260" y2="693" stroke="#5281e0" stroke-width="1" stroke-dasharray="3,3" stroke-opacity="0.5"/>
+
+  <!-- BLUE waveform area fill + stroke -->
+  <!-- Points (x=730+(t_h/24)*636, y=690-norm*80):
+    t=0:  x=730, norm=0.29 → y=667
+    t=3:  x=809, norm=0.02 → y=688
+    t=8:  x=942, norm=0.68 → y=636  (AM peak)
+    t=12: x=1048,norm=0.13 → y=680
+    t=15: x=1127,norm=0.10 → y=682
+    t=20: x=1260,norm=1.00 → y=610  (PM peak — highest)
+    t=22: x=1313,norm=0.63 → y=640
+    t=24: x=1366,norm=0.29 → y=667
+  -->
+  <path d="M730,667 C756,674 780,688 809,688 C840,688 870,679 905,658
+           C920,649 932,640 942,636
+           C962,636 978,646 994,656
+           C1014,666 1030,680 1048,681
+           C1074,682 1100,683 1127,682
+           C1150,681 1178,672 1210,652
+           C1235,636 1250,622 1260,610
+           C1272,617 1288,630 1313,640
+           C1340,652 1356,662 1366,667
+           L1366,690 L730,690 Z"
+        fill="url(#blueFill)"/>
+  <path d="M730,667 C756,674 780,688 809,688 C840,688 870,679 905,658
+           C920,649 932,640 942,636
+           C962,636 978,646 994,656
+           C1014,666 1030,680 1048,681
+           C1074,682 1100,683 1127,682
+           C1150,681 1178,672 1210,652
+           C1235,636 1250,622 1260,610
+           C1272,617 1288,630 1313,640
+           C1340,652 1356,662 1366,667"
+        fill="none" stroke="#5281e0" stroke-width="2.5"/>
+
+  <!-- BLUE peak dots + labels -->
+  <circle cx="942"  cy="636" r="4" fill="#5281e0"/>
+  <text x="942"  y="630" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#5281e0" text-anchor="middle">AM ~17 Mbps</text>
+  <circle cx="1260" cy="610" r="4" fill="#5281e0"/>
+  <text x="1260" y="604" font-family="'Segoe UI',Arial,sans-serif" font-size="9" fill="#5281e0" text-anchor="middle">PM ~23 Mbps</text>
+  <!-- Midday lull annotation -->
+  <text x="1048" y="676" font-family="'Segoe UI',Arial,sans-serif" font-size="8.5" fill="#7a7a8e" text-anchor="middle">midday lull</text>
+
+  <!-- BLUE hour labels -->
+  <text x="730"  y="702" font-family="monospace" font-size="9" fill="#7a7a8e" text-anchor="middle">00:00</text>
+  <text x="809"  y="702" font-family="monospace" font-size="9" fill="#7a7a8e" text-anchor="middle">03:00</text>
+  <text x="942"  y="702" font-family="monospace" font-size="9" fill="#5281e0" text-anchor="middle" font-weight="700">08:00 ▲</text>
+  <text x="1048" y="702" font-family="monospace" font-size="9" fill="#7a7a8e" text-anchor="middle">12:00</text>
+  <text x="1260" y="702" font-family="monospace" font-size="9" fill="#5281e0" text-anchor="middle" font-weight="700">20:00 ▲</text>
+  <text x="1366" y="702" font-family="monospace" font-size="9" fill="#7a7a8e" text-anchor="middle">24:00</text>
+
+  <!-- BLUE annotation -->
+  <text x="1048" y="718" font-family="'Segoe UI',Arial,sans-serif" font-size="9.5" fill="#7a7a8e" text-anchor="middle">
+    half-day component (period=180) produces 2 peaks · PM-bias (period=360) · weekend-lift (period=2520)
+  </text>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- STATS ROW                                                           -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <rect x="14"   y="730" width="325" height="62" rx="8" fill="#f2f3f8" stroke="#c0c0d0" stroke-width="1"/>
+  <text x="176"  y="754" font-family="'Segoe UI',Arial,sans-serif" font-size="22" font-weight="700" fill="#1a1a2a" text-anchor="middle">10</text>
+  <text x="176"  y="772" font-family="'Segoe UI',Arial,sans-serif" font-size="12" fill="#555566" text-anchor="middle">total traffic flows</text>
+  <text x="176"  y="786" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#7a7a8e" text-anchor="middle">6 RED mesh · 4 BLUE hub-spoke</text>
+
+  <rect x="349"  y="730" width="325" height="62" rx="8" fill="#f2f3f8" stroke="#c0c0d0" stroke-width="1"/>
+  <text x="511"  y="754" font-family="'Segoe UI',Arial,sans-serif" font-size="22" font-weight="700" fill="#1a1a2a" text-anchor="middle">~480</text>
+  <text x="511"  y="772" font-family="'Segoe UI',Arial,sans-serif" font-size="12" fill="#555566" text-anchor="middle">compressed days collected</text>
+  <text x="511"  y="786" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#7a7a8e" text-anchor="middle">480 day/night cycles · 68 weekend transitions</text>
+
+  <rect x="684"  y="730" width="325" height="62" rx="8" fill="#f2f3f8" stroke="#c0c0d0" stroke-width="1"/>
+  <text x="846"  y="754" font-family="'Segoe UI',Arial,sans-serif" font-size="22" font-weight="700" fill="#1a1a2a" text-anchor="middle">~17 K</text>
+  <text x="846"  y="772" font-family="'Segoe UI',Arial,sans-serif" font-size="12" fill="#555566" text-anchor="middle">data points / metric / device</text>
+  <text x="846"  y="786" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#7a7a8e" text-anchor="middle">10 s Prometheus scrape · Cloud Monitoring</text>
+
+  <rect x="1019" y="730" width="367" height="62" rx="8" fill="#f2f3f8" stroke="#c0c0d0" stroke-width="1"/>
+  <text x="1202" y="754" font-family="'Segoe UI',Arial,sans-serif" font-size="22" font-weight="700" fill="#1a1a2a" text-anchor="middle">85–100%</text>
+  <text x="1202" y="772" font-family="'Segoe UI',Arial,sans-serif" font-size="12" fill="#555566" text-anchor="middle">PE-CE utilisation at peak</text>
+  <text x="1202" y="786" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#7a7a8e" text-anchor="middle">congestion events for GNN anomaly training</text>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- FOOTER                                                              -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <line x1="40" y1="800" x2="1360" y2="800" stroke="#d8d8e4" stroke-width="1"/>
+  <text x="700" y="816" font-family="monospace" font-size="10" fill="#7a7a8e" text-anchor="middle">
+    pattern_type: multi_sine · time_reference: elapsed · period: 360 (day) / 2520 (week) · duration: 172800 s
+  </text>
+  <text x="700" y="832" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#7a7a8e" text-anchor="middle">
+    All 10 flows bidirectional · P-P core links 1 Gbit (never saturated) · PE-CE customer links 100 Mbit (saturates at peak)
+  </text>
+  <text x="700" y="850" font-family="'Segoe UI',Arial,sans-serif" font-size="10" fill="#7a7a8e" text-anchor="middle">
+    Training minimum: 100 snapshots (5-min interval) accumulated in ≈50 real minutes after tests reach Running phase
+  </text>
+</svg>

@@ -1,0 +1,102 @@
+---
+- hosts: all
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Debug configuration operation
+      debug:
+        msg: "{{ operation | title }} VyOS configuration for router {{ router_name }}"
+
+    - name: Wait for VyOS container to be fully ready
+      shell: |
+        for i in {1..30}; do
+          if docker exec {{ router_name }} vbash --help "show version" >/dev/null 2>&1; then
+            echo "VyOS ready"
+            exit 0
+          fi
+          sleep 2
+        done
+        echo "VyOS not ready after 60 seconds"
+        exit 1
+      register: vyos_ready
+      when: operation in ['configure', 'update']
+
+    - name: Update /etc/hosts with hostname resolution
+      shell: |
+        docker exec {{ router_name }} sh -c '
+            set -e
+            expected_hostname="{{ router_hostname }}"
+            router_name="{{ router_name }}"
+            
+            # Create a clean /etc/hosts file
+            cat > /etc/hosts << EOF
+        127.0.0.1 localhost
+        ::1 localhost ip6-localhost ip6-loopback
+        fe00::0 ip6-localnet
+        ff00::0 ip6-mcastprefix
+        ff02::1 ip6-allnodes
+        ff02::2 ip6-allrouters
+        127.0.1.1 ${expected_hostname}.lab.local ${expected_hostname}
+        EOF
+            
+            # Add container name if different from hostname
+            if [ "$router_name" != "$expected_hostname" ]; then
+                echo "127.0.1.1 ${router_name}.lab.local ${router_name}" >> /etc/hosts
+            fi
+            
+            echo "/etc/hosts updated successfully"
+            cat /etc/hosts
+        '
+      register: hosts_file_update
+      changed_when: true
+      ignore_errors: true   # Non-critical: hosts resolution failure does not affect routing
+      when: operation in ['configure', 'update']
+
+    # CONFIGURE/UPDATE OPERATIONS
+    - block:
+        - name: Render VyOS configuration commands
+          set_fact:
+            vyos_config_commands: "{{ lookup('template', 'vyos_config.j2') }}"
+          vars:
+            config_mode: "{{ operation }}"
+
+        - name: Capture VyOS configuration
+          debug:
+            var: vyos_config_commands
+
+        # - name: Debug - Display configuration commands to be applied
+        #   debug:
+        #     msg: "{{ vyos_config_commands.split('\n') }}"
+
+        - name: Copy configuration script to container
+          shell: |
+            cat << 'CONFIGEOF' | docker exec -i {{ router_name }} sh -c 'cat > /tmp/vyos_config.sh'
+            {{ vyos_config_commands }}
+            CONFIGEOF
+          register: copy_result
+          retries: 3
+          delay: 5
+          until: copy_result.rc == 0
+
+        - name: Apply VyOS configuration via docker exec
+          shell: |
+            docker exec {{ router_name }} timeout 120 vbash /tmp/vyos_config.sh
+          register: config_result
+
+        - name: Display configuration result
+          debug:
+            msg: "{{ config_result.stdout_lines }}"
+
+        - name: Check for configuration errors
+          debug:
+            msg: "{{ config_result.stderr_lines }}"
+          when: config_result.stderr_lines is defined and config_result.stderr_lines | length > 0
+
+      when: operation in ['configure', 'update']
+
+    # ERROR HANDLING
+    - name: Handle unsupported operation
+      fail:
+        msg: "Unsupported operation: {{ operation }}. Supported operations are: configure, update"
+      when: operation not in ['configure', 'update']

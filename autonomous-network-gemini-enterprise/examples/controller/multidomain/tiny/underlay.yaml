@@ -1,0 +1,46 @@
+apiVersion: google.dev/v1
+kind: VyOSUnderlay
+metadata:
+  name: free5gc-underlay
+  namespace: network
+spec:
+  infrastructureRef: free5gc-infra
+  routing:
+    ospf:
+      router_id_source: "loopback"
+      areas: [{ area_id: "0.0.0.0", type: "backbone" }]
+  routers:
+    - name: "p1"
+      protocols:
+        ospf:
+          router_id: "10.0.0.1"
+          areas:
+            - area: "0.0.0.0"
+              type: "backbone"
+              interfaces: ["eth1", "eth2"]
+          passive_interfaces: ["lo"]
+    - name: "ce-core1"
+      protocols:
+        ospf:
+          router_id: "10.0.0.2"
+          areas:
+            - area: "0.0.0.0"
+              type: "backbone"
+              interfaces: ["eth1"]
+              networks: ["10.101.2.0/24"]
+          passive_interfaces: ["lo", "eth2"]
+        static:
+          routes:
+            - destination: "10.60.0.0/16"
+              next_hop: "10.101.2.13"
+              description: "UE pool via UPF"
+    - name: "ce-cell1"
+      protocols:
+        ospf:
+          router_id: "10.0.0.3"
+          areas:
+            - area: "0.0.0.0"
+              type: "backbone"
+              interfaces: ["eth1"]
+              networks: ["10.101.1.0/24"]
+          passive_interfaces: ["lo", "eth2"]

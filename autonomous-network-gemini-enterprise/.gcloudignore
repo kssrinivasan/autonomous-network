@@ -1,0 +1,34 @@
+.git
+.gitignore
+GEMINI.md
+CLAUDE.md
+AUTHORS
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+INSTALL.md
+install.sh
+LICENSE
+README.md
+
+# Credential-bearing config. config.sh is this tree's; setenv.sh is kept for
+# anyone with a working copy that predates the migration. Neither must ever
+# reach a build context.
+config.sh
+setenv.sh
+agents-in-agent-runtime/runtime_variables.json
+
+# Migration working documents
+MIGRATION_PLAN.md
+REPO_COMPARISON.md
+
+docs/
+examples/
+**/__pycache__/
+.venv/
+**/.venv/
+.dart_tool/
+**/.dart_tool/
+
+# NOTE: do NOT ignore build/ -- dashboard-v2/Dockerfile does
+# "ADD dashboard-v2/build/web/" and that directory is a Flutter build output,
+# not tracked in git. Excluding it here makes the image build fail.

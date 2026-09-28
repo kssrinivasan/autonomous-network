@@ -1,0 +1,51 @@
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: red-vpn-mesh-test
+  namespace: network
+spec:
+  description: "RED VPN any-to-any mesh - enhanced for capacity testing"
+  vpnRef: red-vpn-service
+  source_devices:
+    - "red2"   # pe2 (Cambridge, Area 1)
+    - "red3"   # pe3 (Brighton, Area 1)
+    - "red4"   # pe4 (Southampton, Area 1)
+    - "red5"   # pe5 (Liverpool, Area 1)
+    - "red6"   # pe6 (Newcastle, Area 1)
+  destination_device: "red1"
+  protocol: TCP
+  duration: 3600    # 1 hour for steady-state analysis
+
+  # Mesh traffic: 40 Mbps with moderate variation
+  bandwidth: 60Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: wall_clock
+    base_rate: 35Mbps
+    components:
+      - period: 3600       # 1-hour cycle
+        amplitude: 15Mbps
+        phase_offset: 0
+    noise_stddev_pct: 5.0
+    min_rate: 15Mbps
+    max_rate: 60Mbps
+
+  bidirectional: false
+  concurrent_users: 8
+
+  expected_paths:
+    - source: "red2"
+      expected: ["ce2-red", "pe2", "pa1", "pa2", "pe1", "ce1-red", "red1"]
+      description: "Cambridge to Oxford mesh - direct Area 1 path"
+    - source: "red3"
+      expected: ["ce3-red", "pe3", "pa1", "pa3", "pa1", "pa2", "pe1", "ce1-red", "red1"]
+      description: "Brighton to Oxford mesh - Area 1 path"
+    - source: "red4"
+      expected: ["ce4-red", "pe4", "pa2", "pa3", "pa1", "pa2", "pe1", "ce1-red", "red1"]
+      description: "Southampton to Oxford mesh - Area 1 path"
+    - source: "red5"
+      expected: ["ce5-red", "pe5", "pa2", "pa4", "pa1", "pa2", "pe1", "ce1-red", "red1"]
+      description: "Liverpool to Oxford mesh - Area 1 path"
+    - source: "red6"
+      expected: ["ce6-red", "pe6", "pa1", "pa4", "pa1", "pa2", "pe1", "ce1-red", "red1"]
+      description: "Newcastle to Oxford mesh - Area 1 path"

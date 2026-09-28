@@ -1,0 +1,7 @@
+streamlit>=1.30
+streamlit-autorefresh>=1.0
+google-cloud-spanner>=3.40
+pandas>=2.0
+numpy>=1.24
+matplotlib>=3.7
+seaborn>=0.13

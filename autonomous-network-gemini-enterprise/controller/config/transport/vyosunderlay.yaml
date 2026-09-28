@@ -1,0 +1,410 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: vyosunderlays.google.dev
+  labels:
+    # Opt-in allowlist: chaos and designer enumerate CRDs by this marker to
+    # learn what they may create. Without it their label selectors match nothing.
+    agent-accessible: "true"
+    type: transport
+spec:
+  group: google.dev
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: |
+            VyOSUnderlay defines the underlay network protocols (OSPF, BGP, MPLS) for a VyOS network infrastructure.
+            It sits in the middle of the dependency chain: VyOSInfrastructure → VyOSUnderlay → VyOSL3VPN.
+
+            DEPENDENCY AND READINESS:
+              - spec.infrastructureRef must name an existing VyOSInfrastructure in the same namespace.
+              - The operator checks that infrastructure's status.phase == 'Ready' before proceeding.
+              - If the infrastructure exists but is not Ready, the operator sets this resource's phase
+                to 'Waiting' and retries every 10 seconds (TemporaryError).
+              - If the infrastructure does not exist at all (404), it is a permanent error — no retry.
+              - If infrastructureRef is omitted, the operator skips the dependency check and proceeds.
+
+            HOW THE OPERATOR POPULATES ROUTER CONFIGS:
+              - For each entry in spec.routers[], the operator issues a merge-patch to the VyOSRouter
+                CR whose metadata.name matches routers[].name.
+              - The patch sets spec.protocols = routers[].protocols on the target VyOSRouter.
+              - If routers[].traffic_policy is present, it is also patched into spec.traffic_policy.
+              - The operator continues patching remaining routers even if one fails.
+              - On update, the full patch logic is re-applied (idempotent).
+
+            LIFECYCLE:
+              Waiting → Processing → Ready | Error
+          properties:
+            spec:
+              type: object
+              required:
+                - infrastructureRef
+              properties:
+                infrastructureRef:
+                  type: string
+                  description: |
+                    Name of the VyOSInfrastructure resource this underlay is built on.
+                    RULE: Must reference an existing VyOSInfrastructure CR in the same namespace.
+                    The operator polls its status.phase every 10 seconds until it equals 'Ready'.
+                    A missing resource (404) results in a permanent error. An infrastructure that
+                    exists but is not yet Ready causes a temporary retry. If this field is omitted,
+                    the dependency check is skipped entirely.
+                    Example: 'l3vpn-hub-spoke-infra'
+                mpls:
+                  type: object
+                  description: >
+                    Global MPLS settings for this underlay. These are informational defaults used
+                    to inform per-router configuration in spec.routers[].protocols.mpls. The operator
+                    does not apply this block directly to routers — individual router MPLS config is
+                    taken from spec.routers[].protocols.mpls.
+                  properties:
+                    enabled:
+                      type: boolean
+                      default: false
+                    ldp:
+                      type: object
+                      properties:
+                        router_id_interface:
+                          type: string
+                          default: "loopback"
+                          description: "Interface from which to derive the LDP router ID. Default 'loopback'."
+                        label_range:
+                          type: object
+                          properties:
+                            min:
+                              type: integer
+                              description: "Minimum MPLS label value in the allocation range."
+                            max:
+                              type: integer
+                              description: "Maximum MPLS label value in the allocation range."
+                routing:
+                  type: object
+                  description: >
+                    Global routing protocol settings for this underlay. These are informational
+                    defaults and topology-level declarations. The operator does not apply this
+                    block directly to routers — individual router protocol config is taken from
+                    spec.routers[].protocols.
+                  properties:
+                    ospf:
+                      type: object
+                      properties:
+                        router_id_source:
+                          type: string
+                          default: "loopback"
+                          description: "Interface from which to derive the OSPF router ID. Default 'loopback'."
+                        areas:
+                          type: array
+                          description: "Topology-level OSPF area declarations (informational)."
+                          items:
+                            type: object
+                            required:
+                              - area_id
+                              - type
+                            properties:
+                              area_id:
+                                type: string
+                                description: "OSPF area ID in dotted-decimal notation (e.g. '0.0.0.0' for backbone)."
+                              type:
+                                type: string
+                                enum: ["backbone", "standard", "stub", "nssa"]
+                                description: "Area type."
+                              description:
+                                type: string
+                                description: "Human-readable description of this area's purpose."
+                    bgp:
+                      type: object
+                      properties:
+                        as_number:
+                          type: integer
+                          description: "Provider BGP AS number shared across all PE/RR routers in this underlay."
+                        router_id_source:
+                          type: string
+                          default: "loopback"
+                          description: "Interface from which to derive BGP router IDs. Default 'loopback'."
+                        route_reflectors:
+                          type: array
+                          description: "List of router names that act as route reflectors in this underlay."
+                          items:
+                            type: string
+                        external_peers:
+                          type: array
+                          description: "Topology-level external BGP peer declarations (informational)."
+                          items:
+                            type: object
+                            required:
+                              - peer
+                              - as_number
+                            properties:
+                              peer:
+                                type: string
+                                description: "External peer IP address."
+                              as_number:
+                                type: integer
+                                description: "External peer AS number."
+                              description:
+                                type: string
+                                description: "Human-readable description of this external peer."
+                routers:
+                  type: array
+                  description: >
+                    Per-router protocol configuration to patch into existing VyOSRouter CRs.
+
+                    OPERATOR POPULATION RULES:
+                      - For each entry, the operator finds the VyOSRouter CR whose metadata.name
+                        matches routers[].name in the same namespace.
+                      - The operator issues a merge-patch with:
+                          spec.protocols = routers[].protocols
+                        This REPLACES the protocols block on the target VyOSRouter.
+                      - If routers[].traffic_policy is present, it is also patched into
+                        the VyOSRouter's spec.traffic_policy via the same merge-patch.
+                      - The operator continues processing remaining routers even if one patch fails.
+                      - routers[].name must exactly match an existing VyOSRouter CR name —
+                        the operator does not create routers here, only patches them.
+                  items:
+                    type: object
+                    required:
+                      - name
+                    properties:
+                      name:
+                        type: string
+                        description: >
+                          Name of the VyOSRouter CR to patch with the underlay protocol configuration.
+                          Must exactly match an existing VyOSRouter CR metadata.name in the same
+                          namespace. The operator does not create this router — it must already exist
+                          (typically created by the parent VyOSInfrastructure).
+                      protocols:
+                        type: object
+                        description: >
+                          Routing protocols configuration to merge-patch into spec.protocols on the
+                          target VyOSRouter CR. This block REPLACES the existing protocols spec on
+                          the router. Must conform to the VyOSRouter CRD schema for spec.protocols.
+
+                          OPERATOR ACTION: The operator patches the VyOSRouter with:
+                            { spec: { protocols: <this block> } }
+                          using a merge-patch, so any protocols fields not listed here are preserved.
+                        properties:
+                          ospf:
+                            type: object
+                            description: >
+                              OSPF configuration to apply to this router. Patched into
+                              VyOSRouter spec.protocols.ospf.
+                            properties:
+                              router_id:
+                                type: string
+                                pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                                description: "OSPF router ID in dotted-decimal notation."
+                              areas:
+                                type: array
+                                items:
+                                  type: object
+                                  required:
+                                    - area
+                                  properties:
+                                    area:
+                                      type: string
+                                      pattern: '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'
+                                      description: "OSPF area ID in dotted-decimal notation (e.g. '0.0.0.0')."
+                                    networks:
+                                      type: array
+                                      items:
+                                        type: string
+                                        pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$'
+                                      description: "Networks to advertise in this area in CIDR notation."
+                                    interfaces:
+                                      type: array
+                                      items:
+                                        type: string
+                                      description: "Interface names participating in this OSPF area."
+                                    type:
+                                      type: string
+                                      enum: ["backbone", "standard", "stub", "nssa"]
+                                      default: "standard"
+                                      description: "Area type. Defaults to 'standard'."
+                              passive_interfaces:
+                                type: array
+                                items:
+                                  type: string
+                                description: "Interfaces on which OSPF hellos are suppressed (no adjacencies formed)."
+                              interface_costs:
+                                type: array
+                                description: "OSPF interface cost overrides. Default cost is 1."
+                                items:
+                                  type: object
+                                  required:
+                                    - interface
+                                  properties:
+                                    interface:
+                                      type: string
+                                      pattern: '^(eth[0-9]+|lo)(\.([0-9]+))?$'
+                                      description: "Interface name (e.g., 'eth1', 'eth2.100' for VLAN)"
+                                    cost:
+                                      type: integer
+                                      minimum: 1
+                                      maximum: 65535
+                                      default: 1
+                                      description: "OSPF interface cost (1-65535). Higher costs make paths less preferred. Defaults to 1."
+                          bgp:
+                            type: object
+                            description: >
+                              BGP configuration to apply to this router. Patched into
+                              VyOSRouter spec.protocols.bgp.
+                            properties:
+                              as_number:
+                                type: integer
+                                minimum: 1
+                                maximum: 4294967295
+                                description: "BGP AS number for this router."
+                              router_id:
+                                type: string
+                                pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                                description: "BGP router ID in dotted-decimal notation."
+                              route_reflector:
+                                type: boolean
+                                default: false
+                                description: "When true, this router acts as a BGP route reflector for its clients."
+                              neighbors:
+                                type: array
+                                description: "BGP neighbor (peer) definitions for this router."
+                                items:
+                                  type: object
+                                  required:
+                                    - peer
+                                    - remote_as
+                                  properties:
+                                    peer:
+                                      type: string
+                                      pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                                      description: "Neighbor IP address."
+                                    remote_as:
+                                      type: integer
+                                      minimum: 1
+                                      maximum: 4294967295
+                                      description: "Remote AS number."
+                                    description:
+                                      type: string
+                                      description: "Human-readable description of this neighbor."
+                                    route_reflector_client:
+                                      type: boolean
+                                      default: false
+                                      description: "When true, this neighbor is a route reflector client of this router."
+                              address_families:
+                                type: array
+                                description: "BGP address families to activate on this router."
+                                items:
+                                  type: object
+                                  required:
+                                    - family
+                                  properties:
+                                    family:
+                                      type: string
+                                      enum: ["ipv4-unicast", "ipv4-multicast", "ipv6-unicast", "vpnv4", "vpnv6"]
+                                      description: "BGP address family identifier."
+                                    networks:
+                                      type: array
+                                      items:
+                                        type: string
+                                        pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$'
+                                      description: "Networks to advertise in this address family."
+                          mpls:
+                            type: object
+                            description: >
+                              MPLS configuration to apply to this router. Patched into
+                              VyOSRouter spec.protocols.mpls.
+                            properties:
+                              enabled:
+                                type: boolean
+                                default: false
+                                description: "Enable MPLS forwarding on this router."
+                              ldp:
+                                type: object
+                                properties:
+                                  router_id:
+                                    type: string
+                                    pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                                    description: "LDP router ID."
+                                  interfaces:
+                                    type: array
+                                    items:
+                                      type: string
+                                    description: "Interfaces on which LDP is enabled."
+                          static:
+                            type: object
+                            description: >
+                              Static routing configuration to apply to this router. Patched into
+                              VyOSRouter spec.protocols.static.
+                            properties:
+                              routes:
+                                type: array
+                                items:
+                                  type: object
+                                  required:
+                                    - destination
+                                  properties:
+                                    destination:
+                                      type: string
+                                      pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$'
+                                      description: "Destination network in CIDR notation."
+                                    next_hop:
+                                      type: string
+                                      pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                                      description: "Next hop IP address."
+                                    interface:
+                                      type: string
+                                      description: "Exit interface name (alternative to next_hop)."
+                                    distance:
+                                      type: integer
+                                      minimum: 1
+                                      maximum: 255
+                                      default: 1
+                                      description: "Administrative distance. Defaults to 1."
+                                    description:
+                                      type: string
+                                      description: "Human-readable route description."
+                                    vrf:
+                                      type: string
+                                      description: "VRF name if this route belongs to a specific VRF."
+                          traffic_policy:
+                            type: object
+                            x-kubernetes-preserve-unknown-fields: true
+                            description: >
+                              Traffic control policy properties to patch into VyOSRouter
+                              spec.traffic_policy. If present, patched alongside spec.protocols
+                              in the same merge-patch operation. Arbitrary structure is preserved.
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                  description: >
+                    Current lifecycle phase set by the operator:
+                    'Waiting'    — waiting for referenced VyOSInfrastructure to reach Ready phase
+                                   (retries every 10 seconds);
+                    'Processing' — applying underlay protocol configuration to VyOSRouter CRs;
+                    'Ready'      — all router patches applied successfully;
+                    'Error'      — a permanent error occurred (e.g. referenced infrastructure not found).
+                message:
+                  type: string
+                  description: "Human-readable status message from the operator."
+      additionalPrinterColumns:
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+        - name: Infra
+          type: string
+          jsonPath: .spec.infrastructureRef
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+  names:
+    kind: VyOSUnderlay
+    plural: vyosunderlays
+    singular: vyosunderlay
+    shortNames:
+      - underlay
+  scope: Namespaced

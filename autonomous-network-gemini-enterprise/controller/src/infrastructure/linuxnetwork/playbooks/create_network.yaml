@@ -1,0 +1,92 @@
+---
+- hosts: all
+  become: true
+  # Disable global fact gathering — most network types (p2p, data) don't need
+  # any Ansible facts.  Fact collection adds 10-30s of SSH overhead per run,
+  # causing playbook timeouts under concurrent load.  Management networks still
+  # need ansible_default_ipv4, so a conditional setup task follows instead.
+  gather_facts: no
+
+  tasks:
+    - name: Gather facts for management network only
+      setup:
+      when: network_type == 'management'
+
+    - name: Create native Linux bridge network (brctl)
+      command: brctl addbr {{ network_name }}
+      register: network_result
+      ignore_errors: true # Ignore errors if the bridge already exists
+
+    - name: Bring up the bridge
+      command: ip link set {{ network_name }} up
+
+    - name: Assign gateway IP to management bridge
+      command: ip addr add {{ gateway_ip }}/24 dev {{ network_name }}
+      ignore_errors: true
+      when: 
+        - network_type == 'management'
+        - gateway_ip is defined
+        - gateway_ip is not none
+        - gateway_ip != ''
+
+    - name: Apply bandwidth limit to bridge interface using tc
+      when: 
+        - network_type != 'management'
+        - bandwidth is defined
+        - bandwidth is not none
+        - bandwidth != ''
+        - bandwidth != 'unlimited'
+      shell: |
+        set -e
+        BRIDGE="{{ network_name }}"
+        BANDWIDTH="{{ bandwidth }}"
+        
+        # Remove existing qdisc if present
+        tc qdisc del dev $BRIDGE root 2>/dev/null || true
+        
+        # Add HTB (Hierarchical Token Bucket) qdisc
+        tc qdisc add dev $BRIDGE root handle 1: htb default 10
+        
+        # Create root class with bandwidth limit
+        tc class add dev $BRIDGE parent 1: classid 1:1 htb rate $BANDWIDTH
+        
+        # Create default class for all traffic
+        tc class add dev $BRIDGE parent 1:1 classid 1:10 htb rate $BANDWIDTH
+        
+        # Add fair queueing for traffic within the limit
+        tc qdisc add dev $BRIDGE parent 1:10 handle 10: sfq perturb 10
+        
+        echo "Applied ${BANDWIDTH} bandwidth limit to bridge ${BRIDGE}"
+      register: tc_result
+      
+    - name: Display TC configuration result
+      when: 
+        - bandwidth is defined
+        - bandwidth is not none
+        - bandwidth != ''
+        - bandwidth != 'unlimited'
+        - tc_result is defined
+        - tc_result.stdout is defined
+      debug:
+        msg: "{{ tc_result.stdout }}"
+
+    - name: Return ip address of the default interface
+      set_fact:
+        interface_ip: "{{ ansible_default_ipv4.address | default('unknown') }}"
+      when: network_type == 'management'
+
+    - name: Return default IPv4 interface
+      set_fact:
+        default_interface: "{{ ansible_default_ipv4.interface | default('unknown') }}"
+      when: network_type == 'management'
+
+    - name: Return default gateway
+      set_fact:
+        default_gateway: "{{ ansible_default_ipv4.gateway | default('unknown') }}"
+      when: network_type == 'management'
+
+  handlers:
+    - name: restart docker
+      systemd:
+        name: docker
+        state: restarted

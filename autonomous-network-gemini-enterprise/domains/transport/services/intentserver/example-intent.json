@@ -1,0 +1,53 @@
+{
+  "@type": "Intent",
+  "name": "red-mesh-vpn",
+  "description": "Any-to-any mesh VPN connecting four enterprise sites",
+  "priority": 50,
+  "intentExpression": {
+    "@type": "IntentExpression",
+    "expectation": [
+      {
+        "@type": "L3ConnectivityExpectation",
+        "expectationVerb": "DELIVER",
+        "expectationObject": {
+          "@type": "L3VPNService",
+          "serviceName": "Red Mesh VPN",
+          "topology": "any-to-any",
+          "underlayRef": "l3vpn-underlay",
+          "endpoints": [
+            {
+              "peRouter": "pe1",
+              "peInterface": "eth3",
+              "customerRouter": "ce1-red",
+              "customerPrefix": "10.101.1.0/24"
+            },
+            {
+              "peRouter": "pe2",
+              "peInterface": "eth4",
+              "customerRouter": "ce2-red",
+              "customerPrefix": "10.101.2.0/24"
+            },
+            {
+              "peRouter": "pe3",
+              "peInterface": "eth3",
+              "customerRouter": "ce3-red",
+              "customerPrefix": "10.101.3.0/24"
+            },
+            {
+              "peRouter": "pe4",
+              "peInterface": "eth3",
+              "customerRouter": "ce4-red",
+              "customerPrefix": "10.101.4.0/24"
+            }
+          ],
+          "sla": {
+            "bandwidth": "100 Mbps per endpoint",
+            "latency": "< 10ms",
+            "availability": "99.99%",
+            "trafficClass": "business-critical"
+          }
+        }
+      }
+    ]
+  }
+}

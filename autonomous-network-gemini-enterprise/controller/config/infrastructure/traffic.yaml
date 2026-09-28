@@ -1,0 +1,1205 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: traffictests.google.dev
+  labels:
+    # Opt-in allowlist: chaos and designer enumerate CRDs by this marker to
+    # learn what they may create. Without it their label selectors match nothing.
+    agent-accessible: "true"
+    type: traffic
+spec:
+  scope: Namespaced
+  group: google.dev
+  names:
+    kind: TrafficTest
+    plural: traffictests
+    singular: traffictest
+    shortNames:
+      - tt
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: |
+            TrafficTest defines comprehensive network traffic testing scenarios between devices for performance validation and network characterization.
+            
+            The TrafficTest resource enables:
+            - End-to-end connectivity validation between customer devices
+            - Service level agreement (SLA) verification and compliance testing
+            - Network capacity planning and bandwidth utilization analysis
+            - Quality of Service (QoS) policy validation and traffic prioritization testing
+            - Real-world traffic pattern simulation for network stress testing
+            
+            Traffic Test Architecture:
+            - Source and destination devices must be connected through the network topology
+            - Tests can traverse multiple network segments including L3VPN tunnels
+            - Supports both TCP and UDP protocols for different application scenarios
+            - Configurable traffic patterns simulate real-world application behavior
+            - All flow metrics (throughput, latency, packet loss, jitter) are collected
+              automatically by the Ops Agent Prometheus scrape on each device — no
+              metrics configuration is required in the TrafficTest spec.
+            
+            Use Cases:
+            - Customer onboarding: Validate connectivity and performance before service activation
+            - SLA compliance: Verify contracted bandwidth and latency requirements
+            - Network troubleshooting: Isolate performance issues and identify bottlenecks
+            - Capacity planning: Understand network utilization and plan for growth
+            - QoS validation: Ensure traffic prioritization policies work as designed
+            - Change validation: Test network performance after configuration changes
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - source_devices
+                - destination_device
+                - protocol
+              properties:
+                vpnRef:
+                  type: string
+                  description: |
+                    Name of the VyOSL3VPN resource that must be in Ready state before
+                    this TrafficTest is provisioned. The operator checks status.phase on
+                    the referenced VyOSL3VPN every 30 seconds until it equals 'Ready'.
+                    A missing VPN (404) results in a permanent error — no retry.
+
+                    Dependency Chain:
+                      VyOSInfrastructure → VyOSUnderlay → VyOSL3VPN (Ready)
+                                                                ↓
+                                                          TrafficTest provisions
+
+                    Example: 'l3vpn-blue-service'
+                cellSiteRef:
+                  type: string
+                  description: |
+                    Name of the CellSite resource that must be in Ready state before
+                    this TrafficTest is provisioned. Use this when ue_imsi is set to
+                    ensure the UERANSIM gNodeB and UEs are fully registered before
+                    traffic starts. The operator checks status.phase on the referenced
+                    CellSite every 30 seconds until it equals 'Ready'.
+                    A missing CellSite (404) results in a permanent error — no retry.
+
+                    Dependency Chain:
+                      FiveGCore (Ready) + Device (Ready) → CellSite (Ready)
+                                                               ↓
+                                                         TrafficTest provisions
+
+                    Example: 'cell1'
+                ue_imsi:
+                  type: string
+                  description: |
+                    Optional IMSI of a UERANSIM UE whose tunnel interface should be used
+                    to route source traffic through the 5G user-plane.
+
+                    When set, the operator resolves the uesimtun interface for this IMSI
+                    by reading its tunName-derived interface name (ue{imsi[-6:]}0) from
+                    the source device container, obtains the IP assigned by the UPF, and
+                    passes it as source_ip in the flow request so the traffic-agent binds
+                    that address. Packets then egress via the UERANSIM tunnel and traverse
+                    the full 5G user-plane (gNB → AMF/SMF → UPF N6 masquerade → internet).
+
+                    Multiple TrafficTest CRs, each with a different ue_imsi, can run
+                    concurrently on the same source device — each flow binds to a distinct
+                    uesimtun IP so the OS routes them independently.
+
+                    Requires that the UE config template sets tunName to match the
+                    ue{imsi[-6:]} convention so interface names are deterministic.
+
+                    Example: '208930000000001'
+                source_devices:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+                  description: |
+                    List of source devices that will initiate traffic tests to the destination.
+                    All sources use the same traffic pattern, bandwidth, and configuration.
+                    
+                    Multi-Source Use Cases:
+                    - Load testing: Multiple clients sending to single server to test aggregate capacity
+                    - Hub testing: Multiple spoke sites sending to central hub simultaneously
+                    - Aggregate bandwidth measurement: Combined throughput from multiple sources
+                    - Network stress testing: Simulate realistic multi-client scenarios
+                    - Capacity planning: Understand how network handles concurrent traffic flows
+                    
+                    Device Selection:
+                    - Each device must reference a Device resource defined in the same namespace
+                    - All devices must have network connectivity and traffic generation capabilities
+                    - Devices should be reachable from the destination through the network
+                    - Consider network topology when selecting multiple sources
+                    
+                    Traffic Pattern:
+                    - All sources use identical traffic configuration (pattern, bandwidth, duration)
+                    - Traffic generators run independently on each source
+                    - Each source maintains a separate connection to the destination
+                    - Flow metrics are collected per-source by the Ops Agent on each device
+                    
+                    Common Source Device Types:
+                    - Customer CPE routers for end-to-end connectivity testing
+                    - Branch office devices for site-to-site performance validation
+                    - Test probes for network monitoring and performance measurement
+                    - Application servers for service-specific traffic simulation
+                    
+                    Examples:
+                    - ["customer-a-cpe"] - Single source (equivalent to previous single-device behavior)
+                    - ["branch-1", "branch-2", "branch-3"] - Three branch offices testing hub
+                    - ["probe-east", "probe-west", "probe-central"] - Geographic distribution test
+                    - ["client-1", "client-2", "client-3", "client-4", "client-5"] - Load testing with 5 clients
+                destination_device:
+                  type: string
+                  description: |
+                    Name of the destination device that will receive the traffic test.
+                    
+                    Device Selection:
+                    - Must reference a Device resource defined in the same namespace
+                    - Should be reachable from the source device through the network
+                    - Can be another CPE, server, or dedicated test endpoint
+                    - Location determines the network path and segments being tested
+                    
+                    Network Path Considerations:
+                    - Different destinations test different network segments and policies
+                    - Hub-spoke topologies: Test spoke-to-hub and spoke-to-spoke connectivity
+                    - Multi-site networks: Validate inter-site communication paths
+                    - Internet access: Test connectivity to external services and applications
+                    
+                    Examples:
+                    - "customer-b-cpe" - Customer B's CPE for inter-customer testing
+                    - "datacenter-server" - Central datacenter service endpoint
+                    - "internet-gateway" - Internet access validation endpoint
+                protocol:
+                  type: string
+                  enum:
+                    - TCP
+                    - UDP
+                  description: |
+                    Network protocol to use for the traffic test, determines connection behavior and reliability characteristics.
+                    
+                    Protocol Selection Guidelines:
+                    
+                    TCP (Transmission Control Protocol):
+                    - Connection-oriented protocol with reliability guarantees
+                    - Automatic retransmission of lost packets
+                    - Flow control and congestion management
+                    - Suitable for applications requiring data integrity
+                    - Use cases: Web traffic, file transfers, database connections, email
+                    - Provides accurate throughput measurements under congestion
+                    - Higher overhead due to connection establishment and acknowledgments
+                    
+                    UDP (User Datagram Protocol):
+                    - Connectionless protocol with minimal overhead
+                    - No automatic retransmission or flow control
+                    - Lower latency due to reduced protocol overhead
+                    - Suitable for real-time applications and streaming
+                    - Use cases: Voice/video calls, gaming, DNS queries, streaming media
+                    - Better for latency-sensitive applications and jitter measurement
+                    - May not fully utilize available bandwidth under ideal conditions
+                    
+                    Selection Criteria:
+                    - Choose TCP for bandwidth and reliability testing
+                    - Choose UDP for latency, jitter, and real-time application testing
+                    - Consider the actual applications that will use the network path
+                duration:
+                  type: integer
+                  minimum: 1
+                  description: |
+                    Duration of the traffic test in seconds, determines test length and measurement accuracy.
+                    
+                    Duration Planning Guidelines:
+                    - Longer tests provide more accurate and stable measurements
+                    - Consider network conditions and traffic patterns during test period
+                    - Account for test startup and stabilization time
+                    - Balance measurement accuracy with resource utilization
+                    
+                    Recommended Durations:
+                    - Quick connectivity test: 10-30 seconds
+                    - Basic performance test: 60-300 seconds (1-5 minutes)
+                    - Comprehensive analysis: 600-1800 seconds (10-30 minutes)
+                    - Long-term monitoring: 3600+ seconds (1+ hours)
+                    
+                    Factors Affecting Duration:
+                    - Network stability: Unstable networks need longer tests
+                    - Traffic patterns: Periodic patterns need multiple cycles
+                    - Measurement precision: Longer tests reduce statistical variance
+                    - Resource constraints: Consider impact on production traffic
+                    
+                    Examples:
+                    - 60: One-minute basic connectivity test
+                    - 300: Five-minute performance validation
+                    - 1800: Thirty-minute comprehensive analysis
+                bandwidth:
+                  type: string
+                  pattern: '^[0-9]+(Kbps|Mbps|Gbps)$'
+                  description: |
+                    Target bandwidth for the traffic test, defines the intended traffic rate.
+                    
+                    Bandwidth Specification:
+                    - Kbps: Kilobits per second (1,000 bits/second)
+                    - Mbps: Megabits per second (1,000,000 bits/second)  
+                    - Gbps: Gigabits per second (1,000,000,000 bits/second)
+                    
+                    Bandwidth Selection Guidelines:
+                    - Should not exceed the physical interface capacity
+                    - Consider contracted service levels and SLA requirements
+                    - Account for protocol overhead (TCP ~5-10%, UDP ~1-2%)
+                    - Leave headroom for other traffic and network overhead
+                    
+                    Common Bandwidth Targets:
+                    - 1Mbps-10Mbps: Small office/home office connections
+                    - 10Mbps-100Mbps: Business broadband and branch offices
+                    - 100Mbps-1Gbps: Enterprise connections and data centers
+                    - 1Gbps+: High-performance computing and backbone links
+                    
+                    Testing Strategies:
+                    - Start with lower bandwidth and increase gradually
+                    - Test at contracted bandwidth to verify SLA compliance
+                    - Test above contracted bandwidth to find actual capacity
+                    - Use multiple concurrent tests to simulate real-world usage
+                    
+                    Examples:
+                    - "10Mbps": Small business connection test
+                    - "100Mbps": Standard enterprise connection
+                    - "1Gbps": High-speed data center link
+                pattern_type:
+                  type: string
+                  enum:
+                    - constant
+                    - periodic
+                    - burst
+                    - poisson
+                    - multi_sine
+                    - schedule
+                  default: constant
+                  description: |
+                    Type of traffic pattern to generate, simulates different application behaviors and network conditions.
+                    
+                    Traffic Pattern Types:
+                    
+                    "constant": Steady, continuous traffic at fixed rate.
+                    - Ideal for baseline performance measurement and capacity testing.
+                    - Use cases: Bandwidth validation, SLA verification.
+                    
+                    "periodic": Single-component cyclical traffic (sine, square, sawtooth).
+                    - Kept for backward compatibility; prefer multi_sine for new tests.
+                    - Use cases: Simple QoS testing, congestion management validation.
+                    
+                    "burst": High-intensity traffic bursts with idle periods.
+                    - Alternates between high-rate bursts and low-rate idle periods.
+                    - Use cases: Web browsing, interactive applications, database queries.
+                    
+                    "poisson": Stochastic traffic based on Poisson arrival process.
+                    - Random user arrivals following statistical distribution.
+                    - Use cases: Web applications, realistic load testing.
+                    
+                    "multi_sine": Composite sinusoidal model with N superimposed terms.
+                    - Superposes multiple sine waves with independent periods and amplitudes.
+                    - Supports wall_clock time reference — waves lock to UTC time so a
+                      daily sine naturally peaks at the configured hour across all devices.
+                    - Gaussian noise can be added for realistic traffic variation.
+                    - Use cases: Time-of-day modelling, long-running topology studies,
+                      GNN dataset generation with realistic temporal patterns.
+                    
+                    "schedule": Piecewise-linear (or step) profile with HH:MM waypoints.
+                    - Interpolates between bandwidth targets at specified times of day.
+                    - Supports "daily" / "weekly" repeat cycles anchored to UTC.
+                    - Use cases: Business-hours simulation, scheduled backup windows,
+                      shift-based capacity planning.
+                    
+                    Selection Guidelines:
+                    - Use "constant" for baseline measurements.
+                    - Use "multi_sine" for realistic time-of-day traffic modelling.
+                    - Use "schedule" for business-hours or shift-based simulation.
+                    - Use "burst" for bursty application simulation.
+                    - Use "poisson" for stochastic user arrival modelling.
+                pattern_config:
+                  type: object
+                  description: |
+                    Configuration parameters specific to the selected traffic pattern type.
+                    
+                    Pattern-Specific Configuration:
+                    - Different pattern types require different configuration parameters
+                    - Parameters control the shape, timing, and characteristics of traffic generation
+                    - Proper configuration is essential for realistic traffic simulation
+                    - Invalid combinations may result in test failure or unexpected behavior
+                    
+                    Configuration Validation:
+                    - Only parameters relevant to the selected pattern_type are used
+                    - Unused parameters are ignored but should be omitted for clarity
+                    - Required parameters depend on the pattern type selected
+                    - Default values are applied when optional parameters are omitted
+                  properties:
+                    wave_type:
+                      type: string
+                      enum:
+                        - sine
+                        - square
+                        - sawtooth
+                      description: |
+                        Wave shape for periodic traffic patterns, determines how traffic varies over time.
+                        
+                        Wave Types (used with pattern_type: "periodic"):
+                        
+                        "sine": Smooth sinusoidal wave pattern
+                        - Gradual transitions between minimum and maximum rates
+                        - Natural, smooth traffic variations
+                        - Good for simulating organic usage patterns
+                        - Minimal sudden changes, easier on network buffers
+                        - Use cases: Daily usage cycles, seasonal variations, gradual load changes
+                        
+                        "square": Rectangular wave with sharp transitions
+                        - Abrupt changes between high and low traffic rates
+                        - Tests network response to sudden load changes
+                        - Simulates on/off application behavior
+                        - Stresses network buffer management and QoS policies
+                        - Use cases: Batch processing, scheduled tasks, binary application states
+                        
+                        "sawtooth": Linear ramp up followed by sharp drop
+                        - Gradual increase to peak followed by immediate return to base
+                        - Simulates accumulating load with periodic resets
+                        - Tests network behavior under gradually increasing load
+                        - Useful for capacity planning and threshold testing
+                        - Use cases: Queue buildup and drain cycles, progressive loading
+                        
+                        Selection Guidelines:
+                        - Choose "sine" for smooth, realistic traffic variations
+                        - Choose "square" for testing network response to sudden changes
+                        - Choose "sawtooth" for progressive loading and capacity testing
+                    period:
+                      type: integer
+                      minimum: 1
+                      description: |
+                        Period duration in seconds for periodic traffic patterns.
+                        
+                        Period Configuration (used with pattern_type: "periodic"):
+                        - Defines the time for one complete cycle of the wave pattern
+                        - Shorter periods create more frequent traffic variations
+                        - Longer periods create slower, more gradual changes
+                        - Should be appropriate for the application being simulated
+                        
+                        Period Selection Guidelines:
+                        - Business applications: 3600 seconds (1 hour) for daily cycles
+                        - Interactive applications: 60-300 seconds for user session cycles
+                        - Batch processing: 1800-7200 seconds (30 minutes to 2 hours)
+                        - Real-time applications: 1-60 seconds for rapid variations
+                        
+                        Considerations:
+                        - Period should be shorter than total test duration for meaningful results
+                        - Multiple complete cycles provide better measurement accuracy
+                        - Very short periods may not allow network to stabilize between changes
+                        - Very long periods may not complete full cycles during test duration
+                        
+                        Examples:
+                        - 60: One-minute cycles for rapid testing
+                        - 300: Five-minute cycles for moderate variations
+                        - 3600: One-hour cycles for daily pattern simulation
+                    base_rate:
+                      type: string
+                      pattern: '^[0-9]+(Kbps|Mbps|Gbps)$'
+                      description: |
+                        Base traffic rate for periodic patterns, defines the minimum or center point of traffic variation.
+                        
+                        Base Rate Configuration (used with pattern_type: "periodic"):
+                        - Represents the baseline or average traffic rate
+                        - Traffic oscillates around this base rate according to the wave pattern
+                        - Should be set considering network capacity and other traffic
+                        - Combined with amplitude to determine actual traffic range
+                        
+                        Base Rate Planning:
+                        - Set to expected average traffic rate for realistic simulation
+                        - Consider contracted bandwidth and SLA requirements
+                        - Account for other traffic sharing the same network path
+                        - Ensure base_rate + amplitude doesn't exceed interface capacity
+                        
+                        Relationship with Amplitude:
+                        - Sine wave: Traffic varies from (base_rate - amplitude) to (base_rate + amplitude)
+                        - Square wave: Alternates between base_rate and (base_rate + amplitude)
+                        - Sawtooth: Ramps from base_rate to (base_rate + amplitude)
+                        
+                        Examples:
+                        - "50Mbps": 50 Mbps baseline for enterprise connection
+                        - "10Mbps": 10 Mbps baseline for branch office
+                        - "500Mbps": 500 Mbps baseline for data center link
+                    amplitude:
+                      type: string
+                      pattern: '^[0-9]+(Kbps|Mbps|Gbps)$'
+                      description: |
+                        Traffic variation amplitude for periodic patterns, defines the range of traffic fluctuation.
+                        
+                        Amplitude Configuration (used with pattern_type: "periodic"):
+                        - Determines how much traffic varies from the base rate
+                        - Larger amplitude creates more dramatic traffic variations
+                        - Should be realistic for the application being simulated
+                        - Must not cause total traffic to exceed interface capacity
+                        
+                        Amplitude Effects by Wave Type:
+                        - Sine wave: ±amplitude variation around base_rate
+                        - Square wave: +amplitude above base_rate during high periods
+                        - Sawtooth: +amplitude peak above base_rate
+                        
+                        Amplitude Selection:
+                        - Small amplitude (10-25% of base_rate): Subtle variations
+                        - Medium amplitude (25-50% of base_rate): Moderate variations
+                        - Large amplitude (50-100% of base_rate): Dramatic variations
+                        
+                        Validation:
+                        - Ensure base_rate + amplitude ≤ interface capacity
+                        - Ensure base_rate - amplitude ≥ 0 (for sine waves)
+                        - Consider impact on other network traffic
+                        
+                        Examples:
+                        - "25Mbps": 25 Mbps variation for moderate fluctuation
+                        - "100Mbps": 100 Mbps variation for high dynamic range
+                        - "5Mbps": 5 Mbps variation for subtle changes
+                    burst_duration:
+                      type: integer
+                      minimum: 1
+                      description: |
+                        Duration of high-rate burst periods in seconds.
+                        
+                        Burst Duration Configuration (used with pattern_type: "burst"):
+                        - Defines how long each high-traffic burst lasts
+                        - Shorter bursts simulate quick data transfers or user interactions
+                        - Longer bursts simulate sustained high-bandwidth applications
+                        - Should be realistic for the application being modeled
+                        
+                        Duration Guidelines:
+                        - Web page loads: 1-5 seconds
+                        - File downloads: 10-60 seconds
+                        - Video streaming startup: 5-15 seconds
+                        - Database queries: 1-10 seconds
+                        - Backup operations: 60-300 seconds
+                        
+                        Network Impact:
+                        - Short bursts test network responsiveness and buffer management
+                        - Long bursts test sustained performance and congestion handling
+                        - Very short bursts may not fully utilize available bandwidth
+                        - Very long bursts approach constant traffic behavior
+                        
+                        Relationship with Burst Interval:
+                        - burst_duration should be shorter than burst_interval
+                        - Ratio determines the duty cycle (burst_duration / burst_interval)
+                        - Higher duty cycles create more sustained load
+                        
+                        Examples:
+                        - 5: Five-second bursts for web traffic simulation
+                        - 30: Thirty-second bursts for file transfer simulation
+                        - 120: Two-minute bursts for batch processing simulation
+                    burst_interval:
+                      type: integer
+                      minimum: 1
+                      description: |
+                        Time interval between burst periods in seconds.
+                        
+                        Burst Interval Configuration (used with pattern_type: "burst"):
+                        - Defines the total time from start of one burst to start of the next
+                        - Includes both the burst duration and the idle period
+                        - Determines the frequency of burst events
+                        - Should reflect realistic application usage patterns
+                        
+                        Interval Planning:
+                        - Interactive applications: 10-60 seconds between user actions
+                        - Batch processing: 300-3600 seconds between job runs
+                        - Monitoring systems: 60-300 seconds between data collections
+                        - Backup systems: 3600-86400 seconds between backup runs
+                        
+                        Duty Cycle Calculation:
+                        - Duty cycle = burst_duration / burst_interval
+                        - Low duty cycle (< 0.1): Infrequent, short bursts
+                        - Medium duty cycle (0.1-0.5): Regular burst activity
+                        - High duty cycle (> 0.5): Frequent, sustained bursts
+                        
+                        Network Planning:
+                        - Shorter intervals create more frequent network stress
+                        - Longer intervals allow network to recover between bursts
+                        - Consider impact on other traffic and network stability
+                        
+                        Examples:
+                        - 30: Thirty-second intervals for frequent user activity
+                        - 300: Five-minute intervals for periodic batch jobs
+                        - 3600: One-hour intervals for scheduled maintenance tasks
+                    burst_rate:
+                      type: string
+                      pattern: '^[0-9]+(Kbps|Mbps|Gbps)$'
+                      description: |
+                        Traffic rate during burst periods.
+                        
+                        Burst Rate Configuration (used with pattern_type: "burst"):
+                        - Defines the high traffic rate during active burst periods
+                        - Should represent peak application bandwidth requirements
+                        - Must not exceed interface or network path capacity
+                        - Typically much higher than idle_rate to create meaningful bursts
+                        
+                        Burst Rate Selection:
+                        - Should reflect actual application peak bandwidth needs
+                        - Consider QoS policies that may limit burst traffic
+                        - Account for protocol overhead and network efficiency
+                        - Leave headroom for other traffic and network overhead
+                        
+                        Application Examples:
+                        - Web browsing: 1-10 Mbps for page loads
+                        - File downloads: 10-100 Mbps for large files
+                        - Video streaming: 5-50 Mbps for high-quality content
+                        - Database queries: 1-100 Mbps depending on data volume
+                        - Backup operations: 100-1000 Mbps for bulk data transfer
+                        
+                        Network Considerations:
+                        - High burst rates test network buffer capacity
+                        - May trigger QoS policies and traffic shaping
+                        - Can reveal network bottlenecks and congestion points
+                        - Should be sustainable for the specified burst_duration
+                        
+                        Examples:
+                        - "50Mbps": 50 Mbps bursts for enterprise applications
+                        - "200Mbps": 200 Mbps bursts for high-bandwidth transfers
+                        - "10Mbps": 10 Mbps bursts for moderate application loads
+                    idle_rate:
+                      type: string
+                      pattern: '^[0-9]+(Kbps|Mbps|Gbps)$'
+                      description: |
+                        Traffic rate during idle periods between bursts.
+                        
+                        Idle Rate Configuration (used with pattern_type: "burst"):
+                        - Defines the low traffic rate during periods between bursts
+                        - Represents background or keepalive traffic
+                        - Should be significantly lower than burst_rate to create contrast
+                        - Can be zero for complete idle periods or small for minimal background traffic
+                        
+                        Idle Rate Selection:
+                        - Zero rate: Complete silence between bursts
+                        - Low rate (1-10% of burst_rate): Minimal keepalive traffic
+                        - Moderate rate (10-25% of burst_rate): Background application activity
+                        - Should reflect realistic application behavior during idle periods
+                        
+                        Application Patterns:
+                        - Web browsing: Near zero during page reading
+                        - Interactive applications: Small keepalive packets
+                        - Streaming applications: Minimal control traffic
+                        - Database connections: Periodic heartbeat traffic
+                        - File transfers: Zero between transfer sessions
+                        
+                        Network Impact:
+                        - Very low idle rates allow network to recover between bursts
+                        - Moderate idle rates maintain connection state and routing tables
+                        - Helps distinguish burst behavior from constant traffic patterns
+                        - Affects overall average bandwidth utilization
+                        
+                        Examples:
+                        - "0Kbps": Complete idle periods for maximum contrast
+                        - "1Mbps": Minimal background traffic for connection maintenance
+                        - "5Mbps": Light background activity during idle periods
+                    arrival_rate:
+                      type: number
+                      minimum: 0.1
+                      description: |
+                        User arrival rate per second for Poisson traffic patterns.
+                        
+                        Arrival Rate Configuration (used with pattern_type: "poisson"):
+                        - Defines the average rate at which new user sessions begin
+                        - Based on Poisson distribution for realistic user behavior modeling
+                        - Higher rates create more concurrent sessions and traffic
+                        - Should reflect expected user load and application usage patterns
+                        
+                        Arrival Rate Planning:
+                        - Low rate (0.1-1.0): Light user load, few concurrent sessions
+                        - Medium rate (1.0-10.0): Moderate user load, typical business applications
+                        - High rate (10.0+): Heavy user load, popular web applications
+                        - Consider peak usage periods and capacity planning requirements
+                        
+                        Poisson Distribution Characteristics:
+                        - Random arrival times with specified average rate
+                        - Natural clustering and gaps in user arrivals
+                        - More realistic than fixed-interval user arrivals
+                        - Creates varying load patterns that test network adaptability
+                        
+                        Relationship with Other Parameters:
+                        - Combined with concurrent_users to determine maximum active sessions
+                        - Works with session_duration to control session lifecycle
+                        - Interacts with think_time to model user behavior patterns
+                        - Affects overall traffic volume and network utilization
+                        
+                        Examples:
+                        - 0.5: One new user every 2 seconds on average
+                        - 2.0: Two new users per second for moderate load
+                        - 10.0: Ten new users per second for high-traffic applications
+
+                    # ── multi_sine pattern fields ───────────────────────────────────────────
+                    time_reference:
+                      type: string
+                      enum:
+                        - wall_clock
+                        - elapsed
+                      description: |
+                        How the pattern measures time.  Used by multi_sine and schedule patterns.
+                        
+                        "wall_clock": The waveform is anchored to UTC wall-clock time.
+                        - A daily sine with time_reference: wall_clock peaks at the same
+                          clock hour every day, regardless of when the test was started.
+                        - Enables synchronized traffic shapes across many devices.
+                        - Ideal for GNN dataset generation requiring realistic temporal patterns.
+                        
+                        "elapsed": The waveform counts from t=0 when the test starts.
+                        - Classic behavior compatible with the old traffic_generator.py.
+                        - Use this for short tests where absolute time of day is irrelevant.
+                    components:
+                      type: array
+                      description: |
+                        List of sinusoidal components for the multi_sine pattern.
+                        Each component adds a sine wave term to the total bandwidth.
+                        
+                        Formula: bw(t) = base_rate + Σ(amplitude_i × sin(2π(t + offset_i)/period_i))
+                        
+                        Example — daily + weekly combined:
+                          components:
+                            - period: 86400       # 24-hour cycle
+                              amplitude: 30Mbps
+                              phase_offset: -28800  # peak at 14:00 UTC
+                            - period: 604800      # 7-day weekly cycle
+                              amplitude: 10Mbps
+                              phase_offset: 0
+                      items:
+                        type: object
+                        properties:
+                          period:
+                            type: number
+                            minimum: 1
+                            description: |
+                              Full-cycle duration in seconds.
+                              Common values: 86400 (daily), 604800 (weekly), 3600 (hourly).
+                          amplitude:
+                            type: string
+                            pattern: '^[0-9]+(Kbps|Mbps|Gbps)$'
+                            description: |
+                              Peak deviation from base_rate for this sine component.
+                          phase_offset:
+                            type: number
+                            description: |
+                              Time shift in seconds to control peak placement.
+                              For wall_clock daily peaks: offset = period/4 - peak_second_of_day.
+                              Example to peak at 14:00 UTC: offset = 21600 - 50400 = -28800.
+                    noise_stddev_pct:
+                      type: number
+                      minimum: 0
+                      description: |
+                        Gaussian noise standard deviation as a percentage of the current rate.
+                        Used by multi_sine to add realistic stochastic variation.
+                        Example: 3.0 adds ±3% random variation on top of the sine envelope.
+                    min_rate:
+                      type: string
+                      pattern: '^[0-9]+(Kbps|Mbps|Gbps)$'
+                      description: |
+                        Hard floor for multi_sine pattern output.
+                        Prevents the composite waveform going negative at low amplitudes.
+                    max_rate:
+                      type: string
+                      pattern: '^[0-9]+(Kbps|Mbps|Gbps)$'
+                      description: |
+                        Hard ceiling for multi_sine pattern output.
+                        Prevents peaks exceeding the physical interface capacity.
+
+                    # ── schedule pattern fields ─────────────────────────────────────────────
+                    interpolation:
+                      type: string
+                      enum:
+                        - linear
+                        - step
+                      description: |
+                        How bandwidth changes between schedule waypoints.
+                        
+                        "linear": Smooth linear ramp between adjacent waypoints (default).
+                        "step": Hold the previous waypoint's rate until the next waypoint
+                                is reached (staircase profile).
+                    repeat:
+                      type: string
+                      enum:
+                        - daily
+                        - weekly
+                        - none
+                      description: |
+                        Whether the schedule cycles after the last waypoint.
+                        
+                        "daily":  Repeat every 24 hours (pairs with time_reference: wall_clock).
+                        "weekly": Repeat every 7 days.
+                        "none":   Hold the last waypoint rate for the remainder of the test.
+                    waypoints:
+                      type: array
+                      description: |
+                        Ordered list of (time, rate) control points for the schedule pattern.
+                        
+                        Each waypoint specifies a target bandwidth at a given time.
+                        The agent interpolates between consecutive waypoints.
+                        
+                        time format:
+                          - "HH:MM" for wall_clock mode (UTC 24-hour clock)
+                          - Integer string for elapsed mode (seconds from test start)
+                        
+                        Example — business hours (wall_clock, daily):
+                          waypoints:
+                            - time: "00:00"  rate: "5Mbps"
+                            - time: "09:00"  rate: "80Mbps"
+                            - time: "12:30"  rate: "60Mbps"
+                            - time: "14:00"  rate: "90Mbps"
+                            - time: "18:00"  rate: "30Mbps"
+                            - time: "22:00"  rate: "10Mbps"
+                      items:
+                        type: object
+                        required:
+                          - time
+                          - rate
+                        properties:
+                          time:
+                            type: string
+                            description: |
+                              Point in time for this waypoint.
+                              "HH:MM" for wall_clock mode; seconds integer for elapsed mode.
+                          rate:
+                            type: string
+                            pattern: '^[0-9]+(Kbps|Mbps|Gbps)$'
+                            description: Target bandwidth at this waypoint.
+                concurrent_users:
+                  type: integer
+                  minimum: 1
+                  default: 1
+                  description: |
+                    Maximum number of concurrent user sessions or connections.
+                    
+                    Concurrent Users Configuration:
+                    - Defines the maximum number of simultaneous active sessions
+                    - Limits resource usage and prevents overwhelming the network
+                    - Should reflect realistic application usage and system capacity
+                    - Applies to all pattern types but most relevant for "poisson" patterns
+                    
+                    Concurrency Planning:
+                    - Small applications: 1-10 concurrent users
+                    - Business applications: 10-100 concurrent users  
+                    - Web applications: 100-1000+ concurrent users
+                    - Consider server capacity and network bandwidth limitations
+                    
+                    Impact on Traffic Patterns:
+                    - Higher concurrency creates more aggregate traffic
+                    - Multiple sessions may have different phases (startup, active, idle)
+                    - Concurrent sessions can create traffic bursts during synchronized events
+                    - Affects network resource utilization and congestion behavior
+                    
+                    Resource Considerations:
+                    - Each concurrent user consumes network and system resources
+                    - TCP connections require memory and file descriptors
+                    - UDP sessions require less overhead but still consume bandwidth
+                    - Monitor system limits and network capacity
+                    
+                    Examples:
+                    - 1: Single user session for basic connectivity testing
+                    - 50: Moderate load for business application testing
+                    - 500: High load for web application performance testing
+                session_duration:
+                  type: integer
+                  minimum: 1
+                  description: |
+                    Average duration of individual user sessions in seconds.
+                    
+                    Session Duration Configuration:
+                    - Defines how long each user session remains active
+                    - Used with Poisson arrival patterns to model realistic user behavior
+                    - Affects the lifecycle of connections and overall traffic patterns
+                    - Should reflect typical application usage patterns
+                    
+                    Duration Guidelines by Application Type:
+                    - Web browsing: 300-1800 seconds (5-30 minutes)
+                    - Interactive applications: 600-3600 seconds (10-60 minutes)
+                    - File transfers: 60-600 seconds (1-10 minutes)
+                    - Streaming media: 1800-7200 seconds (30 minutes-2 hours)
+                    - Database sessions: 300-1800 seconds (5-30 minutes)
+                    
+                    Session Lifecycle Impact:
+                    - Shorter sessions create more frequent connection setup/teardown
+                    - Longer sessions create more sustained traffic patterns
+                    - Session duration affects resource utilization and connection pooling
+                    - Influences overall network load and connection state management
+                    
+                    Relationship with Arrival Rate:
+                    - Combined with arrival_rate determines steady-state concurrent users
+                    - Steady state ≈ arrival_rate × session_duration
+                    - Affects network resource planning and capacity requirements
+                    - Influences connection table sizes and memory usage
+                    
+                    Examples:
+                    - 600: Ten-minute sessions for typical business applications
+                    - 1800: Thirty-minute sessions for interactive applications
+                    - 3600: One-hour sessions for long-running processes
+                think_time:
+                  type: integer
+                  minimum: 0
+                  default: 0
+                  description: |
+                    Pause duration between user requests or actions in seconds.
+                    
+                    Think Time Configuration:
+                    - Models realistic user behavior with pauses between actions
+                    - Simulates time users spend reading, processing, or deciding
+                    - Affects traffic patterns and network utilization
+                    - Zero think time creates continuous traffic generation
+                    
+                    Think Time Guidelines by Application:
+                    - Web browsing: 5-30 seconds between page requests
+                    - Interactive applications: 10-60 seconds between actions
+                    - Database applications: 1-10 seconds between queries
+                    - File transfers: 0 seconds for continuous transfer
+                    - Gaming applications: 0.1-2 seconds for real-time interaction
+                    
+                    Impact on Traffic Patterns:
+                    - Longer think times reduce average traffic rate
+                    - Creates more realistic bursty traffic patterns
+                    - Affects concurrent connection requirements
+                    - Influences network resource utilization efficiency
+                    
+                    Network Planning Considerations:
+                    - Think time reduces effective bandwidth utilization
+                    - Allows network to handle more concurrent users
+                    - Creates opportunities for statistical multiplexing
+                    - Affects QoS policy effectiveness and traffic shaping
+                    
+                    Examples:
+                    - 0: Continuous traffic for maximum load testing
+                    - 15: Fifteen-second pauses for web browsing simulation
+                    - 60: One-minute pauses for document review applications
+
+                # ── Bidirectional traffic fields ────────────────────────────────────────
+                bidirectional:
+                  type: boolean
+                  default: false
+                  description: |
+                    When true, traffic flows simultaneously in both directions:
+                    forward (source→destination) AND reverse (destination→source).
+                    
+                    This is the recommended way to simulate realistic application
+                    traffic such as video streaming or web browsing, where data flows
+                    in both directions asymmetrically.
+                    
+                    Implementation:
+                    - The operator allocates a separate port for each reverse flow.
+                    - Reverse flow IDs follow the pattern "{name}_{source}_rev" and
+                      appear in Prometheus metrics with role="source" (destination agent)
+                      and role="destination" (source agent).
+                    - Forward and reverse flows run independently and are started
+                      and stopped together.
+                    
+                    Traffic Direction:
+                    - Forward: source_device → destination_device  (role=source on source_device)
+                    - Reverse: destination_device → source_device  (role=source on destination_device)
+                    
+                    Use Cases:
+                    - Video streaming: set source=client, destination=server.
+                      bandwidth = small (client control/requests → server).
+                      reverse_bandwidth = large (server video stream → client).
+                    - Web browsing: set source=client, destination=server.
+                      bandwidth = small (HTTP requests → server).
+                      reverse_bandwidth = large (HTTP responses → client).
+                    - VoIP / video calls: symmetric — bandwidth ≈ reverse_bandwidth.
+                    - File upload: set source=client, destination=server.
+                      bandwidth = large (file data → server).
+                      reverse_bandwidth = small (ACKs/metadata → client).
+                    
+                    Examples:
+                    - true: Enable bidirectional traffic simulation
+                    - false: Unidirectional traffic only (default)
+                reverse_bandwidth:
+                  type: string
+                  pattern: '^[0-9]+(Kbps|Mbps|Gbps)$'
+                  description: |
+                    Target bandwidth for the reverse direction (destination→source).
+                    Only used when bidirectional: true.
+                    
+                    Defaults to the same value as bandwidth if not specified,
+                    producing symmetric bidirectional traffic.
+                    
+                    Bandwidth Direction Reference:
+                    - bandwidth        controls source_device → destination_device traffic.
+                    - reverse_bandwidth controls destination_device → source_device traffic.
+                    
+                    Typical values when source=client, destination=server:
+                    - Video streaming:  bandwidth="100Kbps" (control), reverse_bandwidth="5Mbps" (stream)
+                    - Web browsing:     bandwidth="1Mbps" (requests), reverse_bandwidth="20Mbps" (responses)
+                    - File upload:      bandwidth="100Mbps" (upload), reverse_bandwidth="500Kbps" (ACKs)
+                    - VoIP:             bandwidth="1Mbps", reverse_bandwidth="1Mbps" (symmetric)
+                    
+                    Examples:
+                    - "100Kbps": Tiny control channel from client when server is the large sender
+                    - "1Mbps":   Small HTTP request channel from client to server
+                    - "5Mbps":   Symmetric stream in each direction
+                reverse_pattern_type:
+                  type: string
+                  enum:
+                    - constant
+                    - periodic
+                    - burst
+                    - poisson
+                    - multi_sine
+                    - schedule
+                  default: constant
+                  description: |
+                    Traffic pattern for the reverse flow (destination→source).
+                    Only used when bidirectional: true.
+                    
+                    Defaults to "constant" if not specified.  Can be set independently
+                    of pattern_type to produce realistic asymmetric shapes.
+                    
+                    Common combinations (when source=client, destination=server):
+                    - pattern_type: constant + reverse_pattern_type: burst
+                        client sends steady small requests; server sends bursty large responses
+                    - pattern_type: constant + reverse_pattern_type: constant
+                        symmetric steady-state streams (e.g. VoIP, video call)
+                    - pattern_type: burst + reverse_pattern_type: burst
+                        bursty in both directions with different rates (e.g. web browsing)
+                    - pattern_type: constant + reverse_pattern_type: multi_sine
+                        steady low-rate upstream; time-varying downstream load
+                    
+                    See pattern_type for full description of each pattern.
+                reverse_pattern_config:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                  description: |
+                    Pattern configuration for the reverse flow (destination→source).
+                    Only used when bidirectional: true.
+                    
+                    Uses the same structure as pattern_config.
+                    See pattern_config for field descriptions.
+                    
+                    Example — web browsing (source=client, destination=server):
+                      # client → server: small bursty HTTP requests
+                      pattern_type: burst
+                      pattern_config:
+                        burst_rate: "1Mbps"
+                        idle_rate: "10Kbps"
+                        burst_duration: 1
+                        burst_interval: 5
+                      # server → client: large bursty HTTP responses
+                      reverse_pattern_type: burst
+                      reverse_pattern_config:
+                        burst_rate: "20Mbps"
+                        idle_rate: "500Kbps"
+                        burst_duration: 2
+                        burst_interval: 5
+                    
+                    Example — symmetric multi_sine bidirectional (e.g. VoIP):
+                      reverse_pattern_type: multi_sine
+                      reverse_pattern_config:
+                        base_rate: 1Mbps
+                        time_reference: elapsed
+                        components:
+                          - period: 86400
+                            amplitude: 200Kbps
+                            phase_offset: 0
+
+            status:
+              type: object
+              description: |
+                Current status and runtime information for the traffic test execution.
+                
+                Status Tracking provides:
+                - Real-time test execution phase and progress monitoring (phase per source device)
+                - Error reporting and troubleshooting information
+                - Test lifecycle management and completion status
+                
+                Note: Flow metrics (throughput, latency, packet loss, jitter) are NOT stored
+                in status — they are written directly to Cloud Monitoring by the Ops Agent
+                Prometheus scrape running on each device.
+              properties:
+                source_count:
+                  type: integer
+                  description: |
+                    Total number of source devices participating in the traffic test.
+                    
+                    Provides quick overview of test scale:
+                    - Single source: Traditional point-to-point test
+                    - Multiple sources: Load testing or aggregate capacity measurement
+                    - Useful for capacity planning and resource allocation
+                source_status:
+                  type: object
+                  additionalProperties:
+                    type: object
+                    description: Per-source device status
+                    properties:
+                      phase:
+                        type: string
+                        enum:
+                          - Pending
+                          - Running
+                          - Completed
+                          - Failed
+                        description: Current phase of this specific source device
+                      message:
+                        type: string
+                        description: Status message specific to this source device
+                  description: |
+                    Per-source device status tracking.
+                    
+                    Structure: Map of device name to status object
+                    - Key: Source device name (e.g., "branch-1")
+                    - Value: Status object with phase and message
+                    
+                    Flow metrics (throughput, latency, packet loss, jitter) are
+                    collected independently by the Ops Agent Prometheus scrape
+                    running on each device — they are not mirrored into this status.
+                    
+                    Use Cases:
+                    - Identify which sources are running vs failed
+                    - Detect individual source failures without failing entire test
+                    - Debug connectivity issues for specific sources
+                    
+                    Example:
+                    source_status:
+                      branch-1:
+                        phase: Running
+                        message: "elapsed=120s / 600s"
+                      branch-2:
+                        phase: Running
+                        message: "elapsed=120s / 600s"
+                phase:
+                  type: string
+                  enum:
+                    - Pending
+                    - Deploying
+                    - Running
+                    - Completed
+                    - Failed
+                    - Stopped
+                  description: |
+                    Current execution phase of the traffic test, indicates test lifecycle state.
+                    
+                    Test Lifecycle Phases:
+                    
+                    "Pending": Test has been created but not yet started
+                    - Initial state after TrafficTest resource creation
+                    - Waiting for operator to process and validate configuration
+                    - Resources not yet allocated or deployed
+                    - No traffic generation or measurement active
+                    
+                    "Deploying": Test infrastructure is being set up
+                    - Operator is creating necessary pods and network connections
+                    - Traffic generation tools being deployed to source/destination devices
+                    - Network connectivity and reachability being verified
+                    - Configuration being applied to test infrastructure
+                    
+                    "Running": Test is actively executing and generating traffic
+                    - Traffic generation is active between source and destination
+                    - Test duration timer is counting down
+                    - Flow metrics are collected by the Ops Agent on each device
+                    
+                    "Completed": Test finished successfully with results available
+                    - Test duration elapsed or stopped by user request
+                    - Test infrastructure cleaned up and resources released
+                    - Flow metrics available in Cloud Monitoring via Ops Agent
+                    
+                    "Failed": Test encountered an error and could not complete
+                    - Configuration validation failed or network connectivity issues
+                    - Infrastructure deployment problems or resource constraints
+                    - Runtime errors during traffic generation or measurement
+                    - Check message field for specific error details
+                    
+                    "Stopped": Test was manually stopped before completion
+                    - User-initiated test termination via operator commands
+                    - Partial results may be available depending on stop timing
+                    - Test infrastructure cleaned up and resources released
+                    - Useful for debugging or adjusting test parameters
+                message:
+                  type: string
+                  description: |
+                    Human-readable status message providing detailed information about current test state.
+                    
+                    Message Content by Phase:
+                    - Pending: "Waiting for test deployment" or validation details
+                    - Deploying: "Setting up traffic generators on devices" or progress updates
+                    - Running: "Test in progress, X seconds remaining" or current status
+                    - Completed: "Test completed successfully, results available" or summary
+                    - Failed: Specific error messages and troubleshooting guidance
+                    - Stopped: "Test stopped by user" or termination reason
+                    
+                    Error Message Examples:
+                    - "Source device 'customer-a-cpe' not found or not ready"
+                    - "Network connectivity test failed between source and destination"
+                    - "Insufficient bandwidth available for requested test rate"
+                    - "Traffic generation tool deployment failed on source device"
+                    
+                    Troubleshooting Information:
+                    - Messages include actionable information for problem resolution
+                    - Reference specific configuration parameters that may need adjustment
+                    - Provide guidance for network connectivity or resource issues
+                    - Include relevant error codes or system messages when available
+                start_time:
+                  type: string
+                  format: date-time
+                  description: |
+                    Timestamp when the traffic test began execution (ISO 8601 format).
+                    
+                    Start Time Significance:
+                    - Marks the beginning of actual traffic generation and measurement
+                    - Used for calculating test duration and progress tracking
+                    - Enables correlation with network events and system logs
+                    - Provides baseline for performance trend analysis
+                    
+                    Timing Considerations:
+                    - Set when test transitions from "Deploying" to "Running" phase
+                    - Accounts for infrastructure setup time before traffic starts
+                    - Used with end_time to calculate actual test execution duration
+                    - May differ from resource creation time due to deployment delays
+                    
+                    Format Examples:
+                    - "2024-01-15T10:30:00Z" - UTC timestamp
+                    - "2024-01-15T10:30:00-05:00" - Timezone-aware timestamp
+                    - Used for scheduling, reporting, and log correlation
+                end_time:
+                  type: string
+                  format: date-time
+                  description: |
+                    Timestamp when the traffic test completed or stopped (ISO 8601 format).
+                    
+                    End Time Significance:
+                    - Marks the completion of traffic generation and final measurement
+                    - Used for calculating actual test duration and performance analysis
+                    - Enables correlation with network events and system changes
+                    - Provides completion marker for automated workflows and reporting
+                    
+                    Completion Scenarios:
+                    - Normal completion: Set when configured duration expires
+                    - Manual stop: Set when user terminates test before completion
+                    - Error termination: Set when test fails and cannot continue
+                    - Resource cleanup: Marks when test infrastructure is fully cleaned up
+                    
+                    Duration Calculation:
+                    - Actual test duration = end_time - start_time
+                    - May be shorter than configured duration if stopped early
+                    - Used for performance normalization and rate calculations
+                    - Important for SLA compliance and billing calculations
+                allocated_ports:
+                  type: array
+                  items:
+                    type: integer
+                  description: |
+                    Ports allocated by the operator for this traffic test.
+                    
+                    Port Allocation:
+                    - Unidirectional tests: one port per source device.
+                    - Bidirectional tests: two ports per source device (forward + reverse).
+                    - Persisted in status so the PortAllocator can be re-seeded when
+                      the operator restarts (anti-entropy synchronisation on startup).
+      additionalPrinterColumns:
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+        - name: Sources
+          type: string
+          jsonPath: .status.source_count
+          description: Number of source devices
+        - name: Destination
+          type: string
+          jsonPath: .spec.destination_device
+        - name: Pattern
+          type: string
+          jsonPath: .spec.pattern_type
+        - name: Duration
+          type: integer
+          jsonPath: .spec.duration

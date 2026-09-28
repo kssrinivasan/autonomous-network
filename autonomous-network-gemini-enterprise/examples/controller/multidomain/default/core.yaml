@@ -1,0 +1,264 @@
+apiVersion: google.dev/v1
+kind: FiveGCore
+metadata:
+  name: free5gc-core
+  namespace: network
+spec:
+  image: "device:latest"
+  mongodbUri: "mongodb://10.102.1.21:27017"
+  plmnList:
+    - mcc: "208"
+      mnc: "93"
+  slices:
+    - sst: 1
+      sd: "010203"
+      dnnInfos:
+        - dnn: "internet"
+          dns:
+            ipv4: "8.8.8.8"
+          pools:
+            - cidr: "10.60.0.0/16"
+          staticPools:
+            - cidr: "10.60.100.0/24"
+  subscribers:
+    # cell1a (gnbId 0x1)
+    - imsi: "208930000000001"
+      msisdn: "0900000001"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000002"
+      msisdn: "0900000002"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000003"
+      msisdn: "0900000003"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000004"
+      msisdn: "0900000004"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000005"
+      msisdn: "0900000005"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    # cell1b (gnbId 0x2)
+    - imsi: "208930000000006"
+      msisdn: "0900000006"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000007"
+      msisdn: "0900000007"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000008"
+      msisdn: "0900000008"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000009"
+      msisdn: "0900000009"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000010"
+      msisdn: "0900000010"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    # cell2a (gnbId 0x3)
+    - imsi: "208930000000011"
+      msisdn: "0900000011"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000012"
+      msisdn: "0900000012"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000013"
+      msisdn: "0900000013"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000014"
+      msisdn: "0900000014"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000015"
+      msisdn: "0900000015"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    # cell2b (gnbId 0x4)
+    - imsi: "208930000000016"
+      msisdn: "0900000016"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000017"
+      msisdn: "0900000017"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000018"
+      msisdn: "0900000018"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000019"
+      msisdn: "0900000019"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000020"
+      msisdn: "0900000020"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    # cell3a (gnbId 0x5)
+    - imsi: "208930000000021"
+      msisdn: "0900000021"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000022"
+      msisdn: "0900000022"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000023"
+      msisdn: "0900000023"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000024"
+      msisdn: "0900000024"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000025"
+      msisdn: "0900000025"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    # cell3b (gnbId 0x6)
+    - imsi: "208930000000026"
+      msisdn: "0900000026"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000027"
+      msisdn: "0900000027"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000028"
+      msisdn: "0900000028"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000029"
+      msisdn: "0900000029"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000030"
+      msisdn: "0900000030"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+  network_functions:
+    - type: NRF
+      container_name: "nrf"
+    - type: UDR
+      container_name: "udr"
+    - type: UDM
+      container_name: "udm"
+    - type: AUSF
+      container_name: "ausf"
+    - type: PCF
+      container_name: "pcf"
+    - type: NSSF
+      container_name: "nssf"
+    - type: AMF
+      container_name: "amf"
+      config:
+        tac: 1
+    - type: SMF
+      container_name: "smf"
+    - type: UPF
+      container_name: "upf"
+    - type: WebUI
+      container_name: "webui"
+      config:
+        port: 5000

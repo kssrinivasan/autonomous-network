@@ -1,0 +1,583 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: vyosrouters.google.dev
+  labels:
+    type: transport
+spec:
+  scope: Namespaced
+  group: google.dev
+  names:
+    kind: VyOSRouter
+    plural: vyosrouters
+    singular: vyosrouter
+    shortNames:
+      - vr
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: "VyOS Router - Generated from VyOSNetwork by the operator"
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - hostname
+                - router_id
+                - image
+                - source_network
+              properties:
+                hostname:
+                  type: string
+                  pattern: '^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?$'
+                  description: "Router hostname"
+                router_id:
+                  type: string
+                  pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                  description: "Router ID (IPv4 address)"
+                image:
+                  type: string
+                  description: "VyOS container image"
+                  default: "vyos:1.5"
+                source_network:
+                  type: string
+                  description: "Source VyOSNetwork name that generated this router"
+                location:
+                  type: object
+                  description: "Router physical location (copied from VyOSInfrastructure)"
+                  properties:
+                    city:
+                      type: string
+                      description: "City name"
+                    latitude:
+                      type: number
+                      description: "Latitude coordinate"
+                    longitude:
+                      type: number
+                      description: "Longitude coordinate"
+                    country:
+                      type: string
+                      description: "Country name"
+                    region:
+                      type: string
+                      description: "Region/state name"
+                role:
+                  type: string
+                  enum: ["P", "PE", "CE", "RR", "PA", "AR"]
+                  description: "Router role (P, PE, CE, RR, PA, AR)"
+                interfaces:
+                  type: array
+                  description: "Network interfaces (generated from VyOSNetwork)"
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - address
+                    properties:
+                      name:
+                        type: string
+                        pattern: '^(eth[0-9]+|lo)$'
+                        description: "Interface name (eth0, eth1, lo, etc.)"
+                      description:
+                        type: string
+                        description: "Interface description"
+                      address:
+                        type: string
+                        pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$'
+                        description: "Interface IP address in CIDR notation"
+                      gateway:
+                        type: string
+                        pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                        description: "Interface gateway IP address"
+                      mtu:
+                        type: integer
+                        minimum: 576
+                        maximum: 9000
+                        default: 1500
+                        description: "Maximum transmission unit"
+                      vrf:
+                        type: string
+                        description: "VRF assignment"
+                      linux_network:
+                        type: string
+                        description: "Linux network name to connect to"
+                      vlan:
+                        type: integer
+                        minimum: 1
+                        maximum: 4094
+                        description: "VLAN ID"
+                      enabled:
+                        type: boolean
+                        default: true
+                        description: "Interface enabled state"
+                vrfs:
+                  type: array
+                  description: "VRF definitions (copied from VyOSNetwork)"
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - table
+                    properties:
+                      name:
+                        type: string
+                        description: "VRF name"
+                      table:
+                        type: integer
+                        minimum: 1
+                        maximum: 4294967295
+                        description: "Routing table ID"
+                      rd:
+                        type: string
+                        pattern: '^([0-9]+:[0-9]+|([0-9]{1,3}\.){3}[0-9]{1,3}:[0-9]+)$'
+                        description: "Route distinguisher (ASN:value or IP:value format)"
+                      rt_export:
+                        type: array
+                        items:
+                          type: string
+                          pattern: '^[0-9]+:[0-9]+$'
+                        description: "Route target export values"
+                      rt_import:
+                        type: array
+                        items:
+                          type: string
+                          pattern: '^[0-9]+:[0-9]+$'
+                        description: "Route target import values"
+                      description:
+                        type: string
+                        description: "VRF description"
+                protocols:
+                  type: object
+                  description: "Routing protocols configuration (generated from VyOSNetwork)"
+                  properties:
+                    ospf:
+                      type: object
+                      properties:
+                        router_id:
+                          type: string
+                          pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                          description: "OSPF router ID"
+                        areas:
+                          type: array
+                          items:
+                            type: object
+                            required:
+                              - area
+                            properties:
+                              area:
+                                type: string
+                                pattern: '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'
+                                description: "OSPF area ID"
+                              networks:
+                                type: array
+                                items:
+                                  type: string
+                                  pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$'
+                                description: "Networks to advertise in this area"
+                              interfaces:
+                                type: array
+                                items:
+                                  type: string
+                                description: "Interfaces in this area"
+                              type:
+                                type: string
+                                enum: ["backbone", "standard", "stub", "nssa"]
+                                default: "standard"
+                                description: "Area type"
+                        passive_interfaces:
+                          type: array
+                          items:
+                            type: string
+                          description: "Passive interfaces"
+                        interface_costs:
+                          type: array
+                          description: "OSPF interface cost overrides"
+                          items:
+                            type: object
+                            required:
+                              - interface
+                            properties:
+                              interface:
+                                type: string
+                                description: "Interface name"
+                              cost:
+                                type: integer
+                                minimum: 1
+                                maximum: 65535
+                                default: 1
+                                description: "OSPF cost for this interface. Defaults to 1."
+                    bgp:
+                      type: object
+                      properties:
+                        as_number:
+                          type: integer
+                          minimum: 1
+                          maximum: 4294967295
+                          description: "BGP AS number"
+                        router_id:
+                          type: string
+                          pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                          description: "BGP router ID"
+                        route_reflector:
+                          type: boolean
+                          default: false
+                          description: "Enable route reflector"
+                        neighbors:
+                          type: array
+                          items:
+                            type: object
+                            required:
+                              - peer
+                              - remote_as
+                            properties:
+                              peer:
+                                type: string
+                                pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                                description: "Neighbor IP address"
+                              remote_as:
+                                type: integer
+                                minimum: 1
+                                maximum: 4294967295
+                                description: "Remote AS number"
+                              description:
+                                type: string
+                                description: "Neighbor description"
+                              route_reflector_client:
+                                type: boolean
+                                default: false
+                                description: "Route reflector client"
+                        vrfs:
+                          type: array
+                          items:
+                            type: object
+                            required:
+                              - name
+                            properties:
+                              name:
+                                type: string
+                                description: "VRF name"
+                              neighbors:
+                                type: array
+                                items:
+                                  type: object
+                                  required:
+                                    - peer
+                                    - remote_as
+                                  properties:
+                                    peer:
+                                      type: string
+                                      pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                                      description: "Neighbor IP address"
+                                    remote_as:
+                                      type: integer
+                                      minimum: 1
+                                      maximum: 4294967295
+                                      description: "Remote AS number"
+                                    description:
+                                      type: string
+                                      description: "Neighbor description"
+                        address_families:
+                          type: array
+                          items:
+                            type: object
+                            required:
+                              - family
+                            properties:
+                              family:
+                                type: string
+                                enum: ["ipv4-unicast", "ipv4-multicast", "ipv6-unicast", "vpnv4", "vpnv6"]
+                                description: "Address family"
+                              networks:
+                                type: array
+                                items:
+                                  type: string
+                                  pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$'
+                                description: "Networks to advertise"
+                    mpls:
+                      type: object
+                      properties:
+                        enabled:
+                          type: boolean
+                          default: false
+                          description: "Enable MPLS"
+                        ldp:
+                          type: object
+                          properties:
+                            router_id:
+                              type: string
+                              pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                              description: "LDP router ID"
+                            interfaces:
+                              type: array
+                              items:
+                                type: string
+                              description: "LDP-enabled interfaces"
+                    static:
+                      type: object
+                      description: "Static routing configuration"
+                      properties:
+                        routes:
+                          type: array
+                          items:
+                            type: object
+                            required:
+                              - destination
+                            properties:
+                              destination:
+                                type: string
+                                pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$'
+                                description: "Destination network in CIDR notation"
+                              next_hop:
+                                type: string
+                                pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                                description: "Next hop IP address"
+                              interface:
+                                type: string
+                                description: "Exit interface name"
+                              distance:
+                                type: integer
+                                minimum: 1
+                                maximum: 255
+                                default: 1
+                                description: "Administrative distance"
+                              description:
+                                type: string
+                                description: "Route description"
+                              vrf:
+                                type: string
+                                description: "VRF name for VRF-specific routes"
+                services:
+                  type: object
+                  description: "Router services (generated from VyOSNetwork)"
+                  properties:
+                    dhcp:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                          - network
+                          - gateway
+                        properties:
+                          network:
+                            type: string
+                            pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}\/[0-9]{1,2}$'
+                            description: "DHCP network"
+                          gateway:
+                            type: string
+                            pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                            description: "Default gateway"
+                          dns_servers:
+                            type: array
+                            items:
+                              type: string
+                              pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                            description: "DNS servers"
+                          range:
+                            type: object
+                            required:
+                              - start
+                              - end
+                            properties:
+                              start:
+                                type: string
+                                pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                                description: "DHCP range start"
+                              end:
+                                type: string
+                                pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                                description: "DHCP range end"
+                          lease_time:
+                            type: integer
+                            minimum: 60
+                            maximum: 4294967295
+                            default: 86400
+                            description: "Lease time in seconds"
+                          static_mappings:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                                - name
+                                - ip
+                                - mac
+                              properties:
+                                name:
+                                  type: string
+                                  description: "Static mapping name"
+                                ip:
+                                  type: string
+                                  pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                                  description: "Static IP address"
+                                mac:
+                                  type: string
+                                  pattern: '^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$'
+                                  description: "MAC address"
+                    nat:
+                      type: object
+                      properties:
+                        source:
+                          type: array
+                          items:
+                            type: object
+                            required:
+                              - rule
+                              - outbound_interface
+                            properties:
+                              rule:
+                                type: integer
+                                minimum: 1
+                                maximum: 9999
+                                description: "NAT rule number"
+                              source:
+                                type: string
+                                description: "Source network/IP"
+                              outbound_interface:
+                                type: string
+                                description: "Outbound interface"
+                              translation:
+                                type: string
+                                enum: ["masquerade", "address"]
+                                default: "masquerade"
+                                description: "Translation type"
+                              address:
+                                type: string
+                                pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                                description: "Translation address (if type is address)"
+                qos:
+                  type: object
+                  description: "QoS configuration (references to VyOSNetwork policies)"
+                  properties:
+                    policies:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                          - name
+                          - interface
+                        properties:
+                          name:
+                            type: string
+                            description: "QoS policy name (reference to VyOSNetwork)"
+                          interface:
+                            type: string
+                            description: "Interface to apply policy"
+                          direction:
+                            type: string
+                            enum: ["in", "out"]
+                            default: "out"
+                            description: "Traffic direction"
+                firewall:
+                  type: object
+                  description: "Firewall configuration (references to VyOSNetwork policies)"
+                  properties:
+                    policies:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                          - name
+                          - interface
+                        properties:
+                          name:
+                            type: string
+                            description: "Firewall policy name (reference to VyOSNetwork)"
+                          interface:
+                            type: string
+                            description: "Interface to apply policy"
+                          direction:
+                            type: string
+                            enum: ["in", "out", "local"]
+                            description: "Traffic direction"
+                traffic_policy:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                  description: "Traffic control policy properties"
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                  enum: ["Pending", "Creating", "Configuring", "Running", "Failed", "Terminating", "Updating"]
+                  description: "Router deployment phase"
+                message:
+                  type: string
+                  description: "Status message"
+                container_id:
+                  type: string
+                  description: "Docker container ID"
+                ip_address:
+                  type: string
+                  pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                  description: "Management IP address"
+                interfaces:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: "Interface name"
+                      status:
+                        type: string
+                        enum: ["up", "down", "admin-down"]
+                        description: "Interface status"
+                      docker_network:
+                        type: string
+                        description: "Connected docker network"
+                applied_config:
+                  type: string
+                  description: "Last applied VyOS configuration commands"
+                protocols_status:
+                  type: object
+                  properties:
+                    ospf:
+                      type: object
+                      properties:
+                        neighbors:
+                          type: integer
+                          description: "Number of OSPF neighbors"
+                        state:
+                          type: string
+                          enum: ["up", "down", "partial"]
+                          description: "OSPF state"
+                    bgp:
+                      type: object
+                      properties:
+                        neighbors:
+                          type: integer
+                          description: "Number of BGP neighbors"
+                        established:
+                          type: integer
+                          description: "Number of established BGP sessions"
+                    mpls:
+                      type: object
+                      properties:
+                        ldp_neighbors:
+                          type: integer
+                          description: "Number of LDP neighbors"
+                        labels:
+                          type: integer
+                          description: "Number of MPLS labels"
+      additionalPrinterColumns:
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+        - name: Router-ID
+          type: string
+          jsonPath: .spec.router_id
+        - name: Source-Network
+          type: string
+          jsonPath: .spec.source_network
+        - name: Image
+          type: string
+          jsonPath: .spec.image
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp

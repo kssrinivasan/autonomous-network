@@ -1,0 +1,63 @@
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: green-vpn-mesh-test
+  namespace: network
+spec:
+  description: "GREEN VPN cross-region mesh - exercises all 4 areas with distributed traffic"
+  vpnRef: green-vpn-service
+  source_devices:
+    - "green1"   # pe1 (Oxford, Area 1)
+    - "green3"   # pe3 (Brighton, Area 1)
+    - "green5"   # pe5 (Nantes, Area 3)
+    - "green7"   # pe7 (Cologne, Area 2)
+    - "green8"   # pe8 (Hanover, Area 2)
+    - "green9"   # pe9 (Frankfurt, Area 2)
+    - "green11"  # pe11 (Montpellier, Area 3)
+    - "green12"  # pe12 (Bilbao, Area 4)
+  destination_device: "green2"   # pe2 (Cambridge, Area 1)
+  protocol: TCP
+  duration: 3600    # 1 hour for steady-state analysis
+
+  # Cross-region mesh traffic: 50 Mbps with variation
+  bandwidth: 70Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: wall_clock
+    base_rate: 40Mbps
+    components:
+      - period: 3600       # 1-hour cycle
+        amplitude: 20Mbps
+        phase_offset: 0
+    noise_stddev_pct: 5.0
+    min_rate: 15Mbps
+    max_rate: 70Mbps
+
+  bidirectional: false
+  concurrent_users: 8
+
+  expected_paths:
+    - source: "green1"
+      expected: ["ce1-green", "pe1", "ar1", "pa1", "p1", "p2", "pa1", "ar1", "pe2", "ce2-green", "green2"]
+      description: "Oxford to Cambridge mesh - direct Area 1 path"
+    - source: "green3"
+      expected: ["ce3-green", "pe3", "ar1", "pa1", "p1", "p2", "pa1", "ar1", "pe2", "ce2-green", "green2"]
+      description: "Brighton to Cambridge mesh - Area 1 path"
+    - source: "green5"
+      expected: ["ce5-green", "pe5", "ar9", "pa5", "p3", "p1", "p2", "pa1", "ar1", "pe2", "ce2-green", "green2"]
+      description: "Nantes to Cambridge mesh - Area 3 → Area 0 → Area 1 (cross-area)"
+    - source: "green7"
+      expected: ["ce7-green", "pe7", "ar5", "pa3", "p2", "p1", "pa1", "ar1", "pe2", "ce2-green", "green2"]
+      description: "Cologne to Cambridge mesh - Area 2 → Area 0 → Area 1 (cross-area)"
+    - source: "green8"
+      expected: ["ce8-green", "pe8", "ar5", "pa3", "p2", "p1", "pa1", "ar1", "pe2", "ce2-green", "green2"]
+      description: "Hanover to Cambridge mesh - Area 2 → Area 0 → Area 1 (cross-area)"
+    - source: "green9"
+      expected: ["ce9-green", "pe9", "ar7", "pa4", "p2", "p1", "pa1", "ar1", "pe2", "ce2-green", "green2"]
+      description: "Frankfurt to Cambridge mesh - Area 2 → Area 0 → Area 1 (cross-area)"
+    - source: "green11"
+      expected: ["ce11-green", "pe11", "ar9", "pa5", "p3", "p1", "p2", "pa1", "ar1", "pe2", "ce2-green", "green2"]
+      description: "Montpellier to Cambridge mesh - Area 3 → Area 0 → Area 1 (cross-area)"
+    - source: "green12"
+      expected: ["ce12-green", "pe12", "ar10", "pa6", "p4", "p1", "p2", "pa1", "ar1", "pe2", "ce2-green", "green2"]
+      description: "Bilbao to Cambridge mesh - Area 4 → Area 0 → Area 1 (cross-area)"

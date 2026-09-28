@@ -1,0 +1,85 @@
+Metric Name,Sample Value,Description
+go_gc_duration_seconds,2.3851e-05,A summary of the wall-time pause (stop-the-world) duration in garbage collection cycles.
+go_gc_duration_seconds_sum,0.012494453,Total cumulative duration of garbage collection pauses.
+go_gc_duration_seconds_count,183,Total count of garbage collection cycles.
+go_gc_gogc_percent,100,"Heap size target percentage configured by the user, otherwise 100. This value is set by the GOGC environment variable."
+go_gc_gomemlimit_bytes,9.223372036854776e+18,"Go runtime memory limit configured by the user, otherwise math.MaxInt64."
+go_goroutines,45,Number of goroutines that currently exist in the network function.
+go_info,1,Information about the Go environment.
+go_memstats_alloc_bytes,8.44132e+06,Number of bytes allocated in heap and currently in use.
+go_memstats_alloc_bytes_total,5.27424608e+08,"Total number of bytes allocated in heap until now, even if released already."
+go_memstats_buck_hash_sys_bytes,1.511975e+06,Number of bytes used by the profiling bucket hash table.
+go_memstats_frees_total,4.6461e+06,Total number of heap objects frees.
+go_memstats_gc_sys_bytes,3.297136e+06,Number of bytes used for garbage collection system metadata.
+go_memstats_heap_alloc_bytes,8.44132e+06,Number of heap bytes allocated and currently in use.
+go_memstats_heap_idle_bytes,5.858432e+06,Number of heap bytes waiting to be used.
+go_memstats_heap_inuse_bytes,12.956736e+06,Number of heap bytes that are in use.
+go_memstats_heap_objects,28182,Number of currently allocated objects.
+go_memstats_heap_released_bytes,4.014656e+06,Number of heap bytes released to OS.
+go_memstats_heap_sys_bytes,18.815168e+06,Number of heap bytes obtained from system.
+go_memstats_last_gc_time_seconds,1.7792616105199924e+09,Number of seconds since 1970 of last garbage collection.
+go_memstats_mallocs_total,4.866282e+06,"Total number of heap objects allocated, both live and gc-ed."
+go_memstats_mcache_inuse_bytes,1200,Number of bytes in use by mcache structures.
+go_memstats_mcache_sys_bytes,31200,Number of bytes used for mcache structures obtained from system.
+go_memstats_mspan_inuse_bytes,85280,Number of bytes in use by mspan structures.
+go_memstats_mspan_sys_bytes,114920,Number of bytes used for mspan structures obtained from system.
+go_memstats_next_gc_bytes,16.194304e+06,Number of heap bytes when next garbage collection will take place.
+go_memstats_other_sys_bytes,1.523456e+06,Number of bytes used for other system allocations.
+go_memstats_stack_inuse_bytes,1.376256e+06,Number of bytes in use by the stack allocator.
+go_memstats_stack_sys_bytes,1.376256e+06,Number of bytes obtained from system for stack allocator.
+go_memstats_sys_bytes,34.567168e+06,Total bytes of memory obtained from the OS.
+go_threads,12,Number of OS threads created.
+free5gc_http_request_duration_seconds,0.001234,HTTP request latency for SBI (Service Based Interface) operations.
+free5gc_http_request_duration_seconds_sum,45.678,Total cumulative HTTP request duration.
+free5gc_http_request_duration_seconds_count,12345,Total count of HTTP requests processed.
+free5gc_http_requests_total,12345,Total number of HTTP requests received by the network function.
+free5gc_http_response_size_bytes,512,HTTP response size in bytes.
+free5gc_http_response_size_bytes_sum,6.291456e+06,Total cumulative HTTP response size.
+free5gc_http_response_size_bytes_count,12288,Total count of HTTP responses sent.
+free5gc_amf_registered_ue_count,150,Number of UEs (User Equipment) currently registered with the AMF.
+free5gc_amf_registered_gnb_count,5,Number of gNodeBs currently registered with the AMF.
+free5gc_amf_pdu_session_count,200,Number of active PDU sessions managed by the AMF.
+free5gc_amf_ngap_messages_received_total,5678,Total number of NGAP messages received by the AMF.
+free5gc_amf_ngap_messages_sent_total,5432,Total number of NGAP messages sent by the AMF.
+free5gc_amf_nas_messages_received_total,8765,Total number of NAS messages received by the AMF.
+free5gc_amf_nas_messages_sent_total,8543,Total number of NAS messages sent by the AMF.
+free5gc_smf_pdu_session_count,200,Number of active PDU sessions managed by the SMF.
+free5gc_smf_pfcp_sessions_count,200,Number of active PFCP sessions between SMF and UPF.
+free5gc_smf_pfcp_messages_received_total,3456,Total number of PFCP messages received by the SMF.
+free5gc_smf_pfcp_messages_sent_total,3421,Total number of PFCP messages sent by the SMF.
+free5gc_smf_upf_association_count,3,Number of UPFs currently associated with the SMF.
+free5gc_upf_active_sessions_count,200,Number of active data plane sessions in the UPF.
+free5gc_upf_packets_received_total,1.234567e+09,Total number of packets received by the UPF data plane.
+free5gc_upf_packets_sent_total,9.876543e+08,Total number of packets sent by the UPF data plane.
+free5gc_upf_bytes_received_total,1.234567e+12,Total number of bytes received by the UPF data plane.
+free5gc_upf_bytes_sent_total,9.876543e+11,Total number of bytes sent by the UPF data plane.
+free5gc_upf_pfcp_messages_received_total,3456,Total number of PFCP messages received by the UPF.
+free5gc_upf_pfcp_messages_sent_total,3421,Total number of PFCP messages sent by the UPF.
+free5gc_nrf_nf_instances_count,12,Total number of NF instances registered with the NRF.
+free5gc_nrf_nf_discovery_requests_total,567,Total number of NF discovery requests received by the NRF.
+free5gc_nrf_nf_registration_requests_total,89,Total number of NF registration requests received by the NRF.
+free5gc_nrf_nf_heartbeat_count,2345,Total number of NF heartbeat messages received by the NRF.
+free5gc_ausf_authentication_requests_total,890,Total number of authentication requests received by the AUSF.
+free5gc_ausf_authentication_success_total,875,Total number of successful authentication operations.
+free5gc_ausf_authentication_failures_total,15,Total number of failed authentication operations.
+free5gc_udm_subscriber_data_requests_total,1234,Total number of subscriber data requests received by the UDM.
+free5gc_udm_subscriber_count,500,Number of subscribers provisioned in the UDM.
+free5gc_udr_database_queries_total,5678,Total number of database queries executed by the UDR.
+free5gc_udr_database_query_duration_seconds,0.005,Duration of database queries in seconds.
+free5gc_udr_database_query_duration_seconds_sum,28.45,Total cumulative database query duration.
+free5gc_udr_database_query_duration_seconds_count,5678,Total count of database queries.
+free5gc_pcf_policy_authorization_requests_total,456,Total number of policy authorization requests received by the PCF.
+free5gc_pcf_active_policies_count,234,Number of active policies managed by the PCF.
+free5gc_nssf_slice_selection_requests_total,789,Total number of network slice selection requests received by the NSSF.
+free5gc_nssf_available_slices_count,5,Number of network slices available for selection.
+free5gc_bsf_binding_sessions_count,123,Number of active binding sessions in the BSF.
+free5gc_bsf_binding_discovery_requests_total,345,Total number of binding discovery requests received by the BSF.
+process_cpu_seconds_total,45.67,Total user and system CPU time spent in seconds.
+process_max_fds,1048576,Maximum number of open file descriptors.
+process_open_fds,42,Number of open file descriptors.
+process_resident_memory_bytes,1.5728e+08,Resident memory size in bytes.
+process_start_time_seconds,1.722499200e+09,Start time of the process since unix epoch in seconds.
+process_virtual_memory_bytes,1.234567e+09,Virtual memory size in bytes.
+process_virtual_memory_max_bytes,-1,Maximum amount of virtual memory available in bytes.
+promhttp_metric_handler_requests_in_flight,1,Current number of scrapes being served.
+promhttp_metric_handler_requests_total,1234,Total number of scrapes by HTTP status code.

@@ -1,0 +1,149 @@
+---
+- name: Manage NSSF Network Function
+  hosts: all
+  become: true
+  gather_facts: no
+
+  vars:
+    nf_type: nssf
+    binary_path: "/opt/device/bin/free5gc/nssf"
+    config_dest: "/opt/device/config/nssfcfg.yaml"
+    config_tmp: "/tmp/{{ container_name }}-nssfcfg.yaml"
+
+  tasks:
+    - block:
+        - name: Log playbook start
+          shell: "docker exec {{ container_name }} sh -c \"echo '[NSSF-PLAYBOOK] START operation={{ operation }} at '\\$(date +%s.%N) >> /tmp/nssf.log\""
+          changed_when: true
+
+        - name: Check if NSSF process is already running
+          shell: "docker exec {{ container_name }} pgrep -f {{ binary_path }}"
+          register: nf_running_check
+          failed_when: false
+          changed_when: false
+
+        - name: Log pgrep result
+          shell: "docker exec {{ container_name }} sh -c \"echo '[NSSF-PLAYBOOK] pgrep check: rc={{ nf_running_check.rc }} at '\\$(date +%s.%N) >> /tmp/nssf.log\""
+          changed_when: true
+
+        - name: Log start
+          shell: "docker exec {{ container_name }} sh -c \"echo '[NSSF-PLAYBOOK] Starting NSSF at '\\$(date +%s.%N) >> /tmp/nssf.log\""
+          changed_when: true
+          when: nf_running_check.rc != 0
+
+        - name: Log skip
+          shell: "docker exec {{ container_name }} sh -c \"echo '[NSSF-PLAYBOOK] Skipping NSSF, already running at '\\$(date +%s.%N) >> /tmp/nssf.log\""
+          changed_when: true
+          when: nf_running_check.rc == 0
+
+        - name: Render NSSF config from template
+          ansible.builtin.template:
+            src: "nssfcfg.yaml.j2"
+            dest: "{{ config_tmp }}"
+          when: nf_running_check.rc != 0
+
+        - name: Copy config into container
+          shell: "docker cp {{ config_tmp }} {{ container_name }}:{{ config_dest }}"
+          when: nf_running_check.rc != 0
+
+        - name: Remove temp config file
+          ansible.builtin.file:
+            path: "{{ config_tmp }}"
+            state: absent
+          when: nf_running_check.rc != 0
+
+        - name: Wait for NRF to be ready
+          shell: |
+            nrf_host=$(echo "{{ nrf_uri }}" | sed 's|https\?://||' | cut -d: -f1)
+            nrf_port=$(echo "{{ nrf_uri }}" | sed 's|https\?://||' | cut -d: -f2)
+            docker exec {{ container_name }} bash -c "echo > /dev/tcp/${nrf_host}/${nrf_port}"
+          register: nrf_check
+          retries: 15
+          delay: 5
+          until: nrf_check.rc == 0
+          when: nf_running_check.rc != 0
+
+        - name: Re-check if NSSF was started by a concurrent run
+          shell: "docker exec {{ container_name }} pgrep -f {{ binary_path }}"
+          register: nf_recheck
+          failed_when: false
+          changed_when: false
+          when: nf_running_check.rc != 0
+
+        - name: Log starting NSSF
+          shell: "docker exec {{ container_name }} sh -c \"echo '[NSSF-PLAYBOOK] About to start NSSF process at '\\$(date +%s.%N) >> /tmp/nssf.log\""
+          changed_when: true
+          when: nf_running_check.rc != 0 and nf_recheck.rc != 0
+
+        - name: Start NSSF process
+          shell: >
+            flock -x /tmp/nssf-{{ container_name }}-start.lock
+            bash -c 'docker exec {{ container_name }} pgrep -f {{ binary_path }} > /dev/null 2>&1 && exit 0;
+            docker exec -d {{ container_name }}
+            sh -c "exec {{ binary_path }} -c {{ config_dest }} >> /tmp/nssf.log 2>&1"'
+          when: nf_running_check.rc != 0 and nf_recheck.rc != 0
+
+        - name: Verify NSSF process is running
+          shell: "docker exec {{ container_name }} pgrep -f {{ binary_path }}"
+          register: pgrep_result
+          retries: 5
+          delay: 2
+          until: pgrep_result.rc == 0
+          when: nf_running_check.rc != 0
+
+        - name: Log NSSF started
+          shell: "docker exec {{ container_name }} sh -c \"echo '[NSSF-PLAYBOOK] NSSF process verified running at '\\$(date +%s.%N) >> /tmp/nssf.log\""
+          changed_when: true
+          when: nf_running_check.rc != 0
+
+        - name: Set operation result
+          set_fact:
+            operation_result: "nssf started in {{ container_name }}"
+          when: nf_running_check.rc != 0
+
+        - name: Log playbook end
+          shell: "docker exec {{ container_name }} sh -c \"echo '[NSSF-PLAYBOOK] END operation=create at '\\$(date +%s.%N) >> /tmp/nssf.log\""
+          changed_when: true
+
+      when: operation == 'create'
+
+    - block:
+        - name: Log playbook start (delete)
+          shell: "docker exec {{ container_name }} sh -c \"echo '[NSSF-PLAYBOOK] START operation={{ operation }} at '\\$(date +%s.%N) >> /tmp/nssf.log\""
+          changed_when: true
+
+        - name: Check if NSSF process is running
+          shell: "docker exec {{ container_name }} pgrep -f {{ binary_path }}"
+          register: nf_running_check
+          failed_when: false
+          changed_when: false
+
+        - name: Log pgrep result
+          shell: "docker exec {{ container_name }} sh -c \"echo '[NSSF-PLAYBOOK] pgrep check: rc={{ nf_running_check.rc }} at '\\$(date +%s.%N) >> /tmp/nssf.log\""
+          changed_when: true
+
+        - name: Stop NSSF process
+          shell: "docker exec {{ container_name }} pkill -f {{ binary_path }}"
+          failed_when: false
+          when: nf_running_check.rc == 0
+
+        - name: Remove config file from container
+          shell: "docker exec {{ container_name }} rm -f {{ config_dest }}"
+          failed_when: false
+          when: nf_running_check.rc == 0
+
+        - name: Set operation result
+          set_fact:
+            operation_result: "nssf stopped in {{ container_name }}"
+          when: nf_running_check.rc == 0
+
+        - name: Set operation result (not running)
+          set_fact:
+            operation_result: "nssf not running so skipped in {{ container_name }}"
+          when: nf_running_check.rc != 0
+
+      when: operation == 'delete'
+
+    - name: Display result
+      debug:
+        msg: "{{ operation_result | default('Operation complete') }}"

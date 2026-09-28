@@ -1,0 +1,114 @@
+info:
+  version: 1.0.7
+  description: SMF initial local configuration
+
+configuration:
+  smfName: SMF
+  sbi:
+    scheme: http
+    registerIPv4: {{ nf_ip }}
+    bindingIPv4: {{ nf_ip }}
+    port: 8000
+    tls:
+      key: cert/smf.key
+      pem: cert/smf.pem
+  serviceNameList:
+    - nsmf-pdusession
+    - nsmf-event-exposure
+    - nsmf-oam
+  snssaiInfos:
+{% for nssai in snssai_infos %}
+    - sNssai:
+        sst: {{ nssai.sNssai.sst }}
+        sd: {{ nssai.sNssai.sd }}
+      dnnInfos:
+{% for dnn in nssai.dnnInfos %}
+        - dnn: {{ dnn.dnn }}
+          dns:
+            ipv4: {{ dnn.dns.ipv4 }}
+            ipv6: {{ dnn.dns.ipv6 | default('2001:4860:4860::8888') }}
+{% endfor %}
+{% endfor %}
+  plmnList:
+{% for plmn in plmn_list %}
+    - mcc: {{ plmn.mcc }}
+      mnc: {{ plmn.mnc }}
+{% endfor %}
+  locality: area1
+  pfcp:
+    nodeID: {{ nf_ip }}
+    listenAddr: {{ nf_ip }}
+    externalAddr: {{ nf_ip }}
+  userplaneInformation:
+    upNodes:
+      gNB1:
+        type: AN
+{% for upf in upf_list %}
+      {{ upf.name }}:
+        type: UPF
+        nodeID: {{ upf.nodeID }}
+        addr: {{ upf.addr }}
+        sNssaiUpfInfos:
+{% for nssai in snssai_infos %}
+          - sNssai:
+              sst: {{ nssai.sNssai.sst }}
+              sd: {{ nssai.sNssai.sd }}
+            dnnUpfInfoList:
+{% for dnn in nssai.dnnInfos %}
+              - dnn: {{ dnn.dnn }}
+{% if dnn.pools is defined and dnn.pools %}
+                pools:
+{% for pool in dnn.pools %}
+                  - cidr: {{ pool.cidr }}
+{% endfor %}
+{% endif %}
+{% if dnn.staticPools is defined and dnn.staticPools %}
+                staticPools:
+{% for pool in dnn.staticPools %}
+                  - cidr: {{ pool.cidr }}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endfor %}
+        interfaces:
+          - interfaceType: N3
+            endpoints:
+              - {{ upf.addr }}
+            networkInstances:
+{% for nssai in snssai_infos %}
+{% for dnn in nssai.dnnInfos %}
+              - {{ dnn.dnn }}
+{% endfor %}
+{% endfor %}
+{% endfor %}
+    links:
+{% for upf in upf_list %}
+      - A: gNB1
+        B: {{ upf.name }}
+{% endfor %}
+  t3591:
+    enable: true
+    expireTime: 16s
+    maxRetryTimes: 3
+  t3592:
+    enable: true
+    expireTime: 16s
+    maxRetryTimes: 3
+  nrfUri: {{ nrf_uri }}
+{% if metrics_enabled %}
+  metrics:
+    enable: true
+    scheme: {{ metrics_scheme }}
+    bindingIPv4: 0.0.0.0
+    port: {{ metrics_port }}
+    namespace: {{ metrics_namespace }}
+{% if metrics_scheme == 'https' %}
+    tls:
+      pem: cert/smf.pem
+      key: cert/smf.key
+{% endif %}
+{% endif %}
+logger:
+  enable: true
+  level: info
+  reportCaller: false

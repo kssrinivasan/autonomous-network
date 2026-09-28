@@ -1,0 +1,146 @@
+---
+- name: Manage CellSite (gNodeB + UEs)
+  hosts: all
+  become: true
+  gather_facts: no
+
+  vars:
+    gnb_config_dest: "/opt/device/config/gnbcfg-{{ container_name }}.yaml"
+    gnb_binary: "/opt/device/bin/ueransim/nr-gnb"
+    ue_binary: "/opt/device/bin/ueransim/nr-ue"
+
+  tasks:
+    - block:
+        - name: Log playbook start
+          shell: "docker exec {{ container_name }} sh -c \"echo '[GNB-PLAYBOOK] START operation={{ operation }} at '\\$(date +%s.%N) >> /tmp/gnb.log\""
+          changed_when: true
+
+        - name: Check if gNodeB is already running
+          shell: "docker exec {{ container_name }} pgrep -f {{ gnb_binary }}"
+          register: gnb_running_check
+          failed_when: false
+          changed_when: false
+
+        - name: Log pgrep result
+          shell: "docker exec {{ container_name }} sh -c \"echo '[GNB-PLAYBOOK] pgrep check: rc={{ gnb_running_check.rc }} at '\\$(date +%s.%N) >> /tmp/gnb.log\""
+          changed_when: true
+
+        - name: Log start
+          shell: "docker exec {{ container_name }} sh -c \"echo '[GNB-PLAYBOOK] Starting gNodeB at '\\$(date +%s.%N) >> /tmp/gnb.log\""
+          changed_when: true
+          when: gnb_running_check.rc != 0
+
+        - name: Log skip
+          shell: "docker exec {{ container_name }} sh -c \"echo '[GNB-PLAYBOOK] Skipping gNodeB, already running at '\\$(date +%s.%N) >> /tmp/gnb.log\""
+          changed_when: true
+          when: gnb_running_check.rc == 0
+
+        - name: Render gNodeB config
+          ansible.builtin.template:
+            src: gnbcfg.yaml.j2
+            dest: "/tmp/gnbcfg-{{ container_name }}.yaml"
+          when: gnb_running_check.rc != 0
+
+        - name: Copy gNodeB config into container
+          shell: "docker cp /tmp/gnbcfg-{{ container_name }}.yaml {{ container_name }}:{{ gnb_config_dest }}"
+          when: gnb_running_check.rc != 0
+
+        - name: Remove temp gNodeB config
+          ansible.builtin.file:
+            path: "/tmp/gnbcfg-{{ container_name }}.yaml"
+            state: absent
+          when: gnb_running_check.rc != 0
+
+        - name: Check AMF reachability across transport network
+          shell: |
+            docker exec {{ container_name }} bash -c "echo > /dev/tcp/{{ amf_ip }}/8000"
+          register: amf_reach_check
+          failed_when: amf_reach_check.rc != 0
+          when: gnb_running_check.rc != 0
+
+        - name: Re-check if gNodeB was started by a concurrent run
+          shell: "docker exec {{ container_name }} pgrep -f {{ gnb_binary }}"
+          register: gnb_recheck
+          failed_when: false
+          changed_when: false
+          when: gnb_running_check.rc != 0
+
+        - name: Log starting gNodeB
+          shell: "docker exec {{ container_name }} sh -c \"echo '[GNB-PLAYBOOK] About to start gNodeB process at '\\$(date +%s.%N) >> /tmp/gnb.log\""
+          changed_when: true
+          when: gnb_running_check.rc != 0 and gnb_recheck.rc != 0
+
+        - name: Start gNodeB process
+          shell: >
+            flock -x /tmp/gnb-{{ container_name }}-start.lock
+            bash -c 'docker exec {{ container_name }} pgrep -f {{ gnb_binary }} > /dev/null 2>&1 && exit 0;
+            docker exec -d {{ container_name }}
+            sh -c "exec {{ gnb_binary }} -c {{ gnb_config_dest }} >> /tmp/gnb.log 2>&1"'
+          when: gnb_running_check.rc != 0 and gnb_recheck.rc != 0
+
+        - name: Verify gNodeB is running
+          shell: "docker exec {{ container_name }} pgrep -f {{ gnb_binary }}"
+          register: gnb_check
+          retries: 5
+          delay: 2
+          until: gnb_check.rc == 0
+          when: gnb_running_check.rc != 0
+
+        - name: Log gNodeB started
+          shell: "docker exec {{ container_name }} sh -c \"echo '[GNB-PLAYBOOK] gNodeB process verified running at '\\$(date +%s.%N) >> /tmp/gnb.log\""
+          changed_when: true
+          when: gnb_running_check.rc != 0
+
+        - name: Log playbook end
+          shell: "docker exec {{ container_name }} sh -c \"echo '[GNB-PLAYBOOK] END operation=create at '\\$(date +%s.%N) >> /tmp/gnb.log\""
+          changed_when: true
+
+        - name: Provision UEs
+          include_tasks: ue_tasks.yaml
+          loop: "{{ ues | default([]) }}"
+          loop_control:
+            loop_var: ue
+          when: ues is defined and ues | length > 0
+
+      when: operation == 'create'
+
+    - block:
+        - name: Log playbook start (delete)
+          shell: "docker exec {{ container_name }} sh -c \"echo '[GNB-PLAYBOOK] START operation={{ operation }} at '\\$(date +%s.%N) >> /tmp/gnb.log\""
+          changed_when: true
+
+        - name: Check if UE processes are running
+          shell: "docker exec {{ container_name }} pgrep -f {{ ue_binary }}"
+          register: ue_running_check
+          failed_when: false
+          changed_when: false
+
+        - name: Stop all UE processes
+          shell: "docker exec {{ container_name }} pkill -f {{ ue_binary }}"
+          failed_when: false
+          when: ue_running_check.rc == 0
+
+        - name: Check if gNodeB process is running
+          shell: "docker exec {{ container_name }} pgrep -f {{ gnb_binary }}"
+          register: gnb_running_check
+          failed_when: false
+          changed_when: false
+
+        - name: Log pgrep result
+          shell: "docker exec {{ container_name }} sh -c \"echo '[GNB-PLAYBOOK] pgrep check: rc={{ gnb_running_check.rc }} at '\\$(date +%s.%N) >> /tmp/gnb.log\""
+          changed_when: true
+
+        - name: Stop gNodeB process
+          shell: "docker exec {{ container_name }} pkill -f {{ gnb_binary }}"
+          failed_when: false
+          when: gnb_running_check.rc == 0
+
+        - name: Remove gNodeB config
+          shell: "docker exec {{ container_name }} rm -f {{ gnb_config_dest }}"
+          failed_when: false
+
+        - name: Remove UE configs
+          shell: "docker exec {{ container_name }} rm -f /opt/device/config/uecfg-*.yaml"
+          failed_when: false
+
+      when: operation == 'delete'

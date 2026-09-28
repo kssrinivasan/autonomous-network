@@ -1,0 +1,90 @@
+apiVersion: google.dev/v1
+kind: VyOSL3VPN
+metadata:
+  name: l3vpn-blue-service
+  namespace: network
+spec:
+  underlayRef: l3vpn-underlay
+  services:
+    - name: "BLUE_SPOKE"
+      type: "l3vpn"
+      topology: "spoke"
+    - name: "BLUE_HUB"
+      type: "l3vpn"
+      topology: "hub"
+  routers:
+    - name: "pe1"
+      vrfs:
+        - name: "BLUE_SPOKE"
+          table: 200  # v2.0: Dynamic allocation (unchanged)
+          rd: "10.0.0.7:200"  # v2.0: Loopback-based (was 10.50.50.1:1011)
+          rt_export: ["65035:1011"]
+          rt_import: ["65035:1030"]
+          interfaces: ["eth2"]
+      bgp:
+        vrfs:
+          - name: "BLUE_SPOKE"
+            neighbors: [{ peer: "10.50.50.2", remote_as: 65035 }]
+    - name: "pe2"
+      vrfs:
+        - name: "BLUE_HUB"
+          table: 200  # v2.0: Dynamic allocation (was 400)
+          rd: "10.0.0.8:200"  # v2.0: Loopback-based (was 10.80.80.1:1011)
+          rt_export: ["65035:1030"]
+          rt_import: ["65035:1011", "65035:1030"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "BLUE_HUB"
+            neighbors: [{ peer: "10.80.80.2", remote_as: 65035 }]
+    - name: "pe3"
+      vrfs:
+        - name: "BLUE_SPOKE"
+          table: 200  # v2.0: Dynamic allocation (unchanged)
+          rd: "10.0.0.10:200"  # v2.0: Loopback-based (was 10.60.60.1:1011)
+          rt_export: ["65035:1011"]
+          rt_import: ["65035:1030"]
+          interfaces: ["eth2"]
+      bgp:
+        vrfs:
+          - name: "BLUE_SPOKE"
+            neighbors: [{ peer: "10.60.60.2", remote_as: 65035 }]
+    - name: "pe4"
+      vrfs:
+        - name: "BLUE_SPOKE"
+          table: 200  # v2.0: Dynamic allocation (unchanged)
+          rd: "10.0.0.11:200"  # v2.0: Loopback-based (was 10.70.70.1:1011)
+          rt_export: ["65035:1011"]
+          rt_import: ["65035:1030"]
+          interfaces: ["eth2"]
+      bgp:
+        vrfs:
+          - name: "BLUE_SPOKE"
+            neighbors: [{ peer: "10.70.70.2", remote_as: 65035 }]
+  # CE routers are customer equipment — their eBGP config lives here alongside
+  # the VPN service they participate in, not in the provider underlay.
+  ce_routers:
+    - name: "ce1-spoke"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.80"
+          neighbors: [{ peer: "10.50.50.1", remote_as: 65001, description: "eBGP to pe1 BLUE_SPOKE VRF" }]
+    - name: "ce1-hub"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.100"
+          neighbors: [{ peer: "10.80.80.1", remote_as: 65001, description: "eBGP to pe2 BLUE_HUB VRF" }]
+    - name: "ce2-spoke"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.90"
+          neighbors: [{ peer: "10.60.60.1", remote_as: 65001, description: "eBGP to pe3 BLUE_SPOKE VRF" }]
+    - name: "ce3-spoke"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.91"
+          neighbors: [{ peer: "10.70.70.1", remote_as: 65001, description: "eBGP to pe4 BLUE_SPOKE VRF" }]

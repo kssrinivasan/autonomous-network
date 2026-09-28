@@ -1,0 +1,46 @@
+# NetworkFailure: OSPF Cost Inflation on Core Link (Medium Network)
+#
+# Fault Type   : OSPF_COST_INFLATION
+# Target       : P1-P2 link (London-Manchester core mesh)
+# Mechanism    : Set OSPF cost to 65535 on p1's eth1 interface (p1-p2 link)
+# Impact       : Inter-region traffic (Area 1 ↔ Area 2, UK ↔ Ireland/Scotland) must
+#                reroute through alternate core paths (p1→p3→p2 or p1→p4→p2).
+#                Affects multiple tiers (PA, PE layers). OSPF adjacency remains Full,
+#                requiring GNN to detect via performance anomalies.
+#
+# Traffic Impact:
+#   - UK→Ireland traffic (pe1-pe6 → pe7-pe8) reroutes via p3→p2 or p1→p4→p2
+#   - Increased latency: ~15-20ms (additional 2-3 hops through core)
+#   - Potential bottlenecks at pa1, pa2 (UK ABRs) or pa3, pa4 (Ireland/Scotland ABRs)
+#   - Multiple VPN flows affected (~5 BLUE VPN spoke-to-hub flows + RED VPN mesh)
+#   - Inter-area summary LSAs must be recalculated by ABRs
+#
+# GNN Detection Signatures:
+#   D-GAT  : Directed edge P1(eth1)→P2(eth1) shows cost spike in OSPF metrics
+#   STGNN  : Latency anomaly on inter-region flows (Area 1 → Area 2)
+#   HetGNN : Path metrics change across all 3 tiers (core, PA, PE)
+#
+# Related Scenario: docs/scenarios/medium/scenario_1_ospf_cost_inflation.md
+#
+# Usage:
+#   kubectl apply  -f ospf-cost-inflation.yaml    # Inflate OSPF cost
+#   kubectl delete -f ospf-cost-inflation.yaml    # Restore original cost
+---
+apiVersion: google.dev/v1
+kind: NetworkFailure
+metadata:
+  name: ospf-cost-inflation-p1-p2-inter-region
+  namespace: network
+  labels:
+    scenario: medium-network
+    fault-type: ospf-cost-inflation
+    severity: medium
+spec:
+  writeMode: direct
+  failureType: OSPF_COST_INFLATION
+  infrastructureRef: medium-network-infra
+  target:
+    router: p1
+    interface: eth1  # p1-p2 link (London-Manchester)
+  parameters:
+    ospf_cost: 65535

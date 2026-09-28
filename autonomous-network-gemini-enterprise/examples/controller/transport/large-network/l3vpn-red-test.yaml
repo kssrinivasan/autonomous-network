@@ -1,0 +1,55 @@
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: red-vpn-mesh-test
+  namespace: network
+spec:
+  description: "RED VPN any-to-any mesh - enhanced for capacity testing"
+  vpnRef: red-vpn-service
+  source_devices:
+    - "d1-red"   # pe1 (Oxford, Area 1)
+    - "d3-red"   # pe3 (Brighton, Area 1)
+    - "d5-red"   # pe5 (Nantes, Area 3)
+    - "d7-red"   # pe7 (Cologne, Area 2)
+    - "d9-red"   # pe9 (Frankfurt, Area 2)
+    - "d11-red"  # pe11 (Montpellier, Area 3)
+  destination_device: "d2-red"   # pe2 (Cambridge, Area 1)
+  protocol: TCP
+  duration: 3600    # 1 hour for steady-state analysis
+
+  # Mesh traffic: 50 Mbps with moderate variation
+  bandwidth: 70Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: wall_clock
+    base_rate: 40Mbps
+    components:
+      - period: 3600       # 1-hour cycle
+        amplitude: 20Mbps
+        phase_offset: 0
+    noise_stddev_pct: 5.0
+    min_rate: 15Mbps
+    max_rate: 70Mbps
+
+  bidirectional: false
+  concurrent_users: 8
+
+  expected_paths:
+    - source: "d1-red"
+      expected: ["ce1-red", "pe1", "ar1", "pa1", "p1", "p2", "pa1", "ar1", "pe2", "ce2-red", "d2-red"]
+      description: "Oxford to Cambridge mesh - direct Area 1 path"
+    - source: "d3-red"
+      expected: ["ce3-red", "pe3", "ar1", "pa1", "p1", "p2", "pa1", "ar1", "pe2", "ce2-red", "d2-red"]
+      description: "Brighton to Cambridge mesh - Area 1 path"
+    - source: "d5-red"
+      expected: ["ce5-red", "pe5", "ar9", "pa5", "p3", "p1", "p2", "pa1", "ar1", "pe2", "ce2-red", "d2-red"]
+      description: "Nantes to Cambridge mesh - Area 3 → Area 0 → Area 1 (cross-area)"
+    - source: "d7-red"
+      expected: ["ce7-red", "pe7", "ar5", "pa3", "p2", "p1", "pa1", "ar1", "pe2", "ce2-red", "d2-red"]
+      description: "Cologne to Cambridge mesh - Area 2 → Area 0 → Area 1 (cross-area)"
+    - source: "d9-red"
+      expected: ["ce9-red", "pe9", "ar7", "pa4", "p2", "p1", "pa1", "ar1", "pe2", "ce2-red", "d2-red"]
+      description: "Frankfurt to Cambridge mesh - Area 2 → Area 0 → Area 1 (cross-area)"
+    - source: "d11-red"
+      expected: ["ce11-red", "pe11", "ar9", "pa5", "p3", "p1", "p2", "pa1", "ar1", "pe2", "ce2-red", "d2-red"]
+      description: "Montpellier to Cambridge mesh - Area 3 → Area 0 → Area 1 (cross-area)"

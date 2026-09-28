@@ -1,0 +1,586 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: networkfailures.google.dev
+  labels:
+    # Opt-in allowlist: chaos and designer enumerate CRDs by this marker to
+    # learn what they may create. Without it their label selectors match nothing.
+    agent-accessible: "true"
+    type: failure
+spec:
+  scope: Namespaced
+  group: google.dev
+  names:
+    kind: NetworkFailure
+    plural: networkfailures
+    singular: networkfailure
+    shortNames:
+      - nf
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: |
+            NetworkFailure defines a controlled fault injection scenario in the network operator.
+
+            A NetworkFailure resource encodes a single, reversible network fault that is injected
+            into the running VyOS router topology when the resource is created, and fully restored
+            when the resource is deleted.
+
+            Injection Methods:
+            The operator automatically selects the injection method based on the failureType.
+            Each fault type uses exactly one of two methods:
+
+            - direct: Injects the fault by running docker exec commands directly on the VyOS
+              router containers via Ansible. Fast and surgical. Does not modify any VyOS
+              operator CRDs. Used for kernel-level faults that cannot be represented in CRDs
+              (TXQUEUE_STARVATION, LINK_DOWN, DUPLICATE_IP, PROCESS_CRASH). All faults are
+              tracked in Spanner via the FaultEvent table.
+
+            - operator: Injects the fault by patching the appropriate VyOS operator CRD
+              (VyOSInfrastructure, VyOSL3VPN, or VyOSUnderlay). The existing operator pipeline
+              applies the change and the resulting state flows through to Spanner naturally via
+              the SCD mechanism (PhysicalRouter.config, VRF.config, BGPSession, etc.). The
+              NetworkFailure operator waits for the target CRD to reach a stable state before
+              marking itself Active. Used for configuration-based faults (MTU_MISMATCH,
+              BGP_SESSION_DOWN, PACKET_CORRUPTION, OSPF_AREA_MISMATCH, OSPF_COST_INFLATION,
+              VRF_RT_MISCONFIGURATION). The fault is visible in the full topology graph.
+
+            Supported Failure Types:
+            - MTU_MISMATCH: Alters the MTU on a router interface causing silent large-packet drops
+              while leaving the control plane intact.
+            - BGP_SESSION_DOWN: Tears down a specific eBGP/iBGP session, withdrawing customer routes
+              and causing traffic blackouts on the affected VPN.
+            - PROCESS_CRASH: Simulates a BGP process crash or loopback-interface disable on a
+              Route Reflector, testing reconvergence and backup mechanisms.
+            - PACKET_CORRUPTION: Progressively injects CRC errors or packet drops using Linux tc
+              to simulate a failing optical SFP on a provider core link.
+            - LINK_DOWN: Simulates a physical cable pull or port failure, triggering immediate
+              L1/L2 down events and forcing OSPF/LDP to recalculate paths. Supports two
+              sub-modes: interface mode (brings down one router's interface inside its
+              container) and bridge mode (brings down the Linux bridge connecting two
+              routers, causing symmetric L1/L2 down events on both ends simultaneously).
+            - OSPF_AREA_MISMATCH: Places an interface in the wrong OSPF area, causing an adjacency
+              failure without bringing down the physical link.
+            - DUPLICATE_IP: Assigns an IP address already in use by another node, causing routing
+              instability, intermittent connectivity, and ARP flapping.
+            - TXQUEUE_STARVATION: Shrinks the Linux transmit queue length (txqueuelen) on a router
+              interface to a very small value, causing constant queue overflow and packet drops
+              under load. This is a kernel-level parameter invisible to VyOS config and all
+              configuration management systems. Only supported in direct injection mode.
+            - OSPF_COST_INFLATION: Sets the OSPF interface cost to 65535 on a core link, causing
+              all traffic to reroute via longer detour paths while the OSPF adjacency remains Full.
+              This is a legal-but-wrong configuration value that generates no alarms.
+            - VRF_RT_MISCONFIGURATION: Changes the import Route Target on a PE router VRF to a
+              non-matching community, silently isolating the attached spoke site while all BGP
+              sessions remain Established.
+
+            Lifecycle:
+            - CREATE: The operator injects the fault and saves the original state in status.original_state.
+              A FaultEvent row is written to Spanner on every phase transition.
+            - DELETE: The operator restores the original configuration using the saved state.
+              In operator mode, if the underlying CR was manually modified (remediated) before
+              deletion, restoration is automatically skipped to preserve the manual fix.
+              Detection is performed by comparing the current CR state with the faulty value
+              from spec.parameters. Status.remediation indicates whether restoration was
+              automatic or skipped due to manual intervention.
+            - Status tracks the injection phase (Injecting, Active, Restoring, Restored, Failed).
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - failureType
+                - target
+              description: |
+                Specification of the network fault to inject.
+              properties:
+                failureType:
+                  type: string
+                  enum:
+                    - MTU_MISMATCH
+                    - BGP_SESSION_DOWN
+                    - PROCESS_CRASH
+                    - PACKET_CORRUPTION
+                    - LINK_DOWN
+                    - OSPF_AREA_MISMATCH
+                    - DUPLICATE_IP
+                    - TXQUEUE_STARVATION
+                    - OSPF_COST_INFLATION
+                    - VRF_RT_MISCONFIGURATION
+                  description: |
+                    Type of network fault to inject. Determines which parameters are required
+                    and which ansible tasks will be executed.
+
+                    MTU_MISMATCH:
+                      Alters the MTU on a specific router interface (e.g., PE1 eth1) from the
+                      standard 1500 bytes to a lower value (e.g., 1400). Large BGP UPDATE messages
+                      and data packets exceeding the new MTU are silently dropped while the
+                      control plane and OSPF adjacencies remain healthy.
+                      Required parameters: target.router, target.interface, parameters.mtu
+                      Injection mode: operator (VyOSInfrastructure patch)
+
+                    BGP_SESSION_DOWN:
+                      Shuts down the eBGP session between a Provider Edge and a Customer Edge by
+                      removing the BGP neighbor configuration from the specified VRF. Customer
+                      routes are withdrawn, causing a total blackout for the affected VPN service.
+                      Required parameters: target.router, target.peer_ip, target.vrf,
+                                          parameters.remote_as
+                      Injection mode: operator (VyOSL3VPN patch)
+
+                    PROCESS_CRASH:
+                      Simulates a crash of the BGP daemon (bgpd) on a Route Reflector, or
+                      disables its loopback interface, dropping all PE-to-RR BGP sessions.
+                      Required parameters: target.router, parameters.method
+                      Injection mode: direct (process_kill/loopback_disable via docker exec)
+
+                    PACKET_CORRUPTION:
+                      Uses Linux tc (traffic control) with the netem module to inject CRC errors
+                      or random packet drops on a specific interface, simulating a degrading
+                      optical SFP or a failing hardware component.
+                      Required parameters: target.router, target.interface, parameters.error_rate
+                      Injection mode: operator (VyOSUnderlay traffic_policy)
+
+                    LINK_DOWN:
+                      Simulates a physical cable pull or port hardware failure. Supports two
+                      mutually exclusive sub-modes — exactly one of target.interface or
+                      target.peer_router must be provided:
+
+                      Interface mode (target.interface set):
+                        Brings down the specified interface inside the router container using
+                        'docker exec <router> ip link set <interface> down'. Only the local
+                        router sees an immediate L1/L2 down event; the far-end router times
+                        out via the OSPF Dead interval (~40s). Surgical — affects only the
+                        single router's interface.
+                        Required: target.router, target.interface
+
+                      Bridge mode (target.peer_router set):
+                        Brings down the Linux bridge on the network VM host that connects the
+                        two routers, using 'ip link set <bridge> down'. Both ends of the link
+                        see an immediate carrier-loss event simultaneously, accurately simulating
+                        a physical cable pull or switch port failure. The bridge name is derived
+                        automatically from the VyOSInfrastructure spec by finding the network
+                        segment shared by target.router and target.peer_router.
+                        Required: target.router, target.peer_router, spec.infrastructureRef
+
+                      Injection mode: direct (transient kernel state, not representable in CRD)
+
+                    OSPF_AREA_MISMATCH:
+                      Modifies the OSPF area assignment of a specific interface via VyOS
+                      configuration commands, placing it in the wrong area. The OSPF adjacency
+                      fails without bringing down the physical link, simulating an operator
+                      misconfiguration during maintenance.
+                      Required parameters: target.router, target.interface, parameters.wrong_area,
+                                          parameters.correct_area
+                      Injection mode: operator (VyOSUnderlay patch)
+
+                    DUPLICATE_IP:
+                      Adds an IP address that is already assigned to another critical node
+                      (e.g., a core router's loopback or P-to-P link address) to a target
+                      interface. This causes severe ARP flapping, routing instability, and
+                      intermittent connectivity throughout the network.
+                      Required parameters: target.router, target.interface,
+                                          parameters.duplicate_ip
+                      Injection mode: direct (ip addr add via docker exec)
+
+                    TXQUEUE_STARVATION:
+                      Shrinks the Linux transmit queue length (txqueuelen) on a router interface
+                      from the default 1000 packets to a very small value (e.g., 20). Under load,
+                      the queue fills and overflows thousands of times per second, causing 30-60%
+                      throughput loss. This is a kernel parameter — it does not appear in VyOS
+                      running-config, is not stored in VyOS commit history, and is not captured
+                      by any configuration management or GitOps system.
+                      Required parameters: target.router, target.interface, parameters.queue_length
+                      Injection mode: direct (ip link set txqueuelen via docker exec)
+
+                    OSPF_COST_INFLATION:
+                      Sets the OSPF interface cost to 65535 on a core link. The OSPF adjacency
+                      remains Full — cost changes never break adjacencies. OSPF SPF recalculates
+                      and all traffic reroutes via longer detour paths, potentially congesting
+                      other links. Cost 65535 is a legal configured value that generates no alarms.
+                      Required parameters: target.router, target.interface, parameters.ospf_cost
+                      Injection mode: operator (VyOSUnderlay patch)
+
+                    VRF_RT_MISCONFIGURATION:
+                      Changes the import Route Target on a PE router VRF to a non-matching
+                      community. The PE no longer imports hub routes, silently isolating the
+                      attached spoke site. All BGP sessions remain Established. Zero alarms.
+                      Required parameters: target.router, target.vrf, parameters.wrong_rt,
+                                          parameters.correct_rt
+                      Injection mode: operator (VyOSL3VPN patch)
+
+                writeMode:
+                  type: string
+                  enum:
+                    - git
+                    - direct
+                  default: git
+                  description: |
+                    Determines how the operator writes configuration changes for operator-mode faults:
+
+                    - git (default): Commit changes to the Gitea 'network' repo, let ConfigSync
+                      apply them. Used when NetworkFailure is created from UI/agent. Prevents
+                      ConfigSync from overwriting the fault.
+
+                    - direct: Patch k8s CRDs directly (bypasses git). Used for CLI/testing when
+                      ConfigSync is not managing the network, or for quick debugging.
+
+                    This field only affects operator-mode faults (MTU_MISMATCH, BGP_SESSION_DOWN,
+                    PACKET_CORRUPTION, OSPF_AREA_MISMATCH, OSPF_COST_INFLATION,
+                    VRF_RT_MISCONFIGURATION). Direct-mode faults (LINK_DOWN, PROCESS_CRASH,
+                    DUPLICATE_IP, TXQUEUE_STARVATION) always bypass git because they modify
+                    kernel state via Ansible, not CRDs.
+
+                infrastructureRef:
+                  type: string
+                  description: |
+                    Name of the VyOSInfrastructure resource that defines the network topology.
+                    Used by operator injection mode to locate the correct CRD to patch.
+                    Also required for LINK_DOWN bridge mode (target.peer_router) so the operator
+                    can derive the shared bridge name from the infrastructure network definitions.
+
+                target:
+                  type: object
+                  required:
+                    - router
+                  description: |
+                    Identifies the specific network element (router, interface, or BGP session)
+                    that will be affected by the fault injection.
+                  properties:
+                    router:
+                      type: string
+                      description: |
+                        Name of the router container on the network VM that will be targeted.
+                        Must correspond to a router name defined in the referenced
+                        VyOSInfrastructure resource.
+
+                        Examples: "pe1", "pe2", "pe3", "rr1", "rr2", "p1", "p2", "p3", "p4",
+                                  "ce1-spoke", "ce1-hub", "ce2-spoke"
+
+                    interface:
+                      type: string
+                      description: |
+                        Name of the network interface on the target router. Required for
+                        MTU_MISMATCH, PACKET_CORRUPTION, OSPF_AREA_MISMATCH, DUPLICATE_IP,
+                        TXQUEUE_STARVATION, and OSPF_COST_INFLATION failure types.
+                        For LINK_DOWN: provide either this field (interface mode) OR
+                        target.peer_router (bridge mode) — not both.
+
+                        Examples: "eth1", "eth2", "eth3", "lo"
+
+                    peer_router:
+                      type: string
+                      description: |
+                        Name of the second router in a LINK_DOWN bridge mode fault. When set,
+                        the operator derives the Linux bridge name connecting target.router and
+                        target.peer_router by scanning the VyOSInfrastructure spec (referenced
+                        by spec.infrastructureRef) for the network segment shared by both routers.
+                        That network name is the bridge name on the host.
+
+                        Mutually exclusive with target.interface for LINK_DOWN.
+                        Requires spec.infrastructureRef to be set.
+
+                        Examples: "p1", "p2", "rr1"
+
+                    peer_ip:
+                      type: string
+                      description: |
+                        IP address of the BGP peer whose session will be torn down.
+                        Required for BGP_SESSION_DOWN failure type.
+
+                        Examples: "10.80.80.2", "10.50.50.2"
+
+                    vrf:
+                      type: string
+                      description: |
+                        Name of the VRF containing the BGP neighbor configuration to be removed.
+                        Required for BGP_SESSION_DOWN and VRF_RT_MISCONFIGURATION failure types.
+                        Use "global" for the default routing table (e.g., for iBGP sessions
+                        between PEs and RRs).
+
+                        Examples: "BLUE_HUB", "BLUE_SPOKE", "global"
+
+                parameters:
+                  type: object
+                  description: |
+                    Failure-type-specific configuration parameters. Only the parameters
+                    relevant to the selected failureType need to be provided.
+                  properties:
+                    mtu:
+                      type: integer
+                      minimum: 576
+                      maximum: 9216
+                      description: |
+                        Target MTU value to set on the interface for MTU_MISMATCH failures.
+                        The original MTU (typically 1500) is saved in status.original_state
+                        and restored on deletion.
+
+                        Recommended values:
+                        - 1400: Causes silent drops for typical BGP UPDATE messages
+                        - 1280: Minimum IPv6 MTU, causes widespread fragmentation issues
+                        - 576: Minimum IPv4 MTU, extreme misconfiguration scenario
+
+                        Default: 1400
+
+                    error_rate:
+                      type: string
+                      pattern: '^[0-9]+(\.[0-9]+)?%$'
+                      description: |
+                        Packet corruption or drop rate to inject for PACKET_CORRUPTION failures.
+                        Expressed as a percentage. Uses Linux tc netem module.
+
+                        Examples:
+                        - "1%": Light corruption, simulates early SFP degradation
+                        - "5%": Moderate corruption, causes visible retransmissions
+                        - "20%": Heavy corruption, causes routing protocol instability
+                        - "50%": Severe corruption, simulates near-failed hardware
+
+                        Default: "5%"
+
+                    method:
+                      type: string
+                      enum:
+                        - process_kill
+                        - loopback_disable
+                      description: |
+                        Method to use for PROCESS_CRASH failure simulation.
+
+                        process_kill:
+                          Sends SIGKILL to the bgpd process inside the router container,
+                          simulating a BGP daemon crash. VyOS will attempt to restart the
+                          process, so the failure may self-heal after some time.
+
+                        loopback_disable:
+                          Administratively shuts down the loopback interface (lo) on the
+                          router. Since iBGP router-IDs are sourced from loopback addresses,
+                          this drops all iBGP sessions without directly killing the daemon.
+                          More persistent than process_kill.
+
+                        Default: "loopback_disable"
+
+                    remote_as:
+                      type: integer
+                      minimum: 1
+                      maximum: 4294967295
+                      description: |
+                        BGP Autonomous System number of the peer whose session is being torn
+                        down. Required for BGP_SESSION_DOWN to correctly reconstruct the
+                        neighbor configuration during restoration.
+
+                        Examples:
+                        - 65001: Provider AS (for iBGP sessions)
+                        - 65035: Customer AS (for eBGP PE-CE sessions)
+
+                    wrong_area:
+                      type: string
+                      description: |
+                        The incorrect OSPF area ID to assign to the interface for
+                        OSPF_AREA_MISMATCH failures. Must be different from the correct area.
+
+                        Examples: "0.0.0.1", "0.0.0.99", "1.1.1.1"
+
+                    correct_area:
+                      type: string
+                      description: |
+                        The original, correct OSPF area ID for the interface. Used during
+                        restoration to revert the area assignment. If not provided, the
+                        operator will attempt to read it from the VyOSInfrastructure spec.
+
+                        Examples: "0.0.0.0"
+
+                    duplicate_ip:
+                      type: string
+                      description: |
+                        The IP address (in CIDR notation) to assign as a duplicate on the
+                        target interface. This should be an IP already used by another
+                        critical network node to maximize the routing disruption impact.
+
+                        Examples:
+                        - "172.16.30.1/24": Duplicate of P1's P1-P2 link address
+                        - "10.0.0.3/32": Duplicate of P1's loopback address
+
+                    queue_length:
+                      type: integer
+                      minimum: 1
+                      maximum: 10000
+                      description: |
+                        Target transmit queue length (txqueuelen) to set on the interface for
+                        TXQUEUE_STARVATION failures. The Linux default is 1000 packets.
+                        Setting this to a very small value (e.g., 20) causes constant queue
+                        overflow under load, resulting in 30-60% throughput loss.
+
+                        This is a kernel parameter — it does not appear in VyOS running-config,
+                        is not stored in VyOS commit history, and is not captured by any
+                        configuration management or GitOps system. Only detectable via GNN
+                        telemetry analysis.
+
+                        Recommended values:
+                        - 20: Severe starvation — constant overflow at hub traffic loads
+                        - 50: Moderate starvation — visible at peak hours
+                        - 100: Light starvation — intermittent at peak
+
+                        Default: 20
+
+                    ospf_cost:
+                      type: integer
+                      minimum: 1
+                      maximum: 65535
+                      description: |
+                        OSPF interface cost to set for OSPF_COST_INFLATION failures.
+                        The default OSPF cost for 1 Gbps links is 1. Setting this to 65535
+                        (the maximum legal value) makes the link prohibitively expensive for
+                        OSPF SPF, causing all traffic to reroute via longer detour paths.
+                        The OSPF adjacency remains Full — cost changes never break adjacencies.
+
+                        Cost 65535 is a legal configured value that generates no alarms from
+                        any traditional monitoring system.
+
+                        Default: 65535
+
+                    wrong_rt:
+                      type: string
+                      description: |
+                        The incorrect Route Target import community to set on the VRF for
+                        VRF_RT_MISCONFIGURATION failures. Must be different from the correct
+                        import RT so that the VRF stops importing hub routes.
+
+                        Examples: "65035:9999", "65035:0"
+
+                    correct_rt:
+                      type: string
+                      description: |
+                        The original, correct Route Target import community for the VRF. Used
+                        during restoration to revert the RT import policy.
+
+                        Examples: "65035:1030" (hub export RT for BLUE VPN)
+
+            status:
+              type: object
+              description: |
+                Runtime status of the fault injection, tracking the lifecycle of the failure
+                from injection through restoration.
+              x-kubernetes-preserve-unknown-fields: true
+              properties:
+                phase:
+                  type: string
+                  enum:
+                    - Injecting
+                    - Active
+                    - Restoring
+                    - Restored
+                    - Failed
+                  description: |
+                    Current lifecycle phase of the network failure.
+
+                    Injecting: The fault is currently being injected via Ansible playbook or
+                               VyOS CRD patch (operator mode).
+                    Active: The fault has been successfully injected and is affecting the network.
+                            A FaultEvent row with phase=Active is present in Spanner.
+                    Restoring: The original configuration is being restored.
+                    Restored: The fault has been fully reversed and the network is back to normal.
+                              The FaultEvent row in Spanner is closed (valid_end_ts set).
+                    Failed: An error occurred during injection or restoration. Check message field.
+
+                message:
+                  type: string
+                  description: |
+                    Human-readable status message describing the current state or any errors.
+
+                injected_at:
+                  type: string
+                  format: date-time
+                  description: |
+                    Timestamp when the fault was successfully injected (ISO 8601 format).
+
+                restored_at:
+                  type: string
+                  format: date-time
+                  description: |
+                    Timestamp when the fault was successfully restored (ISO 8601 format).
+
+                original_state:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                  description: |
+                    Snapshot of the original network configuration saved immediately before
+                    fault injection. Used by the restoration playbook to revert the network
+                    to its prior state. The structure varies by failure type.
+
+                    MTU_MISMATCH: { "mtu": 1500 }
+                    BGP_SESSION_DOWN: { "remote_as": 65035, "peer_ip": "10.80.80.2",
+                                        "vrf": "BLUE_HUB" }
+                    PROCESS_CRASH: { "method": "loopback_disable" }
+                    PACKET_CORRUPTION: { "had_existing_qdisc": false }
+                    LINK_DOWN (interface mode): { "mode": "interface", "interface": "eth1", "router": "pe1" }
+                    LINK_DOWN (bridge mode):    { "mode": "bridge", "bridge": "p1-pe1",
+                                                  "router": "pe1", "peer_router": "p1" }
+                    OSPF_AREA_MISMATCH: { "correct_area": "0.0.0.0",
+                                          "wrong_area": "0.0.0.1" }
+                    DUPLICATE_IP: { "duplicate_ip": "172.16.30.1/24" }
+                    TXQUEUE_STARVATION: { "original_queue_length": 1000 }
+                    OSPF_COST_INFLATION: { "original_ospf_cost": 1 }
+                    VRF_RT_MISCONFIGURATION: { "correct_rt": "65035:1030",
+                                               "wrong_rt": "65035:9999" }
+
+                    For operator injection mode, also includes:
+                    { "patched_crd_kind": "VyOSL3VPN", "patched_crd_name": "l3vpn-blue-service",
+                      "original_crd_spec_fragment": { ... } }
+
+                remediation:
+                  type: string
+                  enum:
+                    - manual
+                    - automatic
+                  description: |
+                    Indicates how the fault was remediated. Only present when status.phase
+                    is "Restored".
+
+                    manual: The underlying VyOS operator CR (VyOSUnderlay, VyOSL3VPN, or
+                            VyOSInfrastructure) was manually modified before the NetworkFailure
+                            CR was deleted. The operator detected that the fault was already
+                            remediated and skipped automatic restoration to preserve the manual
+                            fix. This is only applicable in operator injection mode.
+
+                    automatic: The operator automatically restored the original configuration
+                               by patching the underlying CR (operator mode) or running the
+                               restoration Ansible playbook (direct mode).
+
+                    Manual Remediation Flow (operator mode only):
+                    1. NetworkFailure is created with injectionMode: operator
+                    2. Operator patches underlying CR (e.g., sets OSPF cost to 65535)
+                    3. User manually fixes the underlying CR (e.g., sets OSPF cost to 10)
+                    4. User deletes the NetworkFailure CR
+                    5. Operator detects current CR state differs from injected fault state
+                    6. Restoration is skipped, manual fix is preserved
+                    7. Status shows phase: Restored, remediation: manual
+
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Type
+          type: string
+          jsonPath: .spec.failureType
+          description: The type of network failure
+        - name: Router
+          type: string
+          jsonPath: .spec.target.router
+          description: Target router
+        - name: Interface
+          type: string
+          jsonPath: .spec.target.interface
+          description: Target interface
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+          description: Current injection phase
+        - name: Injected
+          type: date
+          jsonPath: .status.injected_at
+          description: Time of fault injection
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp

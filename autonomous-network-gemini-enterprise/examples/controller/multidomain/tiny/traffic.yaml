@@ -1,0 +1,184 @@
+# 5G UE traffic test — cell1 ↔ internet, TIME-COMPRESSED
+#
+# ── Topology ────────────────────────────────────────────────────────────────
+#
+#   cell1    Coventry  (10.101.1.10, lan-cell1, behind ce-cell1)  — UERANSIM gNB/UE
+#   internet Norwich   (10.101.2.22, lan-core1, behind ce-core1)  — internet simulator
+#
+#   Path via 5G user-plane:
+#     cell1 uesimtun → UERANSIM gNB → AMF/SMF → UPF N6 masquerade → internet
+#
+#   The ue_imsi field causes the operator to resolve the UERANSIM tunnel IP for
+#   the specified UE and pass it as source_ip to the traffic-agent so the source
+#   socket is bound to the uesimtun interface.  Packets then egress through the
+#   full 5G data-plane rather than the plain LAN path.
+#
+# ── Time compression ────────────────────────────────────────────────────────
+#
+#   15 real seconds  = 1 simulated hour
+#   360 real seconds = 1 simulated day   (6 minutes)
+#   2520 real seconds= 1 simulated week  (42 minutes)
+#   172 800 seconds  = 48 real hours ≈ 480 simulated days ≈ 1.3 simulated years
+#
+#   All patterns use time_reference: elapsed so the waveform counts from t=0
+#   on test start.
+#
+# ── Traffic character (5G UE mobile broadband) ───────────────────────────────
+#
+#   Asymmetric mobile data pattern — more download than upload, bimodal daily
+#   cycle reflecting morning commute (08:00 sim) and evening entertainment
+#   (20:00 sim) peaks.
+#
+#   Forward (cell1 → internet / UE uplink):
+#     Uploads, HTTP requests, signalling, telemetry.
+#     bw(t) = 5 + 3×sin(2π(t−75)/180) + 1×sin(2π(t−210)/360) + 1×sin(2π(t−1470)/2520)
+#     Floor ~1 Mbps overnight; peaks ~10 Mbps at 08:00 and 20:00 sim.
+#
+#   Reverse (internet → cell1 / UE downlink):
+#     Video streaming, web content, app updates.
+#     bw(t) = 15 + 10×sin(2π(t−75)/180) + 4×sin(2π(t−210)/360) + 2×sin(2π(t−1470)/2520)
+#     Floor ~3 Mbps overnight; peaks ~31 Mbps at 20:00 sim.
+#
+#   Phase offsets (elapsed, 240× compression):
+#     Half-day (period=180): peak at 08:00 sim = 120 s elapsed → offset = 45−120 = −75
+#                            PM peak at 20:00 sim follows automatically (+180 s later)
+#     Daily PM-bias (period=360): peak at 20:00 sim = 300 s elapsed → offset = 90−300 = −210
+#     Weekly weekend lift (period=2520): peak Sat evening = 2100 s elapsed → offset = 630−2100 = −1470
+#
+# ── Link capacity ────────────────────────────────────────────────────────────
+#
+#   LAN links: 100 Mbit.  UPF N6 is the bottleneck, not the LAN interfaces.
+#   Peak download ~31 Mbps — well within the 100 Mbit envelope.
+#
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell1-internet-bidir-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    source: cell1
+    destination: internet
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices:
+    - cell1
+  destination_device: internet
+  protocol: TCP
+  duration: 172800    # 48 real hours ≈ 480 compressed days ≈ 1.3 compressed years
+  cellSiteRef: free5gc-cellsite1
+  ue_imsi: "208930000000001"
+
+  # ── cell1 → internet : UE uplink ─────────────────────────────────────────
+  # bw(t) = 5 + 3×sin(2π(t−75)/180) + 1×sin(2π(t−210)/360) + 1×sin(2π(t−1470)/2520)
+  # Floor ~1 Mbps overnight; peaks ~10 Mbps at 08:00 and 20:00 simulated.
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - period: 180          # half-day: bimodal AM/PM peaks
+        amplitude: 3Mbps
+        phase_offset: -75    # AM peak 08:00 sim; PM peak 20:00 sim
+      - period: 360          # daily PM-bias: evening slightly heavier
+        amplitude: 1Mbps
+        phase_offset: -210
+      - period: 2520         # weekly weekend lift
+        amplitude: 1Mbps
+        phase_offset: -1470
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+
+  # ── internet → cell1 : UE downlink ───────────────────────────────────────
+  # bw(t) = 15 + 10×sin(2π(t−75)/180) + 4×sin(2π(t−210)/360) + 2×sin(2π(t−1470)/2520)
+  # Floor ~3 Mbps overnight; peaks ~31 Mbps at 20:00 simulated.
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - period: 180
+        amplitude: 10Mbps
+        phase_offset: -75    # bimodal: AM ~25 Mbps, PM ~31 Mbps (with PM-bias)
+      - period: 360
+        amplitude: 4Mbps
+        phase_offset: -210   # PM bias: evening streaming heavier
+      - period: 2520
+        amplitude: 2Mbps
+        phase_offset: -1470  # weekend streaming boost
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell1-internet-bidir-tcp-ue2
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    source: cell1
+    destination: internet
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices:
+    - cell1
+  destination_device: internet
+  protocol: TCP
+  duration: 172800    # 48 real hours ≈ 480 compressed days ≈ 1.3 compressed years
+  cellSiteRef: free5gc-cellsite1
+  ue_imsi: "208930000000002"
+
+  # ── cell1 → internet : UE uplink ─────────────────────────────────────────
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - period: 180
+        amplitude: 3Mbps
+        phase_offset: -75
+      - period: 360
+        amplitude: 1Mbps
+        phase_offset: -210
+      - period: 2520
+        amplitude: 1Mbps
+        phase_offset: -1470
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+
+  # ── internet → cell1 : UE downlink ───────────────────────────────────────
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - period: 180
+        amplitude: 10Mbps
+        phase_offset: -75
+      - period: 360
+        amplitude: 4Mbps
+        phase_offset: -210
+      - period: 2520
+        amplitude: 2Mbps
+        phase_offset: -1470
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+
+  concurrent_users: 5

@@ -1,0 +1,5 @@
+{
+  "GCP_PROJECT": "YOUR_PROJECT_ID",
+  "GCP_REGION": "YOUR_GCP_REGION",
+  "DESCRIPTION": "Master top-level configuration for decoupled FastMCP microservices (ge & re)"
+}

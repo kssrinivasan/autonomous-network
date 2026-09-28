@@ -1,0 +1,10 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    script: |
+      docker build \
+        -t ${GOOGLE_REGION}-docker.pkg.dev/${GOOGLE_PROJECT}/${GOOGLE_REPO}/domain-mcp:latest \
+        -f domains/service/services/mcp/Dockerfile .
+    automapSubstitutions: true
+
+images:
+  - '${GOOGLE_REGION}-docker.pkg.dev/${GOOGLE_PROJECT}/${GOOGLE_REPO}/domain-mcp:latest'

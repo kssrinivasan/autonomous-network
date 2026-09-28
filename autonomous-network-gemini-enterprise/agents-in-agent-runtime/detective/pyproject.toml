@@ -1,0 +1,127 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+[project]
+name = "detective"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Your Name", email = "your@email.com"},
+]
+dependencies = [
+    # The mcp extra is not optional here: app/agent.py imports
+    # google.adk.tools.mcp_tool to reach the Cloud Run tool server.
+    "google-adk[gcp,mcp,otel-gcp]>=2.6.0,<3.0.0",
+    "mcp>=1.0.0",
+    "a2a-sdk[http-server]>=1.0,<2",
+    "nest-asyncio>=1.6.0,<2.0.0",
+    "opentelemetry-instrumentation-google-genai>=0.1.0,<1.0.0",
+    "gcsfs>=2024.11.0",
+    "google-cloud-logging>=3.12.0,<4.0.0",
+    "google-cloud-aiplatform[agent-engines,evaluation]>=1.156.0",
+    "protobuf>=6.31.1,<7.0.0",
+    "aiohttp>=3.13.4",
+    "opentelemetry-resourcedetector-gcp<=1.12.0a0",
+]
+requires-python = ">=3.11,<3.14"
+
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2,<10.0.0",
+    "pytest-asyncio>=1.0.0,<2.0.0",
+    "nest-asyncio>=1.6.0,<2.0.0",
+]
+
+[project.optional-dependencies]
+eval = [
+    "google-adk[eval]>=2.5.0,<3.0.0",
+    "google-cloud-aiplatform[evaluation]>=1.156.0",
+]
+lint = [
+    "ruff>=0.4.6,<1.0.0",
+    "ty>=0.0.1a0",
+    "codespell>=2.2.0,<3.0.0",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle
+    "F",   # pyflakes
+    "W",   # pycodestyle warnings
+    "I",   # isort
+    "C",  # flake8-comprehensions
+    "B",   # flake8-bugbear
+    "UP", # pyupgrade
+    "RUF", # ruff specific rules
+]
+ignore = ["E501", "C901", "B006"] # ignore line too long, too complex
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "frontend"]
+
+[tool.ty]
+# ty is Astral's Rust-based type checker (same team as ruff/uv)
+# See: https://docs.astral.sh/ty/
+
+[tool.ty.environment]
+python-version = "3.10"
+
+[tool.ty.src]
+exclude = [".venv/**"]
+
+[tool.ty.rules]
+# Ignore common issues with third-party libraries and dynamic code patterns
+unresolved-import = "ignore"
+unresolved-attribute = "ignore"
+invalid-argument-type = "ignore"
+invalid-assignment = "ignore"
+invalid-return-type = "ignore"
+possibly-missing-attribute = "ignore"
+not-subscriptable = "ignore"
+deprecated = "ignore"
+
+[tool.codespell]
+ignore-words-list = "rouge"
+skip = "./locust_env/*,uv.lock,.venv,./frontend,**/package-lock.json"
+
+[tool.uv]
+# No override-dependencies. The google-cloud-aiplatform==1.149.0 pin existed
+# because aiplatform 1.150+ dropped a2a-sdk 0.3.x support; this agent is now on
+# a2a-sdk 1.x, so the premise is gone and the pin only contradicts the >=1.156.0
+# floor the 1.3.1 scaffold needs -- the vertexai.agent_engines AdkApp that
+# app/app_utils/reasoning_engine_adapter.py builds on is only the right shape
+# from 1.156 onwards.
+#
+# No index-url either: uv.toml sets the default index and takes precedence over
+# this section, so declaring it here only produces a "will be ignored" warning.
+
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[tool.pytest.ini_options]
+pythonpath = "."
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app","frontend"]
+
+

@@ -1,0 +1,442 @@
+source /opt/vyatta/etc/functions/script-template
+
+configure
+
+# === Remove stale config (update mode only) ===
+# These delete commands run BEFORE any set commands so that subsequent set
+# commands re-apply only what is still wanted.  They are no-ops if the config
+# section doesn't exist (VyOS ignores delete of non-existent paths).
+{% if config_mode == 'update' %}
+
+# Clear any stale VRF assignments on ALL interfaces (physical AND VLAN sub-interfaces).
+# MUST happen BEFORE "delete vrf" — VyOS refuses to delete a VRF while any interface
+# still holds a reference to it; if the commit fails, ALL changes (including the
+# subsequent set commands) are rolled back, leaving both the old and new VRFs in place.
+# The interface set commands later will re-apply only the VRF fields still in spec.
+# VyOS silently ignores these delete commands when the interface has no VRF assignment.
+{% for interface in interfaces %}
+{% if interface.name != 'lo' %}
+{% if interface.vlan is defined %}
+delete interfaces ethernet {{ interface.name }} vif {{ interface.vlan }} vrf
+{% else %}
+delete interfaces ethernet {{ interface.name }} vrf
+{% endif %}
+{% endif %}
+{% endfor %}
+
+# Remove ALL VRF definitions then re-apply only those still in the spec.
+# This cleanly removes VRFs that were added by a VPN and are now gone.
+# VyOS silently ignores "delete vrf" when no VRFs exist.
+delete vrf
+
+# Remove BGP entirely if it is no longer part of this router's spec.
+# CE routers have their eBGP config removed here after VPN deletion.
+{% if protocols.bgp is not defined or (protocols.bgp is mapping and not protocols.bgp) %}
+delete protocols bgp
+{% endif %}
+
+# Clear OSPF interface costs from all interfaces to clean up stale values.
+# This ensures that when interface_costs is empty or an interface is removed from
+# the list, the old cost is deleted. The set commands later will re-apply only
+# the costs still in spec. VyOS silently ignores these delete commands when no
+# cost was previously configured on the interface.
+{% if protocols.ospf is defined %}
+{% for interface in interfaces %}
+{% if interface.name != 'lo' %}
+delete protocols ospf interface {{ interface.name }} cost
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% endif %}
+
+# Set hostname
+set system host-name {{ router_hostname }}
+
+# Send logs to Host VM journald (which will be forwarded to GCP Logging)
+# set container name {{ router_hostname }} log-driver journald
+
+# === Export Logs ===
+# Send logs directly to the GCP Ops Agent running on the host VM
+set system syslog remote 192.168.122.1 facility all level info
+set system syslog remote 192.168.122.1 port 5140
+set system syslog remote 192.168.122.1 protocol udp
+# Use RFC5424 format to include timezone
+set system syslog remote 192.168.122.1 format include-timezone
+
+# === Export Metrics ===
+# Enable the standard system exporter (CPU, RAM, Disk, Network)
+set service monitoring prometheus node-exporter listen-address '0.0.0.0'
+set service monitoring prometheus node-exporter port '9100'
+
+# (Optional) Enable the routing exporter if you use BGP/OSPF
+set service monitoring prometheus frr-exporter listen-address '0.0.0.0'
+set service monitoring prometheus frr-exporter port '9101'
+
+# === Configure VYOS infrastructure ===
+# Configure interfaces
+{% set vlan_interfaces = interfaces | selectattr('name', '!=', 'lo') | selectattr('vlan', 'defined') | list %}
+{% set vlan_parent_interfaces = vlan_interfaces | map(attribute='name') | unique | list %}
+
+# Configure trunk interfaces for VLANs (no IP addresses on physical interfaces)
+{% for parent_interface in vlan_parent_interfaces %}
+# Configure physical interface {{ parent_interface }} (trunk for VLANs)
+set interfaces ethernet {{ parent_interface }} description 'Trunk interface for VLANs'
+set interfaces ethernet {{ parent_interface }} mtu 1500
+{% endfor %}
+
+# Configure VLAN sub-interfaces (VIFs) - these get the IP addresses
+{% for interface in vlan_interfaces %}
+# Configure VLAN interface {{ interface.name }}.{{ interface.vlan }}
+set interfaces ethernet {{ interface.name }} vif {{ interface.vlan }} description '{{ interface.description | default('') }}'
+set interfaces ethernet {{ interface.name }} vif {{ interface.vlan }} address {{ interface.address }}
+set interfaces ethernet {{ interface.name }} vif {{ interface.vlan }} mtu {{ interface.mtu | default(1500) }}
+set interfaces ethernet {{ interface.name }} vif {{ interface.vlan }} ipv6 address no-default-link-local
+
+{% if interface.vrf is defined %}
+set interfaces ethernet {{ interface.name }} vif {{ interface.vlan }} vrf {{ interface.vrf }}
+{% endif %}
+
+{% if not (interface.enabled | default(true)) %}
+set interfaces ethernet {{ interface.name }} vif {{ interface.vlan }} disable
+{% endif %}
+
+{% endfor %}
+
+# Configure physical interfaces (only those without VLANs)
+{% for interface in interfaces %}
+{% if interface.name != 'lo' and interface.vlan is not defined and interface.name not in vlan_parent_interfaces %}
+# Configure physical interface {{ interface.name }}
+set interfaces ethernet {{ interface.name }} description '{{ interface.description | default('') }}'
+set interfaces ethernet {{ interface.name }} address {{ interface.address }}
+set interfaces ethernet {{ interface.name }} mtu {{ interface.mtu | default(1500) }}
+set interfaces ethernet {{ interface.name }} ipv6 address no-default-link-local
+
+{% if interface.vrf is defined %}
+set interfaces ethernet {{ interface.name }} vrf {{ interface.vrf }}
+{% endif %}
+
+{% if not (interface.enabled | default(true)) %}
+set interfaces ethernet {{ interface.name }} disable
+{% endif %}
+{% endif %}
+{% endfor %}
+
+# Configure loopback interfaces
+{% for interface in interfaces %}
+{% if interface.name == 'lo' %}
+# Configure loopback interface
+set interfaces loopback lo description '{{ interface.description | default('Loopback') }}'
+set interfaces loopback lo address {{ interface.address }}
+{% endif %}
+{% endfor %}
+
+# Configure VRFs
+{% for vrf in vrfs %}
+set vrf name {{ vrf.name }} table {{ vrf.table }}
+{% if vrf.description is defined %}
+set vrf name {{ vrf.name }} description '{{ vrf.description }}'
+{% endif %}
+{% if vrf.rd is defined %}
+# VRF BGP configuration for MPLS L3VPN
+set vrf name {{ vrf.name }} protocols bgp system-as {{ protocols.bgp.as_number }}
+set vrf name {{ vrf.name }} protocols bgp parameters router-id {{ protocols.bgp.router_id }}
+set vrf name {{ vrf.name }} protocols bgp address-family ipv4-unicast rd vpn export '{{ vrf.rd }}'
+# Configure Route Targets - VyOS requires space-separated RTs in a single command
+{% if vrf.rt_export is defined %}
+{% if vrf.rt_export is string %}
+set vrf name {{ vrf.name }} protocols bgp address-family ipv4-unicast route-target vpn export '{{ vrf.rt_export }}'
+{% elif vrf.rt_export is iterable %}
+set vrf name {{ vrf.name }} protocols bgp address-family ipv4-unicast route-target vpn export '{{ vrf.rt_export | join(' ') }}'
+{% endif %}
+{% endif %}
+{% if vrf.rt_import is defined %}
+{% if vrf.rt_import is string %}
+set vrf name {{ vrf.name }} protocols bgp address-family ipv4-unicast route-target vpn import '{{ vrf.rt_import }}'
+{% elif vrf.rt_import is iterable %}
+set vrf name {{ vrf.name }} protocols bgp address-family ipv4-unicast route-target vpn import '{{ vrf.rt_import | join(' ') }}'
+{% endif %}
+{% endif %}
+set vrf name {{ vrf.name }} protocols bgp address-family ipv4-unicast label vpn export 'auto'
+set vrf name {{ vrf.name }} protocols bgp address-family ipv4-unicast export vpn
+set vrf name {{ vrf.name }} protocols bgp address-family ipv4-unicast import vpn
+{% endif %}
+{% endfor %}
+
+# Configure custom static routes
+{% if protocols.static is defined and protocols.static.routes is defined %}
+{% for route in protocols.static.routes %}
+{% if route.vrf is defined %}
+# VRF static route to {{ route.destination }}{% if route.next_hop is defined %} via {{ route.next_hop }}{% endif %}{% if route.description is defined %} - {{ route.description }}{% endif %}
+
+{% if route.next_hop is defined %}
+set vrf name {{ route.vrf }} protocols static route {{ route.destination }} next-hop {{ route.next_hop }}{% if route.distance is defined %} distance {{ route.distance }}{% endif %}
+{% elif route.interface is defined %}
+set vrf name {{ route.vrf }} protocols static route {{ route.destination }} interface {{ route.interface }}{% if route.distance is defined %} distance {{ route.distance }}{% endif %}
+{% endif %}
+{% else %}
+# Global static route to {{ route.destination }}{% if route.next_hop is defined %} via {{ route.next_hop }}{% endif %}{% if route.description is defined %} - {{ route.description }}{% endif %}
+
+{% if route.next_hop is defined %}
+set protocols static route {{ route.destination }} next-hop {{ route.next_hop }}{% if route.distance is defined %} distance {{ route.distance }}{% endif %}
+{% elif route.interface is defined %}
+set protocols static route {{ route.destination }} interface {{ route.interface }}{% if route.distance is defined %} distance {{ route.distance }}{% endif %}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+# Configure OSPF
+{% if protocols.ospf is defined %}
+set protocols ospf parameters router-id {{ protocols.ospf.router_id }}
+
+# Configure OSPF on interfaces (interface-based configuration only - no network statements)
+{% for interface in interfaces %}
+{% if interface.name == 'lo' %}
+# Find which area the loopback is in (usually backbone)
+{% set ns = namespace(area='0.0.0.0') %}
+{% for area_config in protocols.ospf.areas | default([]) %}
+{% if 'lo' in area_config.interfaces | default([]) %}
+{% set ns.area = area_config.area %}
+{% endif %}
+{% endfor %}
+set protocols ospf interface lo area {{ ns.area }}
+{% elif interface.vrf is not defined and interface.name == 'eth0' %}
+# Skip management interface eth0
+{% elif interface.vrf is not defined %}
+# Find which OSPF area this interface belongs to
+{% if interface.vlan is defined %}
+{% set iface_name = interface.name ~ '.' ~ interface.vlan %}
+{% else %}
+{% set iface_name = interface.name %}
+{% endif %}
+{% set ns = namespace(area='0.0.0.0') %}
+{% for area_config in protocols.ospf.areas | default([]) %}
+{% if iface_name in area_config.interfaces | default([]) %}
+{% set ns.area = area_config.area %}
+{% endif %}
+{% endfor %}
+# Add non-VRF, non-management interfaces to OSPF
+set protocols ospf interface {{ iface_name }} area {{ ns.area }}
+set protocols ospf interface {{ iface_name }} network point-to-point
+{% endif %}
+{% endfor %}
+
+{% for interface in protocols.ospf.passive_interfaces | default([]) %}
+set protocols ospf interface {{ interface }} passive
+{% endfor %}
+
+{% for cost_entry in protocols.ospf.interface_costs | default([]) %}
+set protocols ospf interface {{ cost_entry.interface }} cost {{ cost_entry.cost | default(1) }}
+{% endfor %}
+{% endif %}
+
+# Configure BGP
+{% if protocols.bgp is defined %}
+set protocols bgp system-as {{ protocols.bgp.as_number }}
+set protocols bgp parameters router-id {{ protocols.bgp.router_id }}
+
+{% if protocols.bgp.route_reflector | default(false) %}
+set protocols bgp parameters cluster-id {{ protocols.bgp.router_id }}
+{% endif %}
+
+# Configure global BGP neighbors (non-VRF)
+{% for neighbor in protocols.bgp.neighbors | default([]) %}
+set protocols bgp neighbor {{ neighbor.peer }} remote-as {{ neighbor.remote_as }}
+{% if neighbor.description is defined %}
+set protocols bgp neighbor {{ neighbor.peer }} description '{{ neighbor.description }}'
+{% endif %}
+{% if neighbor.remote_as == protocols.bgp.as_number %}
+# iBGP neighbor - use loopback as update-source
+set protocols bgp neighbor {{ neighbor.peer }} update-source lo
+{% endif %}
+set protocols bgp neighbor {{ neighbor.peer }} address-family ipv4-unicast
+{% if neighbor.route_reflector_client | default(false) %}
+set protocols bgp neighbor {{ neighbor.peer }} address-family ipv4-unicast route-reflector-client
+{% endif %}
+{% if (protocols.mpls is defined and protocols.mpls.enabled | default(false)) and neighbor.remote_as == protocols.bgp.as_number %}
+# Enable VPNv4 address-family for MPLS L3VPN iBGP sessions
+set protocols bgp neighbor {{ neighbor.peer }} address-family ipv4-vpn
+{% if protocols.bgp.route_reflector | default(false) %}
+# This router is an RR - set route-reflector-client for PE neighbors
+{% if neighbor.route_reflector_client | default(false) %}
+set protocols bgp neighbor {{ neighbor.peer }} address-family ipv4-vpn route-reflector-client
+{% endif %}
+{% else %}
+# This router is a PE - set nexthop-self for RR neighbors
+set protocols bgp neighbor {{ neighbor.peer }} address-family ipv4-vpn nexthop-self
+{% endif %}
+{% endif %}
+{% endfor %}
+
+# Configure BGP address families for VPNv4
+{% for af in protocols.bgp.address_families | default([]) %}
+{% if af.family == 'vpnv4' %}
+{% for neighbor in protocols.bgp.neighbors | default([]) %}
+set protocols bgp neighbor {{ neighbor.peer }} address-family ipv4-vpn
+{% endfor %}
+{% endif %}
+{% endfor %}
+
+# VRF BGP Configuration - Multi-tenancy without MPLS
+# ========================================================
+# Since VyOS doesn't support MPLS VPNv4, we use VRF-aware BGP to achieve L3VPN functionality:
+# 
+# 1. Each VRF has its own BGP instance with the same AS number
+# 2. Within each VRF:
+#    - eBGP sessions with CPE devices (different AS) for customer route learning
+#    - iBGP sessions with other PE routers (same AS) for inter-site route exchange
+# 3. Connected routes (customer networks) are redistributed into VRF BGP
+# 4. PE routers exchange VRF routes via iBGP using router loopbacks as update-source
+# 5. CPE devices receive default routes via BGP (default-originate) for internet/WAN connectivity
+#
+# This provides VRF isolation and inter-site connectivity without requiring MPLS infrastructure.
+
+# Configure BGP VRF instances
+{% for vrf_bgp in protocols.bgp.vrfs | default([]) %}
+set vrf name {{ vrf_bgp.name }} protocols bgp system-as {{ protocols.bgp.as_number }}
+set vrf name {{ vrf_bgp.name }} protocols bgp parameters router-id {{ protocols.bgp.router_id }}
+{% for neighbor in vrf_bgp.neighbors | default([]) %}
+set vrf name {{ vrf_bgp.name }} protocols bgp neighbor {{ neighbor.peer }} remote-as {{ neighbor.remote_as }}
+set vrf name {{ vrf_bgp.name }} protocols bgp neighbor {{ neighbor.peer }} address-family ipv4-unicast
+{% if neighbor.remote_as != protocols.bgp.as_number %}
+# eBGP neighbor (CPE device) - advertise default route and use as-override
+set vrf name {{ vrf_bgp.name }} protocols bgp neighbor {{ neighbor.peer }} address-family ipv4-unicast default-originate
+set vrf name {{ vrf_bgp.name }} protocols bgp neighbor {{ neighbor.peer }} address-family ipv4-unicast as-override
+{% else %}
+# iBGP neighbor (other PE router) - for inter-site route exchange
+set vrf name {{ vrf_bgp.name }} protocols bgp neighbor {{ neighbor.peer }} address-family ipv4-unicast
+{% endif %}
+{% if neighbor.description is defined %}
+set vrf name {{ vrf_bgp.name }} protocols bgp neighbor {{ neighbor.peer }} description '{{ neighbor.description }}'
+{% endif %}
+{% endfor %}
+# Redistribute connected routes into BGP for this VRF
+set vrf name {{ vrf_bgp.name }} protocols bgp address-family ipv4-unicast redistribute connected
+{% endfor %}
+
+# Configure iBGP peering between VRFs for inter-PE VRF route exchange (only for non-MPLS L3VPN)
+{% if protocols.bgp.vrfs | default([]) | length > 0 and protocols.bgp.neighbors | default([]) | length > 0 and not (protocols.mpls is defined and protocols.mpls.enabled | default(false)) %}
+{% for vrf_bgp in protocols.bgp.vrfs %}
+{% for ibgp_peer in protocols.bgp.neighbors %}
+{% if ibgp_peer.remote_as == protocols.bgp.as_number %}
+{% set vrf_neighbor_ips = vrf_bgp.neighbors | default([]) | map(attribute='peer') | list %}
+{% if ibgp_peer.peer not in vrf_neighbor_ips %}
+# Add iBGP peer {{ ibgp_peer.peer }} to VRF {{ vrf_bgp.name }} for inter-PE route exchange (VRF-aware BGP without MPLS)
+set vrf name {{ vrf_bgp.name }} protocols bgp neighbor {{ ibgp_peer.peer }} remote-as {{ ibgp_peer.remote_as }}
+set vrf name {{ vrf_bgp.name }} protocols bgp neighbor {{ ibgp_peer.peer }} address-family ipv4-unicast
+set vrf name {{ vrf_bgp.name }} protocols bgp neighbor {{ ibgp_peer.peer }} update-source {{ protocols.bgp.router_id }}
+{% if ibgp_peer.description is defined %}
+set vrf name {{ vrf_bgp.name }} protocols bgp neighbor {{ ibgp_peer.peer }} description 'VRF {{ vrf_bgp.name }} - {{ ibgp_peer.description }}'
+{% endif %}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endif %}
+
+# Redistribute connected routes into global BGP (for PE-to-PE communication)
+{% if protocols.bgp.neighbors | default([]) | length > 0 %}
+set protocols bgp address-family ipv4-unicast redistribute connected
+{% endif %}
+{% endif %}
+
+# Configure MPLS
+{% if protocols.mpls is defined and protocols.mpls.enabled | default(false) %}
+# Enable MPLS on interfaces (use actual interface names with VLANs if present)
+{% for ldp_if in protocols.mpls.ldp.interfaces | default([]) %}
+{% set matching_interface = interfaces | selectattr('name', 'equalto', ldp_if) | first | default(none) %}
+{% if matching_interface and matching_interface.vlan is defined %}
+set protocols mpls interface {{ ldp_if }}.{{ matching_interface.vlan }}
+{% else %}
+set protocols mpls interface {{ ldp_if }}
+{% endif %}
+{% endfor %}
+# Configure LDP
+set protocols mpls ldp router-id {{ protocols.mpls.ldp.router_id }}
+set protocols mpls ldp discovery transport-ipv4-address {{ protocols.mpls.ldp.router_id }}
+{% for ldp_if in protocols.mpls.ldp.interfaces | default([]) %}
+{% set matching_interface = interfaces | selectattr('name', 'equalto', ldp_if) | first | default(none) %}
+{% if matching_interface and matching_interface.vlan is defined %}
+set protocols mpls ldp interface {{ ldp_if }}.{{ matching_interface.vlan }}
+{% else %}
+set protocols mpls ldp interface {{ ldp_if }}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+# Configure DHCP Service
+{% if services.dhcp is defined %}
+{% for dhcp_pool in services.dhcp %}
+set service dhcp-server shared-network-name {{ dhcp_pool.network | replace('.', '_') | replace('/', '_') }} subnet {{ dhcp_pool.network }} default-router {{ dhcp_pool.gateway }}
+set service dhcp-server shared-network-name {{ dhcp_pool.network | replace('.', '_') | replace('/', '_') }} subnet {{ dhcp_pool.network }} lease {{ dhcp_pool.lease_time | default(86400) }}
+
+{% for dns in dhcp_pool.dns_servers | default([]) %}
+set service dhcp-server shared-network-name {{ dhcp_pool.network | replace('.', '_') | replace('/', '_') }} subnet {{ dhcp_pool.network }} name-server {{ dns }}
+{% endfor %}
+
+{% if dhcp_pool.range is defined %}
+set service dhcp-server shared-network-name {{ dhcp_pool.network | replace('.', '_') | replace('/', '_') }} subnet {{ dhcp_pool.network }} range 0 start {{ dhcp_pool.range.start }}
+set service dhcp-server shared-network-name {{ dhcp_pool.network | replace('.', '_') | replace('/', '_') }} subnet {{ dhcp_pool.network }} range 0 stop {{ dhcp_pool.range.end }}
+{% endif %}
+
+{% for static in dhcp_pool.static_mappings | default([]) %}
+set service dhcp-server shared-network-name {{ dhcp_pool.network | replace('.', '_') | replace('/', '_') }} subnet {{ dhcp_pool.network }} static-mapping {{ static.name }} ip-address {{ static.ip }}
+set service dhcp-server shared-network-name {{ dhcp_pool.network | replace('.', '_') | replace('/', '_') }} subnet {{ dhcp_pool.network }} static-mapping {{ static.name }} mac-address {{ static.mac }}
+{% endfor %}
+{% endfor %}
+{% endif %}
+
+# Configure NAT
+{% if services.nat is defined and services.nat.source is defined %}
+{% for nat_rule in services.nat.source %}
+set nat source rule {{ nat_rule.rule }} outbound-interface name {{ nat_rule.outbound_interface }}
+{% if nat_rule.source is defined %}
+set nat source rule {{ nat_rule.rule }} source address {{ nat_rule.source }}
+{% endif %}
+{% if nat_rule.translation == 'masquerade' %}
+set nat source rule {{ nat_rule.rule }} translation address masquerade
+{% elif nat_rule.address is defined %}
+set nat source rule {{ nat_rule.rule }} translation address {{ nat_rule.address }}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+# Configure SSH Service
+{% if services.ssh is defined %}
+set service ssh port {{ services.ssh.port | default(22) }}
+{% endif %}
+
+# Configure Traffic Policy (QoS / Fault Injection)
+{% if traffic_policy is defined %}
+{% for policy in traffic_policy.shaper | default([]) %}
+set traffic-policy shaper {{ policy.name }} bandwidth '{{ policy.bandwidth }}'
+set traffic-policy shaper {{ policy.name }} default bandwidth '{{ policy.default_bandwidth }}'
+{% for class in policy.classes | default([]) %}
+set traffic-policy shaper {{ policy.name }} class {{ class.id }} bandwidth '{{ class.bandwidth }}'
+set traffic-policy shaper {{ policy.name }} class {{ class.id }} match {{ class.match_name }} ip {{ class.match_ip | default('dscp') }} '{{ class.match_value }}'
+{% endfor %}
+{% endfor %}
+
+{% for policy in traffic_policy.network_emulator | default([]) %}
+set traffic-policy network-emulator {{ policy.name }} network-delay {{ policy.delay }}
+set traffic-policy network-emulator {{ policy.name }} packet-loss {{ policy.loss }}
+{% if policy.corruption is defined %}
+set traffic-policy network-emulator {{ policy.name }} packet-corruption {{ policy.corruption }}
+{% endif %}
+{% endfor %}
+
+# Apply traffic policies to interfaces
+{% for policy_apply in traffic_policy.apply | default([]) %}
+{% if policy_apply.out is defined %}
+set interfaces ethernet {{ policy_apply.interface }} traffic-policy out '{{ policy_apply.out }}'
+{% endif %}
+{% if policy_apply.in is defined %}
+set interfaces ethernet {{ policy_apply.interface }} traffic-policy in '{{ policy_apply.in }}'
+{% endif %}
+{% endfor %}
+{% endif %}
+
+commit
+save
+exit

@@ -1,0 +1,13 @@
+name: "transport-orchestrator"
+acli_version: "1.3.1"
+agent_directory: "app"
+region: "europe-west1"
+base_template: "adk"
+generated_at: "2026-08-12T11:57:21.484913+00:00"
+language: "python"
+create_params:
+  deployment_target: "agent_runtime"
+  session_type: "none"
+  cicd_runner: "google_cloud_build"
+  is_a2a: true
+  agent_guidance_filename: "GEMINI.md"

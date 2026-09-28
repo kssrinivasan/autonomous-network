@@ -1,0 +1,6 @@
+{
+  "displayName": "Network Impact Assessment",
+  "description": "An impact assessment and traffic planning agent that analyzes the potential effects of network changes before they are applied. The agent can query routing paths, link utilization, traffic flows, simulate remediations and traffic additions, identify bottlenecks, and recommend capacity upgrades.",
+  "icon_url": "https://storage.googleapis.com/${GCP_PROJECT}-agent-assets/telco_icon.jpg",
+  "tool_description": "Analyze network blast radiuses, simulate what-if OSPF/link remediations, predict traffic flow impacts, and recommend capacity upgrades."
+}

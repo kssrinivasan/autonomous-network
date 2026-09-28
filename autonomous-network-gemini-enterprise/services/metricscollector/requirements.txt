@@ -1,0 +1,4 @@
+google-cloud-monitoring
+google-cloud-spanner
+google-cloud-logging
+google-cloud-bigquery

@@ -1,0 +1,1405 @@
+# 5G UE traffic tests — all UEs → internet, bidirectional multi_sine
+#
+# ── Topology ──────────────────────────────────────────────────────────────────
+#
+#   6 gNB cell sites (cell1a/b on lan-cell1, cell2a/b on lan-cell2,
+#                     cell3a/b on lan-cell3)
+#   internet  (10.102.1.22, lan-core1, behind ce-core1)
+#
+#   Path via 5G user-plane:
+#     UE uesimtun → UERANSIM gNB → AMF/SMF → UPF N6 masquerade → internet
+#
+#   ue_imsi causes the operator to resolve the uesimtun IP for the specified
+#   UE and bind the traffic-agent source socket to it so packets traverse
+#   the full 5G data-plane rather than the plain LAN path.
+#
+# ── IMSI allocation ───────────────────────────────────────────────────────────
+#
+#   cell1a  gnbId 0x1  IMSIs 208930000000001-005
+#   cell1b  gnbId 0x2  IMSIs 208930000000006-010
+#   cell2a  gnbId 0x3  IMSIs 208930000000011-015
+#   cell2b  gnbId 0x4  IMSIs 208930000000016-020
+#   cell3a  gnbId 0x5  IMSIs 208930000000021-025
+#   cell3b  gnbId 0x6  IMSIs 208930000000026-030
+#
+# ── Time compression ──────────────────────────────────────────────────────────
+#
+#   15 real seconds  = 1 simulated hour
+#   360 real seconds = 1 simulated day   (6 minutes)
+#   172 800 seconds  = 48 real hours ≈ 480 simulated days ≈ 1.3 simulated years
+#
+# ── Traffic pattern (5G UE mobile broadband) ──────────────────────────────────
+#
+#   Uplink:   bw(t) = 5 + 3×sin(2π(t−75)/180) + 1×sin(2π(t−210)/360) + 1×sin(2π(t−1470)/2520)
+#             floor ~1 Mbps overnight; peaks ~10 Mbps at 08:00 and 20:00 sim
+#   Downlink: bw(t) = 15 + 10×sin(2π(t−75)/180) + 4×sin(2π(t−210)/360) + 2×sin(2π(t−1470)/2520)
+#             floor ~3 Mbps overnight; peaks ~31 Mbps at 20:00 sim
+#
+---
+# ════════════════════════════════════════════════════════════════════════
+#  cell1a  —  UEs 001-005  (gnbId 0x1, lan-cell1, 10.103.1.0/24)
+# ════════════════════════════════════════════════════════════════════════
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell1a-ue1-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell1a
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell1a]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell1a
+  ue_imsi: "208930000000001"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell1a-ue2-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell1a
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell1a]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell1a
+  ue_imsi: "208930000000002"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell1a-ue3-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell1a
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell1a]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell1a
+  ue_imsi: "208930000000003"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell1a-ue4-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell1a
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell1a]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell1a
+  ue_imsi: "208930000000004"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell1a-ue5-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell1a
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell1a]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell1a
+  ue_imsi: "208930000000005"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+# ════════════════════════════════════════════════════════════════════════
+#  cell1b  —  UEs 006-010  (gnbId 0x2, lan-cell1, 10.103.1.0/24)
+# ════════════════════════════════════════════════════════════════════════
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell1b-ue1-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell1b
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell1b]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell1b
+  ue_imsi: "208930000000006"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell1b-ue2-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell1b
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell1b]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell1b
+  ue_imsi: "208930000000007"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell1b-ue3-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell1b
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell1b]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell1b
+  ue_imsi: "208930000000008"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell1b-ue4-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell1b
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell1b]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell1b
+  ue_imsi: "208930000000009"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell1b-ue5-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell1b
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell1b]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell1b
+  ue_imsi: "208930000000010"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+# ════════════════════════════════════════════════════════════════════════
+#  cell2a  —  UEs 011-015  (gnbId 0x3, lan-cell2, 10.103.2.0/24)
+# ════════════════════════════════════════════════════════════════════════
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell2a-ue1-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell2a
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell2a]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell2a
+  ue_imsi: "208930000000011"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell2a-ue2-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell2a
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell2a]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell2a
+  ue_imsi: "208930000000012"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell2a-ue3-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell2a
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell2a]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell2a
+  ue_imsi: "208930000000013"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell2a-ue4-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell2a
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell2a]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell2a
+  ue_imsi: "208930000000014"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell2a-ue5-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell2a
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell2a]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell2a
+  ue_imsi: "208930000000015"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+# ════════════════════════════════════════════════════════════════════════
+#  cell2b  —  UEs 016-020  (gnbId 0x4, lan-cell2, 10.103.2.0/24)
+# ════════════════════════════════════════════════════════════════════════
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell2b-ue1-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell2b
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell2b]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell2b
+  ue_imsi: "208930000000016"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell2b-ue2-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell2b
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell2b]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell2b
+  ue_imsi: "208930000000017"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell2b-ue3-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell2b
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell2b]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell2b
+  ue_imsi: "208930000000018"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell2b-ue4-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell2b
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell2b]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell2b
+  ue_imsi: "208930000000019"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell2b-ue5-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell2b
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell2b]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell2b
+  ue_imsi: "208930000000020"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+# ════════════════════════════════════════════════════════════════════════
+#  cell3a  —  UEs 021-025  (gnbId 0x5, lan-cell3, 10.103.3.0/24)
+# ════════════════════════════════════════════════════════════════════════
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell3a-ue1-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell3a
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell3a]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell3a
+  ue_imsi: "208930000000021"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell3a-ue2-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell3a
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell3a]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell3a
+  ue_imsi: "208930000000022"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell3a-ue3-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell3a
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell3a]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell3a
+  ue_imsi: "208930000000023"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell3a-ue4-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell3a
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell3a]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell3a
+  ue_imsi: "208930000000024"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell3a-ue5-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell3a
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell3a]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell3a
+  ue_imsi: "208930000000025"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+# ════════════════════════════════════════════════════════════════════════
+#  cell3b  —  UEs 026-030  (gnbId 0x6, lan-cell3, 10.103.3.0/24)
+# ════════════════════════════════════════════════════════════════════════
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell3b-ue1-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell3b
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell3b]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell3b
+  ue_imsi: "208930000000026"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell3b-ue2-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell3b
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell3b]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell3b
+  ue_imsi: "208930000000027"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell3b-ue3-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell3b
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell3b]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell3b
+  ue_imsi: "208930000000028"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell3b-ue4-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell3b
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell3b]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell3b
+  ue_imsi: "208930000000029"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5
+---
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: cell3b-ue5-internet-tcp
+  namespace: network
+  labels:
+    scenario: 5g-ue-data
+    cellsite: cell3b
+    pattern: multi_sine
+    direction: bidirectional
+    compression: 240x
+spec:
+  source_devices: [cell3b]
+  destination_device: internet
+  protocol: TCP
+  duration: 172800
+  cellSiteRef: cellsite-cell3b
+  ue_imsi: "208930000000030"
+  bandwidth: 12Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: elapsed
+    base_rate: 5Mbps
+    components:
+      - { period: 180,  amplitude: 3Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 1Mbps, phase_offset: -210  }
+      - { period: 2520, amplitude: 1Mbps, phase_offset: -1470 }
+    noise_stddev_pct: 5.0
+    min_rate: 1Mbps
+    max_rate: 15Mbps
+  bidirectional: true
+  reverse_bandwidth: 35Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: elapsed
+    base_rate: 15Mbps
+    components:
+      - { period: 180,  amplitude: 10Mbps, phase_offset: -75   }
+      - { period: 360,  amplitude: 4Mbps,  phase_offset: -210  }
+      - { period: 2520, amplitude: 2Mbps,  phase_offset: -1470 }
+    noise_stddev_pct: 4.0
+    min_rate: 3Mbps
+    max_rate: 40Mbps
+  concurrent_users: 5

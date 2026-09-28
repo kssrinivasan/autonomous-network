@@ -1,0 +1,14 @@
+apiVersion: google.dev/v1
+kind: NetworkFailure
+metadata:
+  name: ospf-cost-inflation-p1-p2
+  namespace: network
+spec:
+  writeMode: direct
+  failureType: OSPF_COST_INFLATION
+  infrastructureRef: l3vpn-infra
+  target:
+    router: p1
+    interface: eth1  # p1-p2 link
+  parameters:
+    ospf_cost: 65535

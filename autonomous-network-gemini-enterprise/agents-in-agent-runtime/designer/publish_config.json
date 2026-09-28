@@ -1,0 +1,6 @@
+{
+  "displayName": "Network Designer v2",
+  "description": "Network Designer Agent v2 — MPLS/L3VPN Infrastructure Design & Deployment with Google Chat Notifications.\n\nTranslates high-level network design intent into VyOS Kubernetes Custom Resource Definitions and deploys changes to the running MPLS/L3VPN topology. Manages physical routers, underlay routing protocols (OSPF, MPLS, LDP), and L3VPN services (VRFs, MP-BGP, route targets).",
+  "icon_url": "https://storage.googleapis.com/${GCP_PROJECT}-agent-assets/telco_icon.jpg",
+  "tool_description": "Translate high-level network design intent into ordered Kubernetes CRD operations and modify MPLS/L3VPN topologies."
+}

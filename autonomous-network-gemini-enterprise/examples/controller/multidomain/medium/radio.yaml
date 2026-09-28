@@ -1,0 +1,1919 @@
+# 25 CellSite CRs — 5 cell sites per RAN edge, 10 UEs per gNB, 250 UEs total
+# PLMN 208/93, TAC 1, all connecting to medium-core AMF/UPF/SMF
+# gnbId allocation: site1a-e = 0x01-0x05, site2a-e = 0x06-0x0a,
+#                   site3a-e = 0x0b-0x0f, site4a-e = 0x10-0x14, site5a-e = 0x15-0x19
+# =====================================================================
+# SITE 1 — Oxford (ce-site1 / lan-site1, 10.103.1.0/24)
+# =====================================================================
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site1a
+  namespace: network
+spec:
+  container_name: site1a
+  gnbId: "0x1"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000001"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000002"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000003"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000004"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000005"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000006"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000007"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000008"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000009"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000010"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site1b
+  namespace: network
+spec:
+  container_name: site1b
+  gnbId: "0x2"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000011"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000012"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000013"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000014"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000015"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000016"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000017"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000018"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000019"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000020"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site1c
+  namespace: network
+spec:
+  container_name: site1c
+  gnbId: "0x3"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000021"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000022"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000023"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000024"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000025"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000026"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000027"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000028"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000029"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000030"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site1d
+  namespace: network
+spec:
+  container_name: site1d
+  gnbId: "0x4"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000031"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000032"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000033"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000034"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000035"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000036"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000037"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000038"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000039"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000040"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site1e
+  namespace: network
+spec:
+  container_name: site1e
+  gnbId: "0x5"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000041"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000042"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000043"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000044"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000045"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000046"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000047"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000048"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000049"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000050"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+# =====================================================================
+# SITE 2 — Cambridge (ce-site2 / lan-site2, 10.103.2.0/24)
+# =====================================================================
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site2a
+  namespace: network
+spec:
+  container_name: site2a
+  gnbId: "0x6"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000051"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000052"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000053"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000054"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000055"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000056"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000057"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000058"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000059"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000060"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site2b
+  namespace: network
+spec:
+  container_name: site2b
+  gnbId: "0x7"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000061"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000062"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000063"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000064"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000065"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000066"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000067"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000068"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000069"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000070"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site2c
+  namespace: network
+spec:
+  container_name: site2c
+  gnbId: "0x8"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000071"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000072"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000073"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000074"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000075"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000076"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000077"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000078"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000079"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000080"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site2d
+  namespace: network
+spec:
+  container_name: site2d
+  gnbId: "0x9"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000081"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000082"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000083"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000084"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000085"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000086"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000087"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000088"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000089"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000090"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site2e
+  namespace: network
+spec:
+  container_name: site2e
+  gnbId: "0xa"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000091"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000092"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000093"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000094"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000095"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000096"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000097"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000098"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000099"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000100"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+# =====================================================================
+# SITE 3 — Brighton (ce-site3 / lan-site3, 10.103.3.0/24)
+# =====================================================================
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site3a
+  namespace: network
+spec:
+  container_name: site3a
+  gnbId: "0xb"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000101"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000102"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000103"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000104"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000105"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000106"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000107"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000108"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000109"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000110"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site3b
+  namespace: network
+spec:
+  container_name: site3b
+  gnbId: "0xc"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000111"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000112"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000113"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000114"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000115"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000116"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000117"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000118"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000119"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000120"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site3c
+  namespace: network
+spec:
+  container_name: site3c
+  gnbId: "0xd"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000121"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000122"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000123"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000124"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000125"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000126"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000127"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000128"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000129"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000130"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site3d
+  namespace: network
+spec:
+  container_name: site3d
+  gnbId: "0xe"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000131"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000132"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000133"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000134"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000135"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000136"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000137"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000138"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000139"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000140"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site3e
+  namespace: network
+spec:
+  container_name: site3e
+  gnbId: "0xf"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000141"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000142"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000143"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000144"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000145"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000146"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000147"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000148"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000149"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000150"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+# =====================================================================
+# SITE 4 — Southampton (ce-site4 / lan-site4, 10.103.4.0/24)
+# =====================================================================
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site4a
+  namespace: network
+spec:
+  container_name: site4a
+  gnbId: "0x10"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000151"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000152"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000153"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000154"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000155"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000156"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000157"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000158"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000159"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000160"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site4b
+  namespace: network
+spec:
+  container_name: site4b
+  gnbId: "0x11"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000161"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000162"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000163"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000164"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000165"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000166"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000167"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000168"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000169"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000170"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site4c
+  namespace: network
+spec:
+  container_name: site4c
+  gnbId: "0x12"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000171"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000172"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000173"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000174"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000175"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000176"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000177"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000178"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000179"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000180"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site4d
+  namespace: network
+spec:
+  container_name: site4d
+  gnbId: "0x13"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000181"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000182"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000183"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000184"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000185"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000186"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000187"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000188"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000189"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000190"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site4e
+  namespace: network
+spec:
+  container_name: site4e
+  gnbId: "0x14"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000191"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000192"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000193"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000194"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000195"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000196"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000197"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000198"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000199"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000200"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+# =====================================================================
+# SITE 5 — Liverpool (ce-site5 / lan-site5, 10.103.5.0/24)
+# =====================================================================
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site5a
+  namespace: network
+spec:
+  container_name: site5a
+  gnbId: "0x15"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000201"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000202"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000203"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000204"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000205"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000206"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000207"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000208"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000209"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000210"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site5b
+  namespace: network
+spec:
+  container_name: site5b
+  gnbId: "0x16"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000211"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000212"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000213"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000214"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000215"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000216"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000217"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000218"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000219"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000220"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site5c
+  namespace: network
+spec:
+  container_name: site5c
+  gnbId: "0x17"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000221"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000222"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000223"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000224"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000225"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000226"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000227"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000228"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000229"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000230"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site5d
+  namespace: network
+spec:
+  container_name: site5d
+  gnbId: "0x18"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000231"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000232"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000233"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000234"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000235"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000236"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000237"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000238"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000239"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000240"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-site5e
+  namespace: network
+spec:
+  container_name: site5e
+  gnbId: "0x19"
+  mcc: "208"
+  mnc: "93"
+  tac: 1
+  amf_name: "medium-core-amf"
+  upf_name: "medium-core-upf"
+  smf_name: "medium-core-smf"
+  ues:
+    - imsi: "208930000000241"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000242"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000243"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000244"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000245"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000246"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000247"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000248"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000249"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000250"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"

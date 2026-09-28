@@ -1,0 +1,26 @@
+mcc: '{{ mcc }}'
+mnc: '{{ mnc }}'
+
+nci: '{{ nci }}'
+idLength: {{ gnb_id_length }}
+tac: {{ tac }}
+
+linkIp: {{ gnb_ip }}
+ngapIp: {{ gnb_ip }}
+gtpIp: {{ gnb_ip }}
+
+amfConfigs:
+  - address: {{ amf_ip }}
+    port: {{ amf_port }}
+
+slices:
+{% for slice in slices %}
+  - sst: {{ slice.sst }}
+{% if slice.sd is defined and slice.sd %}
+    sd: '0x{{ slice.sd }}'
+{% endif %}
+{% endfor %}
+
+ignoreStreamIds: true
+
+logLevel: info

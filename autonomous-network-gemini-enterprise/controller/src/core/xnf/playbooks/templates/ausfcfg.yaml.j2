@@ -1,0 +1,40 @@
+info:
+  version: 1.0.3
+  description: AUSF initial local configuration
+
+configuration:
+  sbi:
+    scheme: http
+    registerIPv4: {{ nf_ip }}
+    bindingIPv4: {{ nf_ip }}
+    port: 8000
+    tls:
+      pem: cert/ausf.pem
+      key: cert/ausf.key
+  serviceNameList:
+    - nausf-auth
+  nrfUri: {{ nrf_uri }}
+  plmnSupportList:
+{% for plmn in plmn_list %}
+    - mcc: {{ plmn.mcc }}
+      mnc: {{ plmn.mnc }}
+{% endfor %}
+  groupId: ausfGroup001
+  eapAkaSupiImsiPrefix: false
+{% if metrics_enabled %}
+  metrics:
+    enable: true
+    scheme: {{ metrics_scheme }}
+    bindingIPv4: 0.0.0.0
+    port: {{ metrics_port }}
+    namespace: {{ metrics_namespace }}
+{% if metrics_scheme == 'https' %}
+    tls:
+      pem: cert/ausf.pem
+      key: cert/ausf.key
+{% endif %}
+{% endif %}
+logger:
+  enable: true
+  level: info
+  reportCaller: false

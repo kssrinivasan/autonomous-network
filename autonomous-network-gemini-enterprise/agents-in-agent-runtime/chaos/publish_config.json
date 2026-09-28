@@ -1,0 +1,6 @@
+{
+  "displayName": "Network Chaos",
+  "description": "Network Chaos Agent — MPLS/L3VPN Network Failure & Chaos Engineering Injection.\n\nInjects controlled network failures by creating and deleting Kubernetes NetworkFailure custom resources to simulate severe real-world transport outages. Manages BGP session drops, link corruption, MTU clamping, route reflector process crashes, transmission queue starvation, and VRF route target isolation to validate automated root-cause analysis (RCA) and autonomous network self-healing capabilities.",
+  "icon_url": "https://storage.googleapis.com/${GCP_PROJECT}-agent-assets/telco_icon.jpg",
+  "tool_description": "Inject controlled network failures, link outages, packet corruption, MTU mismatch, and BGP session drops"
+}

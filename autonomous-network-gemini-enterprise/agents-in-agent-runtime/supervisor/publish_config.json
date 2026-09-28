@@ -1,0 +1,6 @@
+{
+  "displayName": "Network Supervisor",
+  "description": "An overarching autonomous network supervisor agent. It acts as the primary orchestration interface, guiding the user or external systems through structured telecommunications troubleshooting loops (Fault Injection -> Telemetry Triage -> Blast Radius Assessment -> Autonomous Repair -> Synthetic Validation).",
+  "icon_url": "https://storage.googleapis.com/${GCP_PROJECT}-agent-assets/telco_icon.jpg",
+  "tool_description": "Use this agent to orchestrate complex end-to-end network triage loops, break down high-level troubleshooting goals, and coordinate specialized agent tasks."
+}

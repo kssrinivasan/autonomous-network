@@ -1,0 +1,88 @@
+{
+  "plmnID": "{{ mcc }}{{ mnc }}",
+  "ueId": "imsi-{{ item.imsi }}",
+  "AuthenticationSubscription": {
+    "authenticationManagementField": "{{ item.amf | default('8000') }}",
+    "authenticationMethod": "5G_AKA",
+    "milenage": {
+      "op": { "encryptionAlgorithm": 0, "encryptionKey": 0, "opValue": "" }
+    },
+    "opc": {
+      "encryptionAlgorithm": 0,
+      "encryptionKey": 0,
+      "opcValue": "{{ item.opc }}"
+    },
+    "permanentKey": {
+      "encryptionAlgorithm": 0,
+      "encryptionKey": 0,
+      "permanentKeyValue": "{{ item.key }}"
+    },
+    "sequenceNumber": "{{ item.sqn | default('000000000020') }}"
+  },
+  "AccessAndMobilitySubscriptionData": {
+    "gpsis": [{% if item.msisdn %}"msisdn-{{ item.msisdn }}"{% endif %}],
+    "nssai": {
+      "defaultSingleNssais": [
+        {
+          "sst": {{ item.sst | default(1) }},
+          "sd": "{{ item.sd | default('010203') }}",
+          "isDefault": true
+        }
+      ],
+      "singleNssais": []
+    },
+    "subscribedUeAmbr": { "downlink": "2 Gbps", "uplink": "1 Gbps" }
+  },
+  "SessionManagementSubscriptionData": [
+    {
+      "singleNssai": {
+        "sst": {{ item.sst | default(1) }},
+        "sd": "{{ item.sd | default('010203') }}"
+      },
+      "dnnConfigurations": {
+        "{{ item.apn | default('internet') }}": {
+          "sscModes": {
+            "defaultSscMode": "SSC_MODE_1",
+            "allowedSscModes": ["SSC_MODE_2", "SSC_MODE_3"]
+          },
+          "pduSessionTypes": {
+            "defaultSessionType": "IPV4",
+            "allowedSessionTypes": ["IPV4"]
+          },
+          "sessionAmbr": { "uplink": "200 Mbps", "downlink": "100 Mbps" },
+          "5gQosProfile": {
+            "5qi": 9,
+            "arp": { "priorityLevel": 8 },
+            "priorityLevel": 8
+          }
+        }
+      }
+    }
+  ],
+  "SmfSelectionSubscriptionData": {
+    "subscribedSnssaiInfos": {
+      "{{ '%02x' | format(item.sst | default(1)) }}{{ item.sd | default('010203') }}": {
+        "dnnInfos": [
+          { "dnn": "{{ item.apn | default('internet') }}" }
+        ]
+      }
+    }
+  },
+  "AmPolicyData": { "subscCats": ["free5gc"] },
+  "SmPolicyData": {
+    "smPolicySnssaiData": {
+      "{{ '%02x' | format(item.sst | default(1)) }}{{ item.sd | default('010203') }}": {
+        "snssai": {
+          "sst": {{ item.sst | default(1) }},
+          "sd": "{{ item.sd | default('010203') }}"
+        },
+        "smPolicyDnnData": {
+          "{{ item.apn | default('internet') }}": {
+            "dnn": "{{ item.apn | default('internet') }}"
+          }
+        }
+      }
+    }
+  },
+  "FlowRules": []
+}

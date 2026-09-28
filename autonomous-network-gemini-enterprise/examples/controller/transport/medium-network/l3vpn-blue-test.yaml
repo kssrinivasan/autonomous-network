@@ -1,0 +1,65 @@
+apiVersion: google.dev/v1
+kind: TrafficTest
+metadata:
+  name: blue-vpn-hub-spoke-test
+  namespace: network
+spec:
+  description: "BLUE VPN hub-and-spoke - enhanced for fault impact demonstration"
+  vpnRef: blue-vpn-service
+  source_devices:
+    - "spoke1"   # pe1 (Oxford, Area 1)
+    - "spoke2"   # pe3 (Brighton, Area 1)
+    - "spoke3"   # pe5 (Liverpool, Area 1)
+    - "spoke4"   # pe7 (Cork, Area 2 - cross-area!)
+    - "spoke5"   # pe8 (Aberdeen, Area 2 - cross-area!)
+  destination_device: "bhub"
+  protocol: TCP
+  duration: 3600    # 1 hour for steady-state analysis
+
+  # Spoke → Hub: 60 Mbps with time-of-day variation
+  bandwidth: 90Mbps
+  pattern_type: multi_sine
+  pattern_config:
+    time_reference: wall_clock
+    base_rate: 50Mbps
+    components:
+      - period: 3600       # 1-hour cycle (business hour simulation)
+        amplitude: 25Mbps
+        phase_offset: 0
+    noise_stddev_pct: 5.0
+    min_rate: 20Mbps
+    max_rate: 90Mbps
+
+  # Hub → Spoke: 15 Mbps asymmetric return traffic
+  bidirectional: true
+  reverse_bandwidth: 20Mbps
+  reverse_pattern_type: multi_sine
+  reverse_pattern_config:
+    time_reference: wall_clock
+    base_rate: 10Mbps
+    components:
+      - period: 3600
+        amplitude: 5Mbps
+        phase_offset: 900    # 15-minute phase shift
+    noise_stddev_pct: 3.0
+    min_rate: 5Mbps
+    max_rate: 20Mbps
+
+  concurrent_users: 10
+
+  expected_paths:
+    - source: "spoke1"
+      expected: ["ce1-spoke", "pe1", "pa1", "pa2", "p1", "p2", "pa1", "pa2", "pe2", "ce-hub-blue", "bhub"]
+      description: "Oxford spoke to Cambridge hub via Area 1"
+    - source: "spoke2"
+      expected: ["ce2-spoke", "pe3", "pa1", "pa3", "p1", "p2", "pa1", "pa2", "pe2", "ce-hub-blue", "bhub"]
+      description: "Brighton spoke to Cambridge hub via Area 1"
+    - source: "spoke3"
+      expected: ["ce3-spoke", "pe5", "pa2", "pa4", "p1", "p3", "pa1", "pa2", "pe2", "ce-hub-blue", "bhub"]
+      description: "Liverpool spoke to Cambridge hub via Area 1"
+    - source: "spoke4"
+      expected: ["ce4-spoke", "pe7", "pa3", "pa4", "p2", "p4", "p3", "pa2", "pe2", "ce-hub-blue", "bhub"]
+      description: "Cork spoke to Cambridge hub via Area 2 → Area 0 → Area 1 (cross-area)"
+    - source: "spoke5"
+      expected: ["ce5-spoke", "pe8", "pa3", "pa4", "p3", "p4", "p3", "pa2", "pe2", "ce-hub-blue", "bhub"]
+      description: "Aberdeen spoke to Cambridge hub via Area 2 → Area 0 → Area 1 (cross-area)"

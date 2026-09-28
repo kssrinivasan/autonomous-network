@@ -1,0 +1,46 @@
+# NetworkFailure: Area Border Router Failure (Large Network)
+#
+# Fault Type   : ROUTER_DOWN
+# Target       : PA3 (Hamburg ABR, connects Area 0 to Area 2 - Germany region)
+# Mechanism    : Bring down entire ABR router (loopback_disable method)
+# Impact       : Area 2 (Germany) loses one of two ABRs to backbone. Traffic shifts
+#                to pa4 (Munich). Inter-area path changes affect all Germany PE routers
+#                (pe7-pe10). Multi-tier cascading impact (Core → PA → AR → PE).
+#
+# Traffic Impact:
+#   - Germany PEs (pe7, pe8, pe9, pe10) lose path via pa3 to core
+#   - All Germany-to-other-region traffic reroutes through pa4 (Munich ABR)
+#   - pa4 load doubles (handles both pa3 and pa4 traffic)
+#   - Potential bottleneck at pa4-p3, pa4-p2 links
+#   - Minimal impact on UK, France, Iberia traffic (different ABRs)
+#
+# GNN Detection Signatures:
+#   D-GAT  : All edges connected to pa3 collapse simultaneously
+#   STGNN  : Router down alarm (control plane), Area 2 regional traffic shows severe
+#             path changes, load doubling on pa4 visible in metrics
+#   HetGNN : Area isolation pattern in embeddings, cross-tier impact cascade (PA→AR→PE)
+#             Inter-area summary LSA updates from remaining ABR pa4
+#
+# Related Scenario: docs/scenarios/large/scenario_5_abr_router_failure.md
+#
+# Usage:
+#   kubectl apply  -f router-down-pa3.yaml    # Bring down PA3 ABR
+#   kubectl delete -f router-down-pa3.yaml    # Restore PA3
+---
+apiVersion: google.dev/v1
+kind: NetworkFailure
+metadata:
+  name: router-down-pa3-abr
+  namespace: network
+  labels:
+    scenario: large-network
+    fault-type: router-down
+    severity: critical
+spec:
+  writeMode: direct
+  failureType: ROUTER_DOWN
+  infrastructureRef: complex-network-infra
+  target:
+    router: pa3
+  parameters:
+    method: loopback_disable

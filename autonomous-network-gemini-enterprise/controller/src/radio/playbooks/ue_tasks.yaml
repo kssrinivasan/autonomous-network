@@ -1,0 +1,60 @@
+---
+# Included per-UE from cellsite.yaml. Loop variable: ue
+- name: "Check if UE process {{ ue.imsi }} is already running"
+  shell: "docker exec {{ container_name }} pgrep -f 'uecfg-{{ ue.imsi }}'"
+  register: ue_running_check
+  failed_when: false
+  changed_when: false
+
+- name: "Log UE pgrep result for {{ ue.imsi }}"
+  shell: "docker exec {{ container_name }} sh -c \"echo '[UE-PLAYBOOK] {{ ue.imsi }} pgrep check: rc={{ ue_running_check.rc }} at '\\$(date +%s.%N) >> /tmp/ue-{{ ue.imsi }}.log\""
+  changed_when: true
+
+- name: "Log UE skip for {{ ue.imsi }}"
+  shell: "docker exec {{ container_name }} sh -c \"echo '[UE-PLAYBOOK] {{ ue.imsi }} already running, skipping at '\\$(date +%s.%N) >> /tmp/ue-{{ ue.imsi }}.log\""
+  changed_when: true
+  when: ue_running_check.rc == 0
+
+- name: "Skip UE {{ ue.imsi }} start if already healthy"
+  when: ue_running_check.rc == 0
+  debug:
+    msg: "UE {{ ue.imsi }} already running in {{ container_name }}, skipping start"
+
+- name: "Render UE config for {{ ue.imsi }}"
+  ansible.builtin.template:
+    src: uecfg.yaml.j2
+    dest: "/tmp/uecfg-{{ ue.imsi }}.yaml"
+  vars:
+    imsi: "{{ ue.imsi }}"
+    key: "{{ ue.key }}"
+    opc: "{{ ue.opc }}"
+    amf_value: "{{ ue.amf | default('8000') }}"
+    apn: "{{ ue.apn | default('internet') }}"
+    sst: "{{ ue.sst | default(1) }}"
+    sd: "{{ ue.sd | default('') }}"
+  when: ue_running_check.rc != 0
+
+- name: "Copy UE config into container for {{ ue.imsi }}"
+  shell: >
+    docker cp /tmp/uecfg-{{ ue.imsi }}.yaml
+    {{ container_name }}:/opt/device/config/uecfg-{{ ue.imsi }}.yaml
+  when: ue_running_check.rc != 0
+
+- name: "Remove temp UE config for {{ ue.imsi }}"
+  ansible.builtin.file:
+    path: "/tmp/uecfg-{{ ue.imsi }}.yaml"
+    state: absent
+  when: ue_running_check.rc != 0
+
+- name: "Log starting UE {{ ue.imsi }}"
+  shell: "docker exec {{ container_name }} sh -c \"echo '[UE-PLAYBOOK] About to start UE {{ ue.imsi }} at '\\$(date +%s.%N) >> /tmp/ue-{{ ue.imsi }}.log\""
+  changed_when: true
+  when: ue_running_check.rc != 0
+
+- name: "Start UE process for {{ ue.imsi }}"
+  shell: >
+    docker exec -d {{ container_name }}
+    sh -c "exec {{ ue_binary }} -c /opt/device/config/uecfg-{{ ue.imsi }}.yaml >> /tmp/ue-{{ ue.imsi }}.log 2>&1"
+  when:
+    - ue.enabled | default(true)
+    - ue_running_check.rc != 0

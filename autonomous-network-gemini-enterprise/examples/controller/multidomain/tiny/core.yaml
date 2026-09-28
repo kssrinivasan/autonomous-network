@@ -1,0 +1,65 @@
+apiVersion: google.dev/v1
+kind: FiveGCore
+metadata:
+  name: free5gc-core
+  namespace: network
+spec:
+  image: "device:latest"
+  mongodbUri: "mongodb://10.101.2.21:27017"
+  metrics:
+    enabled: true
+    port: 9089
+  plmnList:
+    - mcc: "208"
+      mnc: "93"
+  slices:
+    - sst: 1
+      sd: "010203"
+      dnnInfos:
+        - dnn: "internet"
+          dns:
+            ipv4: "8.8.8.8"
+          pools:
+            - cidr: "10.60.0.0/16"
+          staticPools:
+            - cidr: "10.60.100.0/24"
+  subscribers:
+    - imsi: "208930000000001"
+      msisdn: "0900000001"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000002"
+      msisdn: "0900000002"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+  network_functions:
+    - type: NRF
+      container_name: "nrf"
+    - type: UDR
+      container_name: "udr"
+    - type: UDM
+      container_name: "udm"
+    - type: AUSF
+      container_name: "ausf"
+    - type: PCF
+      container_name: "pcf"
+    - type: NSSF
+      container_name: "nssf"
+    - type: AMF
+      container_name: "amf"
+      config:
+        tac: 1
+    - type: SMF
+      container_name: "smf"
+    - type: UPF
+      container_name: "upf"
+    - type: WebUI
+      container_name: "webui"
+      config:
+        port: 5000

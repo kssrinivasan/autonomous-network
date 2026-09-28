@@ -1,0 +1,5 @@
+# Override system-level uv configuration to use public PyPI
+[[index]]
+name = "pypi"
+url = "https://pypi.org/simple"
+default = true

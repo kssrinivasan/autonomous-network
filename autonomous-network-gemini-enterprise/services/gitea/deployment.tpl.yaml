@@ -1,0 +1,166 @@
+---
+# Gitea on GKE.
+#
+# Gitea is a filesystem-native application: its SQLite database and every bare
+# repository live under /data. Cloud Run gives that path an in-memory
+# filesystem, so every revision, every scale-to-zero and every instance recycle
+# destroyed all repositories and all Gitea state (users, API tokens, webhooks,
+# pull requests). That is why install.sh used to re-seed on every deploy.
+#
+# The disk below is the fix. See MIGRATION_PLAN.md 7.2 for the options that were
+# rejected: gcsfuse has no POSIX locking and no atomic rename, so SQLite and git
+# both corrupt on it, and Filestore's 1 TiB minimum costs ~$164/month to store
+# ~100 MB.
+---
+# Retain, not Delete. A `kubectl delete pvc` — or an over-broad `kubectl delete
+# -f` — must not be able to destroy the repositories. The underlying PD survives
+# and can be re-bound by hand; recovery is documented in Readme.md.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gitea-retain
+provisioner: pd.csi.storage.gke.io
+parameters:
+  type: pd-balanced
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gitea-data-pvc
+  namespace: ${GOOGLE_NAMESPACE}
+  labels:
+    application: gitea
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: gitea-retain
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitea
+  namespace: ${GOOGLE_NAMESPACE}
+  labels:
+    application: gitea
+spec:
+  replicas: 1
+  # Recreate, never RollingUpdate. The PVC is ReadWriteOnce and Gitea is a
+  # strict single writer — two pods sharing one SQLite file and one repository
+  # tree is corruption, not high availability.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      application: gitea
+  template:
+    metadata:
+      labels:
+        application: gitea
+    spec:
+      serviceAccountName: networkoperator-account
+      containers:
+        - name: gitea
+          image: ${GOOGLE_REGION}-docker.pkg.dev/${GOOGLE_PROJECT}/${GOOGLE_REPO}/gitea:latest
+          imagePullPolicy: Always
+          ports:
+            - name: https
+              containerPort: 3000
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "3000"
+            # Gitea terminates TLS itself. There is no L7 load balancer in front
+            # of it and no domain name to get a managed certificate for, so the
+            # certificate is self-signed against the reserved static IP and the
+            # in-cluster service names. See install.sh.
+            - name: GITEA_PROTOCOL
+              value: "https"
+            - name: GITEA_CERT_FILE
+              value: "/certs/tls.crt"
+            - name: GITEA_KEY_FILE
+              value: "/certs/tls.key"
+            - name: GITEA_ROOT_URL
+              value: "https://${GITEA_LB_IP}/"
+            - name: GITEA_DOMAIN
+              value: "${GITEA_LB_IP}"
+            - name: GITEA_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-admin
+                  key: username
+            - name: GITEA_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-admin
+                  key: password
+            - name: GITEA_ADMIN_EMAIL
+              value: "${GITEA_ADMIN_EMAIL}"
+          volumeMounts:
+            - name: gitea-data
+              mountPath: /data
+            - name: gitea-tls
+              mountPath: /certs
+              readOnly: true
+          # /api/healthz, not /api/v1/version. app.ini sets
+          # REQUIRE_SIGNIN_VIEW = true, so the versioned API returns 403 to an
+          # unauthenticated caller and the kubelet would restart a healthy pod
+          # forever. /api/healthz is deliberately exempt from that check.
+          readinessProbe:
+            httpGet:
+              path: /api/healthz
+              port: 3000
+              scheme: HTTPS
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/healthz
+              port: 3000
+              scheme: HTTPS
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              memory: 2Gi
+      volumes:
+        - name: gitea-data
+          persistentVolumeClaim:
+            claimName: gitea-data-pvc
+        - name: gitea-tls
+          secret:
+            secretName: gitea-tls
+            # Gitea drops to the unprivileged `git` user before reading these.
+            defaultMode: 0444
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitea
+  namespace: ${GOOGLE_NAMESPACE}
+  labels:
+    application: gitea
+spec:
+  type: LoadBalancer
+  # Pinned to the reserved regional address `gitea-ip`. The address is what
+  # makes the URL stable across redeploys, and it is baked into the
+  # self-signed certificate's SAN list — so it must not be allowed to float.
+  loadBalancerIP: ${GITEA_LB_IP}
+  selector:
+    application: gitea
+  ports:
+    - name: https
+      port: 443
+      targetPort: 3000
+      protocol: TCP

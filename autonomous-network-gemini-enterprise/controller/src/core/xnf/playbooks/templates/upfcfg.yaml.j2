@@ -1,0 +1,32 @@
+version: 1.0.3
+description: UPF initial local configuration
+
+pfcp:
+  addr: {{ nf_ip }}
+  nodeID: {{ nf_ip }}
+  retransTimeout: 1s
+  maxRetrans: 3
+
+gtpu:
+  forwarder: gtp5g
+  ifList:
+    - addr: {{ nf_ip }}
+      type: N3
+
+dnnList:
+{% if upf_dnn_list %}
+{% for entry in upf_dnn_list %}
+  - dnn: {{ entry.dnn }}
+{% if entry.cidr %}
+    cidr: {{ entry.cidr }}
+{% endif %}
+{% endfor %}
+{% else %}
+  - dnn: internet
+    cidr: 10.60.0.0/24
+{% endif %}
+
+logger:
+  enable: true
+  level: info
+  reportCaller: false

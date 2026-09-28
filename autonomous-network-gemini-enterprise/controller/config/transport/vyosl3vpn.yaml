@@ -1,0 +1,348 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: vyosl3vpns.google.dev
+  labels:
+    # Opt-in allowlist: chaos and designer enumerate CRDs by this marker to
+    # learn what they may create. Without it their label selectors match nothing.
+    agent-accessible: "true"
+    type: transport
+spec:
+  group: google.dev
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: |
+            VyOSL3VPN defines Layer 3 VPN services (VRFs, route targets, BGP VPN neighbors) for customer connectivity.
+            It is the final layer in the dependency chain: VyOSInfrastructure → VyOSUnderlay → VyOSL3VPN.
+
+            DEPENDENCY AND READINESS:
+              - spec.underlayRef must name an existing VyOSUnderlay in the same namespace.
+              - The operator checks that underlay's status.phase == 'Ready' before proceeding.
+              - If the underlay exists but is not Ready, the operator sets this resource's phase to
+                'Waiting' and retries every 10 seconds (TemporaryError).
+              - If the underlay does not exist at all (404), it is a permanent error — no retry.
+              - If underlayRef is omitted, the operator skips the dependency check and proceeds.
+
+            HOW THE OPERATOR POPULATES ROUTER CONFIGS:
+              PE routers (spec.routers[]):
+                1. For each entry in spec.routers[], the operator finds the VyOSRouter CR whose
+                   metadata.name matches routers[].name in the same namespace.
+                2. A merge-patch is applied to that VyOSRouter with:
+                     spec.vrfs   = routers[].vrfs
+                     spec.protocols.bgp = routers[].bgp
+                3. For each VRF in routers[].vrfs that has an 'interfaces' list, the operator
+                   additionally applies a JSON patch to the VyOSRouter to set the 'vrf' field
+                   on each named interface:
+                     - The operator fetches the current VyOSRouter and finds the index of each
+                       interface by name in spec.interfaces[].
+                     - It then JSON-patches: /spec/interfaces/{idx}/vrf = vrf_name
+                     - This assigns that interface to the VRF on the router.
+                4. The operator continues processing remaining routers even if one patch fails.
+
+              CE routers (spec.ce_routers[]):
+                - For each entry in spec.ce_routers[], the operator finds the VyOSRouter CR by name.
+                - A merge-patch is applied with: spec.protocols = ce_routers[].protocols
+                - This injects the CE eBGP configuration (typically peering with PE VRF interfaces).
+                - CE router patches are applied after all PE router patches complete.
+
+              spec.services[] is purely declarative metadata about the VPN topology — the operator
+              does not act on it directly. It is for documentation and agent consumption only.
+
+            LIFECYCLE:
+              Waiting → Processing → Ready | Error
+          properties:
+            spec:
+              type: object
+              required:
+                - underlayRef
+              properties:
+                underlayRef:
+                  type: string
+                  description: |
+                    Name of the VyOSUnderlay resource this L3VPN service is built on.
+                    RULE: Must reference an existing VyOSUnderlay CR in the same namespace.
+                    The operator polls its status.phase every 10 seconds until it equals 'Ready'.
+                    A missing resource (404) results in a permanent error. An underlay that exists
+                    but is not yet Ready causes a temporary retry every 10 seconds. If this field
+                    is omitted, the dependency check is skipped entirely.
+                    Example: 'l3vpn-hub-spoke-underlay'
+                services:
+                  type: array
+                  description: >
+                    Declarative metadata describing the L3VPN service topology for documentation
+                    and agent consumption. The operator does NOT act on this block — it does not
+                    create or configure any resources based on services[]. It is purely informational
+                    and describes the overall VPN design intent (RD, RT, topology type, etc.).
+                  items:
+                    type: object
+                    required:
+                      - name
+                    properties:
+                      name:
+                        type: string
+                        description: "Unique name for this VPN service definition."
+                      type:
+                        type: string
+                        description: "Service type identifier (e.g. 'l3vpn')."
+                      topology:
+                        type: string
+                        description: >
+                          VPN topology type describing how sites are interconnected:
+                          'hub'        — hub site (receives routes from spokes);
+                          'spoke'      — spoke site (routes only to/from hub);
+                          'any-to-any' — full mesh between all sites;
+                          'hub-spoke'  — hub-and-spoke topology.
+                        enum: ["hub", "spoke", "any-to-any", "hub-spoke"]
+                      rd:
+                        type: string
+                        pattern: '^[0-9]+:[0-9]+$'
+                        description: "Route Distinguisher for this VPN service in ASN:nn or IP:nn format."
+                      rt_export:
+                        type: string
+                        pattern: '^[0-9]+:[0-9]+$'
+                        description: "Route Target to attach to exported routes from this VPN service."
+                      rt_import:
+                        type: string
+                        pattern: '^[0-9]+:[0-9]+$'
+                        description: "Route Target to import for this VPN service."
+                      description:
+                        type: string
+                        description: "Human-readable description of this VPN service."
+                ce_routers:
+                  type: array
+                  description: |
+                    Customer Edge router BGP configuration to patch into existing VyOSRouter CRs.
+                    CE routers are customer equipment that peer eBGP with PE VRF interfaces.
+
+                    OPERATOR POPULATION RULES:
+                      - For each entry, the operator finds the VyOSRouter CR whose metadata.name
+                        matches ce_routers[].name in the same namespace.
+                      - A merge-patch is applied to that VyOSRouter with:
+                          spec.protocols = ce_routers[].protocols
+                        This injects the CE eBGP configuration (BGP AS number, neighbors peering
+                        with PE VRF interface IPs, etc.).
+                      - CE patches are applied AFTER all PE router (spec.routers[]) patches.
+                      - The operator continues processing remaining CE routers even if one fails.
+                      - ce_routers[].name must exactly match an existing VyOSRouter CR — the
+                        operator does not create CE routers here, only patches them.
+                  items:
+                    type: object
+                    required:
+                      - name
+                    properties:
+                      name:
+                        type: string
+                        description: >
+                          Name of the CE VyOSRouter CR to patch. Must exactly match an existing
+                          VyOSRouter CR metadata.name in the same namespace. This router is
+                          typically a CE router created by the parent VyOSInfrastructure.
+                      protocols:
+                        type: object
+                        description: >
+                          Protocol configuration to merge-patch into spec.protocols on the CE
+                          VyOSRouter CR. Used to inject eBGP peering toward the PE VRF interfaces.
+
+                          OPERATOR ACTION: The operator patches the CE VyOSRouter with:
+                            { spec: { protocols: <this block> } }
+                          using a merge-patch.
+                        properties:
+                          bgp:
+                            type: object
+                            description: "CE eBGP configuration (peering with PE VRF interfaces)."
+                            properties:
+                              as_number:
+                                type: integer
+                                minimum: 1
+                                maximum: 4294967295
+                                description: "Customer BGP AS number for this CE router."
+                              router_id:
+                                type: string
+                                pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                                description: "BGP router ID for this CE router."
+                              neighbors:
+                                type: array
+                                description: "eBGP neighbor definitions — typically the PE VRF interface IPs."
+                                items:
+                                  type: object
+                                  required:
+                                    - peer
+                                    - remote_as
+                                  properties:
+                                    peer:
+                                      type: string
+                                      pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                                      description: "Neighbor IP address — typically the PE VRF interface facing this CE."
+                                    remote_as:
+                                      type: integer
+                                      minimum: 1
+                                      maximum: 4294967295
+                                      description: "Remote AS number — typically the provider AS."
+                                    description:
+                                      type: string
+                                      description: "Human-readable description of this neighbor."
+                routers:
+                  type: array
+                  description: >
+                    PE router VRF and BGP VPN configuration to patch into existing VyOSRouter CRs.
+
+                    OPERATOR POPULATION RULES:
+                      Step 1 — Merge-patch VRFs and BGP VPN config:
+                        For each entry, the operator issues a merge-patch to the VyOSRouter CR
+                        whose metadata.name matches routers[].name in the same namespace:
+                          spec.vrfs            = routers[].vrfs
+                          spec.protocols.bgp   = routers[].bgp
+                        This sets the VRF table/RD/RT definitions and BGP VRF neighbor config.
+
+                      Step 2 — JSON-patch interface VRF assignments:
+                        For each VRF in routers[].vrfs that has a non-empty 'interfaces' list,
+                        the operator:
+                          a. Fetches the current VyOSRouter spec to get the interfaces array.
+                          b. For each interface name in vrfs[].interfaces, finds its array index
+                             in spec.interfaces[] by matching the 'name' field.
+                          c. Applies a JSON patch operation:
+                               { op: 'add', path: '/spec/interfaces/{idx}/vrf', value: '{vrf_name}' }
+                             This assigns that interface to the named VRF on the router.
+                          d. Interfaces not found in the router's current spec are silently skipped.
+
+                      - routers[].name must exactly match an existing VyOSRouter CR name.
+                      - The operator continues processing remaining routers even if one patch fails.
+                  items:
+                    type: object
+                    required:
+                      - name
+                    properties:
+                      name:
+                        type: string
+                        description: >
+                          Name of the PE VyOSRouter CR to patch with VRF and BGP VPN configuration.
+                          Must exactly match an existing VyOSRouter CR metadata.name in the same
+                          namespace. Typically a PE router created by the parent VyOSInfrastructure.
+                      vrfs:
+                        type: array
+                        description: >
+                          VRF definitions to merge-patch into spec.vrfs on the target VyOSRouter.
+                          Each entry defines one VRF (routing table, RD, RT values, and interface
+                          assignments).
+
+                          OPERATOR RULE — INTERFACE ASSIGNMENT: For each VRF entry with a non-empty
+                          'interfaces' list, the operator fetches the VyOSRouter's current
+                          spec.interfaces[], finds each named interface by its 'name' field, and
+                          JSON-patches the 'vrf' property onto that interface entry. Interfaces
+                          not currently present on the router are silently skipped.
+                        items:
+                          type: object
+                          required:
+                            - name
+                            - table
+                          properties:
+                            name:
+                              type: string
+                              description: "VRF name. Must be unique on this router. Used as the VRF identifier in the OS."
+                            table:
+                              type: integer
+                              description: "Linux routing table ID for this VRF. Must be unique per router."
+                            rd:
+                              type: string
+                              description: "Route Distinguisher for this VRF in ASN:nn format (e.g. '65000:100')."
+                            rt_export:
+                              type: array
+                              items:
+                                type: string
+                              description: "Route Targets to attach when exporting routes from this VRF."
+                            rt_import:
+                              type: array
+                              items:
+                                type: string
+                              description: "Route Targets to import into this VRF from BGP VPNv4 updates."
+                            description:
+                              type: string
+                              description: "Human-readable description of this VRF's purpose."
+                            interfaces:
+                              type: array
+                              description: >
+                                List of interface names to assign to this VRF.
+                                OPERATOR ACTION: For each interface name listed here, the operator
+                                looks up its index in the VyOSRouter's spec.interfaces[] array and
+                                applies a JSON patch to set /spec/interfaces/{idx}/vrf = this VRF's name.
+                                Interfaces not found on the router are silently skipped — no error is raised.
+                              items:
+                                type: string
+                                description: "Interface name matching an entry in the VyOSRouter's spec.interfaces[].name (e.g. 'eth2')."
+                      bgp:
+                        type: object
+                        description: >
+                          BGP VPN configuration to merge-patch into spec.protocols.bgp on the
+                          target VyOSRouter. Specifically, the 'vrfs' block here is used to
+                          configure per-VRF BGP neighbors (eBGP peering with CE routers).
+
+                          OPERATOR ACTION: Patched as part of the initial merge-patch:
+                            { spec: { protocols: { bgp: <this block> } } }
+                        properties:
+                          vrfs:
+                            type: array
+                            description: "Per-VRF BGP neighbor configuration. Each entry configures eBGP peering within a named VRF."
+                            items:
+                              type: object
+                              required:
+                                - name
+                              properties:
+                                name:
+                                  type: string
+                                  description: "VRF name. Must match an entry in routers[].vrfs[].name on this same router."
+                                neighbors:
+                                  type: array
+                                  description: "eBGP CE neighbors to peer with within this VRF."
+                                  items:
+                                    type: object
+                                    required:
+                                      - peer
+                                      - remote_as
+                                    properties:
+                                      peer:
+                                        type: string
+                                        description: "CE neighbor IP address (must be reachable via the VRF interface)."
+                                      remote_as:
+                                        type: integer
+                                        description: "CE AS number."
+                                      description:
+                                        type: string
+                                        description: "Human-readable description of this CE neighbor."
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                  description: >
+                    Current lifecycle phase set by the operator:
+                    'Waiting'    — waiting for referenced VyOSUnderlay to reach Ready phase
+                                   (retries every 10 seconds);
+                    'Processing' — applying VRF and BGP VPN configuration to VyOSRouter CRs;
+                    'Ready'      — all PE and CE router patches applied successfully;
+                    'Error'      — a permanent error occurred (e.g. referenced underlay not found).
+                message:
+                  type: string
+                  description: "Human-readable status message from the operator."
+      additionalPrinterColumns:
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+        - name: Underlay
+          type: string
+          jsonPath: .spec.underlayRef
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+  names:
+    kind: VyOSL3VPN
+    plural: vyosl3vpns
+    singular: vyosl3vpn
+    shortNames:
+      - l3vpn
+  scope: Namespaced

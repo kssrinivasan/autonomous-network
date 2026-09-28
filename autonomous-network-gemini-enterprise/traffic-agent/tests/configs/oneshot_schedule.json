@@ -1,0 +1,26 @@
+{
+  "test_name":          "local-schedule-test",
+  "source_device":      "localhost",
+  "source_ip":          "127.0.0.1",
+  "destination_device": "localhost",
+  "destination_ip":     "127.0.0.1",
+  "protocol":           "TCP",
+  "port":               19205,
+  "duration":           10,
+  "bandwidth":          "10Mbps",
+  "pattern_type":       "schedule",
+  "pattern_config": {
+    "time_reference": "elapsed",
+    "interpolation":  "linear",
+    "repeat":         "none",
+    "waypoints": [
+      { "time": "0",  "rate": "1Mbps"  },
+      { "time": "3",  "rate": "8Mbps"  },
+      { "time": "6",  "rate": "10Mbps" },
+      { "time": "9",  "rate": "3Mbps"  }
+    ]
+  },
+  "concurrent_users":   2,
+  "metrics_enabled":    true,
+  "metrics_interval":   1
+}

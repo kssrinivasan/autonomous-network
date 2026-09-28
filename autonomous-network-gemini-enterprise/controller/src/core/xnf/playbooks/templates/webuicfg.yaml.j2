@@ -1,0 +1,29 @@
+info:
+  version: 1.0.3
+  description: WebUI initial local configuration
+
+configuration:
+  mongodb:
+    name: free5gc
+    url: {{ mongodb_url }}
+  nrfUri: {{ nrf_uri }} # a valid URI of NRF
+  webServer:
+    scheme: http
+    ipv4Address: 0.0.0.0
+    port: 5000
+  billingServer:
+    enable: true
+    hostIPv4: 127.0.0.1
+    listenPort: 2121
+    portRange: # passive port range
+      start: 2123
+      end: 2130
+    basePath: /tmp/webconsole
+    port: 2122 # CGF's FTP server port (not used for now)
+    cert:
+      pem: cert/chf.pem
+      key: cert/chf.key
+logger:
+  enable: true
+  level: info
+  reportCaller: false

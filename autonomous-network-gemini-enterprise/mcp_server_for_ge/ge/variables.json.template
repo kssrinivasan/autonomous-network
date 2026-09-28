@@ -1,0 +1,8 @@
+{
+  "GCP_PROJECT": "YOUR_PROJECT_ID",
+  "GCP_REGION": "YOUR_GCP_REGION",
+  "SERVICE_NAME": "mcp-networktools-ge",
+  "SERVICE_ACCOUNT": "networkagent@YOUR_PROJECT_ID.iam.gserviceaccount.com",
+  "CONCURRENCY": 80,
+  "MAX_INSTANCES": 10
+}

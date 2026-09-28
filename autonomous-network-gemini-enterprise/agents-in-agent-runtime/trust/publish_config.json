@@ -1,0 +1,6 @@
+{
+  "displayName": "Network Trust",
+  "description": "A configuration trust and design validation agent that analyzes network configuration changes from git repositories, validates them against network design principles, and assesses performance implications.",
+  "icon_url": "https://storage.googleapis.com/${GCP_PROJECT}-agent-assets/telco_icon.jpg",
+  "tool_description": "Validate network configuration changes (git diffs) against design rules and check compliance."
+}

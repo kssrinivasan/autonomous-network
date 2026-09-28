@@ -1,0 +1,44 @@
+# NetworkFailure: Process Crash / Service Outage
+#
+# Fault Type   : PROCESS_CRASH
+# Target       : RR1 (Route Reflector 1, Birmingham)
+# Impact       : Route Reflection Instability. All PE-to-RR1 BGP sessions drop.
+#                VPNv4 routes must reconverge via backup RR2. Reconvergence takes
+#                up to 90 seconds. Selective prefix blackholing occurs during
+#                reconvergence. If flapping, continuous churn occurs on all PEs.
+#
+# GNN Detection Signatures:
+#   STGNN  : Sees correlated bgp_uptime drop on PE1, PE2, PE3 identically timed
+#   D-GAT  : Detects all inward-facing PeersWith edges around RR1 collapsing simultaneously
+#   HetGNN : Multi-node isolation — only RR1-facing BGP sessions fail; RR2-facing remain normal
+#
+# Method: loopback_disable
+#   The loopback interface (lo) on RR1 is brought down. Since iBGP sessions use
+#   loopback IPs (10.0.0.1) as router-IDs and next-hops, all BGP sessions sourced
+#   from the loopback drop simultaneously. More persistent than process_kill since
+#   VyOS/FRR will not auto-restart a disabled interface.
+#
+# Usage:
+#   kubectl apply  -f nf-fault3-process-crash.yaml    # Crash RR1 BGP
+#   kubectl delete -f nf-fault3-process-crash.yaml    # Restore RR1
+---
+apiVersion: google.dev/v1
+kind: NetworkFailure
+metadata:
+  name: fault3-process-crash
+  namespace: network
+  labels:
+    scenario: l3vpn-hub-spoke
+    fault-type: process-crash
+    severity: critical
+spec:
+  writeMode: direct
+  failureType: PROCESS_CRASH
+  infrastructureRef: l3vpn-infra
+  target:
+    router: rr1
+  parameters:
+    # loopback_disable: Brings down rr1's loopback interface (lo), dropping all
+    # iBGP sessions that use 10.0.0.1 as the BGP router-ID and update source.
+    # Use process_kill to simulate a bgpd daemon crash instead.
+    method: loopback_disable

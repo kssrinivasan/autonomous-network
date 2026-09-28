@@ -1,0 +1,21 @@
+{
+  "test_name":          "local-periodic-test",
+  "source_device":      "localhost",
+  "source_ip":          "127.0.0.1",
+  "destination_device": "localhost",
+  "destination_ip":     "127.0.0.1",
+  "protocol":           "TCP",
+  "port":               19204,
+  "duration":           8,
+  "bandwidth":          "8Mbps",
+  "pattern_type":       "periodic",
+  "pattern_config": {
+    "wave_type":  "sine",
+    "period":     4,
+    "base_rate":  "6Mbps",
+    "amplitude":  "2Mbps"
+  },
+  "concurrent_users":   1,
+  "metrics_enabled":    true,
+  "metrics_interval":   1
+}

@@ -1,0 +1,150 @@
+---
+- name: Manage WEBUI Network Function
+  hosts: all
+  become: true
+  gather_facts: no
+
+  vars:
+    nf_type: webui
+    binary_path: "/opt/device/bin/free5gc/webui"
+    config_dest: "/opt/device/config/webuicfg.yaml"
+    config_tmp: "/tmp/{{ container_name }}-webuicfg.yaml"
+
+  tasks:
+    - block:
+        - name: Log playbook start
+          shell: "docker exec {{ container_name }} sh -c \"echo '[WEBUI-PLAYBOOK] START operation={{ operation }} at '\\$(date +%s.%N) >> /tmp/webui.log\""
+          changed_when: true
+
+        - name: Check if WEBUI process is already running
+          shell: "docker exec {{ container_name }} pgrep -f {{ binary_path }}"
+          register: nf_running_check
+          failed_when: false
+          changed_when: false
+
+        - name: Log pgrep result
+          shell: "docker exec {{ container_name }} sh -c \"echo '[WEBUI-PLAYBOOK] pgrep check: rc={{ nf_running_check.rc }} at '\\$(date +%s.%N) >> /tmp/webui.log\""
+          changed_when: true
+
+        - name: Log start
+          shell: "docker exec {{ container_name }} sh -c \"echo '[WEBUI-PLAYBOOK] Starting WEBUI at '\\$(date +%s.%N) >> /tmp/webui.log\""
+          changed_when: true
+          when: nf_running_check.rc != 0
+
+        - name: Log skip
+          shell: "docker exec {{ container_name }} sh -c \"echo '[WEBUI-PLAYBOOK] Skipping WEBUI, already running at '\\$(date +%s.%N) >> /tmp/webui.log\""
+          changed_when: true
+          when: nf_running_check.rc == 0
+
+        - name: Render WEBUI config from template
+          ansible.builtin.template:
+            src: "webuicfg.yaml.j2"
+            dest: "{{ config_tmp }}"
+          when: nf_running_check.rc != 0
+
+        - name: Copy config into container
+          shell: "docker cp {{ config_tmp }} {{ container_name }}:{{ config_dest }}"
+          when: nf_running_check.rc != 0
+
+        - name: Remove temp config file
+          ansible.builtin.file:
+            path: "{{ config_tmp }}"
+            state: absent
+          when: nf_running_check.rc != 0
+
+        - name: Wait for MongoDB to be ready
+          shell: |
+            mongo_host=$(echo "{{ mongodb_url }}" | sed 's|mongodb://||' | cut -d: -f1)
+            mongo_port=$(echo "{{ mongodb_url }}" | sed 's|mongodb://||' | cut -d: -f2)
+            docker exec {{ container_name }} bash -c "echo > /dev/tcp/${mongo_host}/${mongo_port}"
+          register: mongo_check
+          retries: 10
+          delay: 5
+          until: mongo_check.rc == 0
+          when: nf_running_check.rc != 0
+
+        - name: Re-check if WEBUI was started by a concurrent run
+          shell: "docker exec {{ container_name }} pgrep -f {{ binary_path }}"
+          register: nf_recheck
+          failed_when: false
+          changed_when: false
+          when: nf_running_check.rc != 0
+
+        - name: Log starting WEBUI
+          shell: "docker exec {{ container_name }} sh -c \"echo '[WEBUI-PLAYBOOK] About to start WEBUI process at '\\$(date +%s.%N) >> /tmp/webui.log\""
+          changed_when: true
+          when: nf_running_check.rc != 0 and nf_recheck.rc != 0
+
+        - name: Start WEBUI process
+          shell: >
+            flock -x /tmp/webui-{{ container_name }}-start.lock
+            bash -c 'docker exec {{ container_name }} pgrep -f {{ binary_path }} > /dev/null 2>&1 && exit 0;
+            docker exec -d {{ container_name }}
+            sh -c "exec {{ binary_path }} -c {{ config_dest }} >> /tmp/webui.log 2>&1"'
+          when: nf_running_check.rc != 0 and nf_recheck.rc != 0
+
+
+        - name: Verify WEBUI process is running
+          shell: "docker exec {{ container_name }} pgrep -f {{ binary_path }}"
+          register: pgrep_result
+          retries: 5
+          delay: 2
+          until: pgrep_result.rc == 0
+          when: nf_running_check.rc != 0
+
+        - name: Log WEBUI started
+          shell: "docker exec {{ container_name }} sh -c \"echo '[WEBUI-PLAYBOOK] WEBUI process verified running at '\\$(date +%s.%N) >> /tmp/webui.log\""
+          changed_when: true
+          when: nf_running_check.rc != 0
+
+        - name: Set operation result
+          set_fact:
+            operation_result: "webui started in {{ container_name }}"
+          when: nf_running_check.rc != 0
+
+        - name: Log playbook end
+          shell: "docker exec {{ container_name }} sh -c \"echo '[WEBUI-PLAYBOOK] END operation=create at '\\$(date +%s.%N) >> /tmp/webui.log\""
+          changed_when: true
+
+      when: operation == 'create'
+
+    - block:
+        - name: Log playbook start (delete)
+          shell: "docker exec {{ container_name }} sh -c \"echo '[WEBUI-PLAYBOOK] START operation={{ operation }} at '\\$(date +%s.%N) >> /tmp/webui.log\""
+          changed_when: true
+
+        - name: Check if WEBUI process is running
+          shell: "docker exec {{ container_name }} pgrep -f {{ binary_path }}"
+          register: nf_running_check
+          failed_when: false
+          changed_when: false
+
+        - name: Log pgrep result
+          shell: "docker exec {{ container_name }} sh -c \"echo '[WEBUI-PLAYBOOK] pgrep check: rc={{ nf_running_check.rc }} at '\\$(date +%s.%N) >> /tmp/webui.log\""
+          changed_when: true
+
+        - name: Stop WEBUI process
+          shell: "docker exec {{ container_name }} pkill -f {{ binary_path }}"
+          failed_when: false
+          when: nf_running_check.rc == 0
+
+        - name: Remove config file from container
+          shell: "docker exec {{ container_name }} rm -f {{ config_dest }}"
+          failed_when: false
+          when: nf_running_check.rc == 0
+
+        - name: Set operation result
+          set_fact:
+            operation_result: "webui stopped in {{ container_name }}"
+          when: nf_running_check.rc == 0
+
+        - name: Set operation result (not running)
+          set_fact:
+            operation_result: "webui not running so skipped in {{ container_name }}"
+          when: nf_running_check.rc != 0
+
+      when: operation == 'delete'
+
+    - name: Display result
+      debug:
+        msg: "{{ operation_result | default('Operation complete') }}"

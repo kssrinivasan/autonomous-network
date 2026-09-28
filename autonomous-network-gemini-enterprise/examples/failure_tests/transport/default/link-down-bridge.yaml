@@ -1,0 +1,57 @@
+# NetworkFailure: Physical Link Disconnection — Bridge Mode (Symmetric / Cable Pull)
+#
+# Fault Type   : LINK_DOWN / bridge mode
+# Target       : P1 ↔ P2 link (bridge derived automatically from VyOSInfrastructure)
+# Mechanism    : ip link set <bridge> down  (run on the network VM host, not inside
+#                a container). The Linux bridge connecting P1 and P2 is brought down,
+#                causing both P1 and P2 to see an immediate carrier-loss event
+#                simultaneously — accurately simulating a physical cable pull or
+#                switch port failure.
+# Bridge name  : Derived automatically by the operator from the VyOSInfrastructure
+#                spec (l3vpn-infra). The operator scans spec.networks for the segment
+#                shared by p1 and p2 (skipping management/loopback networks) and uses
+#                that network name as the bridge name (e.g. "p1-p2").
+# Impact       : Both P1 and P2 immediately lose the OSPF adjacency and withdraw
+#                the link LSA simultaneously. LDP tears down the LSP on this segment.
+#                Traffic reroutes via P1-P3-P4-P2. Total blackout is brief (subsecond
+#                to a few seconds depending on OSPF and LDP convergence timers).
+#                More realistic than interface mode for cable-pull scenarios.
+#
+# GNN Detection Signatures:
+#   D-GAT  : Both directed edges P1(eth1)→P2(eth1) and P2(eth1)→P1(eth1) flip
+#             to link_state=0 simultaneously (vs. staggered in interface mode)
+#   STGNN  : Simultaneous OSPF SPF recalculation burst on both P1 and P2
+#   HetGNN : Physical layer sub-embedding of BOTH P1/eth1 and P2/eth1 flip to DOWN
+#
+# See also: nf-fault5a-link-down-interface.yaml for asymmetric (single-router) mode
+#
+# Usage:
+#   kubectl apply  -f nf-fault5b-link-down-bridge.yaml    # Pull the cable (bridge down)
+#   kubectl delete -f nf-fault5b-link-down-bridge.yaml    # Restore the cable (bridge up)
+---
+apiVersion: google.dev/v1
+kind: NetworkFailure
+metadata:
+  name: fault5-link-down-bridge
+  namespace: network
+  labels:
+    scenario: l3vpn-hub-spoke
+    fault-type: link-down
+    link-down-mode: bridge
+    severity: high
+spec:
+  writeMode: direct
+  failureType: LINK_DOWN
+  # infrastructureRef is required for bridge mode — the operator uses it to
+  # look up the VyOSInfrastructure spec and derive the Linux bridge name that
+  # connects target.router and target.peer_router.
+  # The VyOSInfrastructure resource is named "l3vpn-infra" (see infrastructure.yaml).
+  infrastructureRef: l3vpn-infra
+  target:
+    router: p1
+    # peer_router triggers bridge mode. The operator will find the network
+    # segment shared by p1 and p2 in the VyOSInfrastructure spec and bring
+    # down that Linux bridge on the host — affecting both ends simultaneously.
+    # The derived bridge name will be "p1-p2" (from spec.networks[].name).
+    # Do NOT set target.interface when using peer_router (mutually exclusive).
+    peer_router: p2

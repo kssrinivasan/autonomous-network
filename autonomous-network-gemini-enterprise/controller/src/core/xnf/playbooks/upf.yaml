@@ -1,0 +1,184 @@
+---
+- name: Manage UPF Network Function
+  hosts: all
+  become: true
+  gather_facts: no
+
+  vars:
+    nf_type: upf
+    binary_path: "/opt/device/bin/free5gc/upf"
+    config_dest: "/opt/device/config/upfcfg.yaml"
+    config_tmp: "/tmp/{{ container_name }}-upfcfg.yaml"
+
+  tasks:
+    - block:
+        - name: Log playbook start
+          shell: "docker exec {{ container_name }} sh -c \"echo '[UPF-PLAYBOOK] START operation={{ operation }} at '\\$(date +%s.%N) >> /tmp/upf.log\""
+          changed_when: true
+
+        - name: Check if UPF process is already running
+          shell: "docker exec {{ container_name }} pgrep -f {{ binary_path }}"
+          register: nf_running_check
+          failed_when: false
+          changed_when: false
+
+        - name: Log pgrep result
+          shell: "docker exec {{ container_name }} sh -c \"echo '[UPF-PLAYBOOK] pgrep check: rc={{ nf_running_check.rc }} at '\\$(date +%s.%N) >> /tmp/upf.log\""
+          changed_when: true
+
+        - name: Log start tasks
+          shell: "docker exec {{ container_name }} sh -c \"echo '[UPF-PLAYBOOK] Starting UPF-specific pre-start tasks at '\\$(date +%s.%N) >> /tmp/upf.log\""
+          changed_when: true
+          when: nf_running_check.rc != 0
+
+        - name: Log skip tasks
+          shell: "docker exec {{ container_name }} sh -c \"echo '[UPF-PLAYBOOK] Skipping UPF tasks at '\\$(date +%s.%N) >> /tmp/upf.log\""
+          changed_when: true
+          when: nf_running_check.rc == 0
+
+        - name: Render UPF config from template
+          ansible.builtin.template:
+            src: "upfcfg.yaml.j2"
+            dest: "{{ config_tmp }}"
+          when: nf_running_check.rc != 0
+
+        - name: Copy config into container
+          shell: "docker cp {{ config_tmp }} {{ container_name }}:{{ config_dest }}"
+          when: nf_running_check.rc != 0
+
+        - name: Remove temp config file
+          ansible.builtin.file:
+            path: "{{ config_tmp }}"
+            state: absent
+          when: nf_running_check.rc != 0
+
+        - name: Load gtp5g kernel module
+          shell: modprobe gtp5g
+          when: nf_running_check.rc != 0
+
+        - name: Enable IP forwarding inside container
+          shell: "docker exec {{ container_name }} sysctl -w net.ipv4.ip_forward=1"
+          when: nf_running_check.rc != 0
+
+        - name: Add NAT masquerade rule for UE traffic on N6 egress
+          shell: "docker exec {{ container_name }} iptables -t nat -A POSTROUTING -s 10.60.0.0/16 -o {{ n6_interface | default('eth0') }} -j MASQUERADE"
+          failed_when: false
+          when: nf_running_check.rc != 0
+
+        - name: Insert FORWARD accept rule inside container
+          shell: "docker exec {{ container_name }} iptables -I FORWARD 1 -j ACCEPT"
+          failed_when: false
+          when: nf_running_check.rc != 0
+
+        - name: Re-check if UPF was started by a concurrent run
+          shell: "docker exec {{ container_name }} pgrep -f {{ binary_path }}"
+          register: nf_recheck
+          failed_when: false
+          changed_when: false
+          when: nf_running_check.rc != 0
+
+        - name: Log starting UPF
+          shell: "docker exec {{ container_name }} sh -c \"echo '[UPF-PLAYBOOK] About to start UPF process at '\\$(date +%s.%N) >> /tmp/upf.log\""
+          changed_when: true
+          when: nf_running_check.rc != 0 and nf_recheck.rc != 0
+
+        - name: Start UPF process
+          shell: >
+            flock -x /tmp/upf-{{ container_name }}-start.lock
+            bash -c 'docker exec {{ container_name }} pgrep -f {{ binary_path }} > /dev/null 2>&1 && exit 0;
+            docker exec -d {{ container_name }}
+            sh -c "exec {{ binary_path }} -c {{ config_dest }} >> /tmp/upf.log 2>&1"'
+          when: nf_running_check.rc != 0 and nf_recheck.rc != 0
+
+        - name: Verify UPF process is running
+          shell: "docker exec {{ container_name }} pgrep -f {{ binary_path }}"
+          register: pgrep_result
+          retries: 5
+          delay: 2
+          until: pgrep_result.rc == 0
+          when: nf_running_check.rc != 0
+
+        - name: Log UPF started
+          shell: "docker exec {{ container_name }} sh -c \"echo '[UPF-PLAYBOOK] UPF process verified running at '\\$(date +%s.%N) >> /tmp/upf.log\""
+          changed_when: true
+          when: nf_running_check.rc != 0
+
+        - name: Set operation result
+          set_fact:
+            operation_result: "upf started in {{ container_name }}"
+          when: nf_running_check.rc != 0
+
+        - name: Log playbook end
+          shell: "docker exec {{ container_name }} sh -c \"echo '[UPF-PLAYBOOK] END operation=create at '\\$(date +%s.%N) >> /tmp/upf.log\""
+          changed_when: true
+
+      when: operation == 'create'
+
+    - block:
+        - name: Log playbook start (delete)
+          shell: "docker exec {{ container_name }} sh -c \"echo '[UPF-PLAYBOOK] START operation={{ operation }} at '\\$(date +%s.%N) >> /tmp/upf.log\""
+          changed_when: true
+
+        - name: Check if UPF process is already running
+          shell: "docker exec {{ container_name }} pgrep -f {{ binary_path }}"
+          register: nf_running_check
+          failed_when: false
+          changed_when: false
+
+        - name: Log pgrep result
+          shell: "docker exec {{ container_name }} sh -c \"echo '[UPF-PLAYBOOK] pgrep check: rc={{ nf_running_check.rc }} at '\\$(date +%s.%N) >> /tmp/upf.log\""
+          changed_when: true
+
+        - name: Stop UPF process
+          shell: "docker exec {{ container_name }} pkill -f {{ binary_path }}"
+          failed_when: false
+          when: nf_running_check.rc == 0
+
+        - name: Flush UPF NAT masquerade rule for UE traffic
+          shell: "docker exec {{ container_name }} iptables -t nat -D POSTROUTING -s 10.60.0.0/16 -o {{ n6_interface | default('eth0') }} -j MASQUERADE"
+          failed_when: false
+          when: nf_running_check.rc == 0
+
+        - name: Remove UPF forward rule inside container
+          shell: "docker exec {{ container_name }} iptables -D FORWARD -j ACCEPT"
+          failed_when: false
+          when: nf_running_check.rc == 0
+
+        - name: Remove config file from container
+          shell: "docker exec {{ container_name }} rm -f {{ config_dest }}"
+          failed_when: false
+          when: nf_running_check.rc == 0
+
+        - name: Remove UPF gtp5g tunnel interfaces
+          shell: >
+            docker exec {{ container_name }} bash -c
+            'ip link show type gtp 2>/dev/null | awk -F"[ :]" "/gtp/{print \$2}" | xargs -r -I{} ip link del {} 2>/dev/null; true'
+          failed_when: false
+          changed_when: false
+          when: nf_running_check.rc == 0
+
+        - name: Wait for gtp5g interfaces to be removed
+          shell: "docker exec {{ container_name }} ip link show type gtp 2>/dev/null"
+          register: gtp_check
+          retries: 3
+          delay: 1
+          until: gtp_check.rc != 0
+          failed_when: false
+          changed_when: false
+          when: nf_running_check.rc == 0
+
+        - name: Set operation result
+          set_fact:
+            operation_result: "upf stopped in {{ container_name }}"
+          when: nf_running_check.rc == 0
+
+        - name: Set operation result
+          set_fact:
+            operation_result: "upf not running so skipped in {{ container_name }}"
+          when: nf_running_check.rc != 0
+
+      when: operation == 'delete'
+
+    - name: Display result
+      debug:
+        msg: "{{ operation_result | default('Operation complete') }}"

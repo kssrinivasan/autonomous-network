@@ -1,0 +1,331 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: cellsites.google.dev
+  labels:
+    type: radio
+spec:
+  scope: Namespaced
+  group: google.dev
+  names:
+    kind: CellSite
+    plural: cellsites
+    singular: cellsite
+    shortNames:
+      - cell
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: |
+            CellSite provisions a UERANSIM gNodeB (base station) and UE (user device) processes
+            in an existing Device container. It connects to a 5G core deployed by FiveGCore via
+            N2 (NGAP → AMF) and N3 (GTP-U → UPF) interfaces.
+
+            ## Prerequisites
+            The referenced FiveGCore must be phase=Ready before creating a CellSite.
+            Device CR (container_name) must exist and be Ready.
+
+            ## Resolving names from FiveGCore
+            Given a FiveGCore named "free5gc-core":
+            - spec.gnb.amf_name  = "free5gc-core-amf"  (child NetworkFunction CR)
+            - spec.gnb.upf_name  = "free5gc-core-upf"  (child NetworkFunction CR)
+            - spec.gnb.smf_name  = "free5gc-core-smf"  (child NetworkFunction CR, optional)
+
+            ## Values that must match the FiveGCore
+            - spec.gnb.mcc / spec.gnb.mnc  must equal FiveGCore spec.plmnList[0].mcc / mnc
+            - spec.gnb.tac                 must equal the tac in FiveGCore AMF config.tac
+            - spec.gnb.slices[].sst/sd     must match FiveGCore spec.slices[].sst/sd
+            - spec.ues[].apn               must match a dnn in FiveGCore spec.slices[].dnnInfos[].dnn
+            - spec.ues[].imsi              must be registered in FiveGCore spec.subscribers
+
+            ## Lifecycle
+            1. Validates container_name references a Ready Device CR
+            2. Resolves AMF / UPF / SMF IPs from referenced NetworkFunction status.ip_address
+            3. Generates nr-gnb config (PLMN, TAC, slices, AMF address)
+            4. Starts nr-gnb process; waits for N2 connection
+            5. For each enabled UE: generates nr-ue config and starts process
+            6. Updates status with per-UE registration and PDU session state
+            7. Syncs state to Spanner digital shadow (CellSite table)
+
+            ## Example
+              apiVersion: google.dev/v1
+              kind: CellSite
+              metadata:
+                name: site-downtown
+                namespace: network
+              spec:
+                container_name: "gnb1"
+                gnb:
+                  mcc: "208"         # must match FiveGCore spec.plmnList[0].mcc
+                  mnc: "93"          # must match FiveGCore spec.plmnList[0].mnc
+                  tac: 1             # must match FiveGCore AMF config.tac
+                  gnbId: "0x1"
+                  amf_name: "free5gc-core-amf"
+                  upf_name: "free5gc-core-upf"
+                  slices:
+                    - sst: 1
+                      sd: "010203"   # must match FiveGCore spec.slices[].sd
+                ues:
+                  - imsi: "208930000000001"   # must be in FiveGCore spec.subscribers
+                    key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+                    opc: "E8ED289DEBA952E4283B54E88E6183CA"
+                    apn: "internet"            # must match FiveGCore spec.slices[].dnnInfos[].dnn
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - container_name
+                - gnb
+              properties:
+                container_name:
+                  type: string
+                  description: |
+                    Name of existing Device CR that provides the container runtime environment.
+                    Device must exist and be Ready. The gNodeB and UE processes will run in this container.
+                  maxLength: 8
+                  pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+                gnb:
+                  type: object
+                  description: |
+                    gNodeB (base station) configuration for UERANSIM nr-gnb.
+                  required:
+                    - mcc
+                    - mnc
+                    - tac
+                    - gnbId
+                    - amf_name
+                  properties:
+                    mcc:
+                      type: string
+                      description: |
+                        Mobile Country Code (3 digits). Must match FiveGCore spec.plmnList[0].mcc.
+                      pattern: '^[0-9]{3}$'
+                    mnc:
+                      type: string
+                      description: |
+                        Mobile Network Code (2-3 digits). Must match FiveGCore spec.plmnList[0].mnc.
+                      pattern: '^[0-9]{2,3}$'
+                    tac:
+                      type: integer
+                      description: |
+                        Tracking Area Code. Must match the tac in FiveGCore spec.network_functions[AMF].config.tac.
+                      minimum: 1
+                      maximum: 16777215
+                    gnbId:
+                      type: string
+                      description: gNodeB identifier (hex format, e.g., "0x1")
+                      pattern: '^0x[0-9a-fA-F]+$'
+                    nci:
+                      type: string
+                      description: NR Cell Identity (hex format). Default auto-generated from gnbId
+                      pattern: '^0x[0-9a-fA-F]+$'
+                    gnbIdLength:
+                      type: integer
+                      description: gNB ID length in bits. Default 32
+                      default: 32
+                      minimum: 22
+                      maximum: 32
+                    amf_name:
+                      type: string
+                      description: |
+                        Name of the AMF NetworkFunction CR to connect to via N2 (NGAP/SCTP).
+                        When using FiveGCore, this is "{core-name}-amf" (e.g., "free5gc-core-amf").
+                        IP is resolved from the NetworkFunction status.ip_address.
+                      pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+                    amf_port:
+                      type: integer
+                      description: AMF NGAP port. Default 38412 (3GPP standard N2 port)
+                      default: 38412
+                    upf_name:
+                      type: string
+                      description: |
+                        Name of the UPF NetworkFunction CR for N3 (GTP-U) interface.
+                        When using FiveGCore, this is "{core-name}-upf" (e.g., "free5gc-core-upf").
+                        IP is resolved from the NetworkFunction status.ip_address.
+                      pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+                    smf_name:
+                      type: string
+                      description: |
+                        Name of the SMF NetworkFunction CR. Operator waits for SMF Ready before
+                        starting the gNodeB. When using FiveGCore: "{core-name}-smf".
+                      pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+                    slices:
+                      type: array
+                      description: |
+                        Network slices supported by this gNodeB. SST/SD must match
+                        FiveGCore spec.slices[].sst / sd values exactly.
+                      items:
+                        type: object
+                        required:
+                          - sst
+                        properties:
+                          sst:
+                            type: integer
+                            description: Slice/Service Type (1-255)
+                            minimum: 1
+                            maximum: 255
+                          sd:
+                            type: string
+                            description: Slice Differentiator (6 hex digits, e.g., "010203")
+                            pattern: '^[0-9a-fA-F]{6}$'
+                ues:
+                  type: array
+                  description: |
+                    List of User Equipment (UE) devices to provision. Each UE will run as
+                    a separate nr-ue process in the container.
+                  items:
+                    type: object
+                    required:
+                      - imsi
+                      - key
+                      - opc
+                    properties:
+                      imsi:
+                        type: string
+                        description: |
+                          International Mobile Subscriber Identity (15 digits).
+                          Format: <mcc><mnc><msin>. Must be registered in UDM.
+                        pattern: '^[0-9]{15}$'
+                      key:
+                        type: string
+                        description: K - Subscriber permanent key (32 hex chars / 128 bits)
+                        pattern: '^[0-9a-fA-F]{32}$'
+                      opc:
+                        type: string
+                        description: OPc - Operator key (32 hex chars / 128 bits)
+                        pattern: '^[0-9a-fA-F]{32}$'
+                      amf:
+                        type: string
+                        description: Authentication Management Field (4 hex chars). Default "8000"
+                        default: "8000"
+                        pattern: '^[0-9a-fA-F]{4}$'
+                      apn:
+                        type: string
+                        description: |
+                          Access Point Name / Data Network Name (DNN) for PDU session.
+                          Must match SMF DNN configuration. Default "internet"
+                        default: "internet"
+                      sst:
+                        type: integer
+                        description: |
+                          Slice/Service Type for PDU session. Must match gNodeB slices.
+                          Default 1
+                        default: 1
+                        minimum: 1
+                        maximum: 255
+                      sd:
+                        type: string
+                        description: |
+                          Slice Differentiator for PDU session (6 hex digits).
+                          Must match gNodeB slices if specified.
+                        pattern: '^[0-9a-fA-F]{6}$'
+                      enabled:
+                        type: boolean
+                        description: |
+                          Whether to start this UE. Set false to keep config without activating.
+                        default: true
+            status:
+              type: object
+              properties:
+                phase:
+                  type: string
+                  description: |
+                    Current lifecycle phase:
+                    - Pending: Waiting for Device CR and NetworkFunction dependencies
+                    - Creating: Generating configs and starting gNodeB
+                    - Ready: gNodeB running and UEs registered
+                    - Failed: gNodeB or UE startup failed
+                  enum:
+                    - Pending
+                    - Creating
+                    - Ready
+                    - Failed
+                message:
+                  type: string
+                  description: Human-readable status message
+                container_name:
+                  type: string
+                  description: Device container name (from spec)
+                container_id:
+                  type: string
+                  description: Docker container ID (resolved from Device CR)
+                gnb:
+                  type: object
+                  description: gNodeB runtime status
+                  properties:
+                    process_id:
+                      type: integer
+                      description: nr-gnb process PID
+                    config_path:
+                      type: string
+                      description: Path to generated gNodeB config file
+                    ngap_ip:
+                      type: string
+                      description: NGAP endpoint IP (from Device CR)
+                    gtp_ip:
+                      type: string
+                      description: GTP-U endpoint IP (from Device CR)
+                    amf_address:
+                      type: string
+                      description: Resolved AMF IP address
+                    upf_address:
+                      type: string
+                      description: Resolved UPF IP address
+                    connected:
+                      type: boolean
+                      description: Whether gNodeB is connected to AMF
+                ues:
+                  type: array
+                  description: UE runtime status
+                  items:
+                    type: object
+                    properties:
+                      imsi:
+                        type: string
+                      process_id:
+                        type: integer
+                        description: nr-ue process PID
+                      config_path:
+                        type: string
+                        description: Path to generated UE config file
+                      registered:
+                        type: boolean
+                        description: Whether UE is registered with AMF
+                      pdu_session_active:
+                        type: boolean
+                        description: Whether PDU session is established
+                      ip_address:
+                        type: string
+                        description: UE data session IP address (from UPF)
+
+      additionalPrinterColumns:
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+        - name: Container
+          type: string
+          description: Device container name
+          jsonPath: .spec.container_name
+        - name: gNB-ID
+          type: string
+          description: gNodeB identifier
+          jsonPath: .spec.gnb.gnbId
+        - name: UEs
+          type: integer
+          description: Number of UEs configured
+          jsonPath: .spec.ues[*]
+        - name: Connected
+          type: boolean
+          description: gNodeB connected to AMF
+          jsonPath: .status.gnb.connected
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp

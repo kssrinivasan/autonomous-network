@@ -1,0 +1,60 @@
+- hosts: all
+  gather_facts: false
+  tasks:
+
+    - name: wait for WebUI HTTP server to be ready
+      uri:
+        url: "{{ webui_address }}/api/login"
+        method: POST
+        body: '{"username":"admin","password":"free5gc"}'
+        body_format: json
+        status_code: [200, 201, 401, 403]
+        timeout: 5
+      register: webui_health
+      retries: 12
+      delay: 5
+      until: webui_health.status is defined and webui_health.status in [200, 201, 401, 403]
+      failed_when: false
+
+    - name: authenticate with WebUI and obtain JWT
+      uri:
+        url: "{{ webui_address }}/api/login"
+        method: POST
+        body: '{"username":"admin","password":"free5gc"}'
+        body_format: json
+        status_code: [200, 201]
+        timeout: 10
+      register: webui_login
+
+    - name: delete existing subscribers from free5gc WebUI
+      uri:
+        url: "{{ webui_address }}/api/subscriber/imsi-{{ item.imsi }}/{{ mcc }}{{ mnc }}"
+        method: DELETE
+        status_code:
+          - 200
+          - 204
+          - 404
+        headers:
+          Token: "{{ webui_login.json.access_token }}"
+      loop: "{{ subscribers }}"
+      loop_control:
+        loop_var: item
+        label: "imsi-{{ item.imsi }}"
+      failed_when: false
+
+    - name: register subscribers in free5gc WebUI
+      uri:
+        url: "{{ webui_address }}/api/subscriber/imsi-{{ item.imsi }}/{{ mcc }}{{ mnc }}"
+        method: POST
+        body: "{{ lookup('template', 'templates/subscriber.json.j2') }}"
+        body_format: json
+        status_code:
+          - 201
+          - 409
+        follow_redirects: all
+        headers:
+          Token: "{{ webui_login.json.access_token }}"
+      loop: "{{ subscribers }}"
+      loop_control:
+        loop_var: item
+        label: "imsi-{{ item.imsi }}"

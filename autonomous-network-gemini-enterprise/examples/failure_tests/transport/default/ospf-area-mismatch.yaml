@@ -1,0 +1,47 @@
+# NetworkFailure: Logical Misconfiguration / OSPF Area Mismatch
+#
+# Fault Type   : OSPF_AREA_MISMATCH
+# Target       : P2, interface eth2 (P2-to-P4 link)
+# Impact       : The OSPF adjacency on the P2-P4 link fails (will not reach Full
+#                state) because the two routers disagree on the area assignment.
+#                P2 places eth2 in area 0.0.0.99 while P4 expects area 0.0.0.0.
+#                The physical link remains UP, so monitoring tools that only check
+#                layer 1/2 will not detect the issue. MPLS LDP remains up on this
+#                segment (it doesn't require OSPF), but traffic engineering via
+#                OSPF-computed paths through P2-P4 is lost.
+#                This models an operator copy-paste error during a maintenance window.
+#
+# GNN Detection Signatures:
+#   HetGNN : Config sub-embedding of P2/eth2 deviates from expected area hash
+#   D-GAT  : Directed edge P2(eth2) → P4(eth2) shows ospf_state=ExStart/Down
+#             while physical link_state=UP (mismatch between layers)
+#   STGNN  : OSPF neighbor count drops on P2 while physical interface counters
+#             remain healthy (distinguishes L3 from L1/L2 faults)
+#
+# Usage:
+#   kubectl apply  -f nf-fault6-ospf-area-mismatch.yaml    # Introduce area mismatch
+#   kubectl delete -f nf-fault6-ospf-area-mismatch.yaml    # Restore correct area
+---
+apiVersion: google.dev/v1
+kind: NetworkFailure
+metadata:
+  name: fault6-ospf-area-mismatch
+  namespace: network
+  labels:
+    scenario: l3vpn-hub-spoke
+    fault-type: ospf-area-mismatch
+    severity: high
+spec:
+  writeMode: direct
+  failureType: OSPF_AREA_MISMATCH
+  infrastructureRef: l3vpn-infra
+  target:
+    router: p2
+    # eth2 is the P2-to-P4 provider core link (VLAN 303, 172.16.60.0/24).
+    interface: eth2
+  parameters:
+    # The correct area for all provider core links is the backbone area 0.0.0.0.
+    correct_area: "0.0.0.0"
+    # We reassign eth2 to a non-existent stub area 0.0.0.99, causing the OSPF
+    # adjacency with P4 (which still has eth2 in area 0.0.0.0) to break.
+    wrong_area: "0.0.0.99"

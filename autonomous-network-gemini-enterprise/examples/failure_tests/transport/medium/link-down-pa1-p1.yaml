@@ -1,0 +1,45 @@
+# NetworkFailure: Pre-Aggregation ABR to Core Link Failure (Medium Network)
+#
+# Fault Type   : LINK_DOWN
+# Target       : PA1-P1 link (Bristol PA to London Core)
+# Mechanism    : Bring down the bridge connecting pa1 and p1 (peer_router mode)
+# Impact       : Area 1 (UK) traffic via pa1 must reroute through alternate ABR path
+#                (pa1-p2). Tests dual-homing resilience at PA/ABR tier. Multi-area
+#                OSPF reconvergence as ABR must update inter-area routes.
+#
+# Traffic Impact:
+#   - All UK PE traffic via pa1 shifts to pa1-p2 path (Bristol → Manchester → dest)
+#   - Increased latency: ~5-10ms (UK → Manchester → destination vs direct to London)
+#   - Load increase on pa1-p2 link (dual-homed backup)
+#   - Minimal impact on Ireland/Scotland traffic (Area 2 uses pa3/pa4)
+#   - Inter-area routes from Area 1 to Area 0 recalculated by pa1
+#
+# GNN Detection Signatures:
+#   D-GAT  : Both directed edges PA1(eth)→P1(eth) and P1(eth)→PA1(eth) flip to
+#             link_state=0 simultaneously (bridge mode)
+#   STGNN  : OSPF adjacency down alarm, UK regional traffic (Area 1) shows path changes
+#   HetGNN : Load shift to pa1-p2 link visible in metrics, regional isolation pattern
+#
+# Related Scenario: docs/scenarios/medium/scenario_2_abr_core_link_failure.md
+#
+# Usage:
+#   kubectl apply  -f link-down-pa1-p1.yaml    # Bring down PA1-P1 link
+#   kubectl delete -f link-down-pa1-p1.yaml    # Restore link
+---
+apiVersion: google.dev/v1
+kind: NetworkFailure
+metadata:
+  name: link-down-pa1-p1-abr
+  namespace: network
+  labels:
+    scenario: medium-network
+    fault-type: link-down
+    link-down-mode: bridge
+    severity: high
+spec:
+  writeMode: direct
+  failureType: LINK_DOWN
+  infrastructureRef: medium-network-infra
+  target:
+    router: pa1
+    peer_router: p1

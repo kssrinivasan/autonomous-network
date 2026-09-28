@@ -1,0 +1,140 @@
+Metric Name,Sample Value,Description
+frr_bfd_peer_count,0,Number of peers detected.
+frr_bgp_peer_groups_count_total,0,Number of peer groups configured.
+frr_bgp_peer_groups_count_total,0,Number of peer groups configured.
+frr_bgp_peer_groups_count_total,0,Number of peer groups configured.
+frr_bgp_peer_groups_count_total,0,Number of peer groups configured.
+frr_bgp_peer_groups_memory_bytes,0,Memory consumed by peer groups.
+frr_bgp_peer_groups_memory_bytes,0,Memory consumed by peer groups.
+frr_bgp_peer_groups_memory_bytes,0,Memory consumed by peer groups.
+frr_bgp_peer_groups_memory_bytes,0,Memory consumed by peer groups.
+frr_bgp_peer_message_received_total,63,Number of received messages.
+frr_bgp_peer_message_received_total,63,Number of received messages.
+frr_bgp_peer_message_received_total,63,Number of received messages.
+frr_bgp_peer_message_received_total,63,Number of received messages.
+frr_bgp_peer_message_received_total,36,Number of received messages.
+frr_bgp_peer_message_received_total,36,Number of received messages.
+frr_bgp_peer_message_sent_total,43,Number of sent messages.
+frr_bgp_peer_message_sent_total,43,Number of sent messages.
+frr_bgp_peer_message_sent_total,43,Number of sent messages.
+frr_bgp_peer_message_sent_total,43,Number of sent messages.
+frr_bgp_peer_message_sent_total,34,Number of sent messages.
+frr_bgp_peer_message_sent_total,40,Number of sent messages.
+frr_bgp_peer_prefixes_advertised_count_total,4,Number of prefixes advertised.
+frr_bgp_peer_prefixes_advertised_count_total,8,Number of prefixes advertised.
+frr_bgp_peer_prefixes_advertised_count_total,4,Number of prefixes advertised.
+frr_bgp_peer_prefixes_advertised_count_total,8,Number of prefixes advertised.
+frr_bgp_peer_prefixes_advertised_count_total,8,Number of prefixes advertised.
+frr_bgp_peer_prefixes_advertised_count_total,14,Number of prefixes advertised.
+frr_bgp_peer_prefixes_received_count_total,13,Number of prefixes received.
+frr_bgp_peer_prefixes_received_count_total,24,Number of prefixes received.
+frr_bgp_peer_prefixes_received_count_total,13,Number of prefixes received.
+frr_bgp_peer_prefixes_received_count_total,24,Number of prefixes received.
+frr_bgp_peer_prefixes_received_count_total,4,Number of prefixes received.
+frr_bgp_peer_prefixes_received_count_total,4,Number of prefixes received.
+frr_bgp_peer_state,1,"State of the peer (2 = Administratively Down, 1 = Established, 0 = Down)."
+frr_bgp_peer_state,1,"State of the peer (2 = Administratively Down, 1 = Established, 0 = Down)."
+frr_bgp_peer_state,1,"State of the peer (2 = Administratively Down, 1 = Established, 0 = Down)."
+frr_bgp_peer_state,1,"State of the peer (2 = Administratively Down, 1 = Established, 0 = Down)."
+frr_bgp_peer_state,1,"State of the peer (2 = Administratively Down, 1 = Established, 0 = Down)."
+frr_bgp_peer_state,1,"State of the peer (2 = Administratively Down, 1 = Established, 0 = Down)."
+frr_bgp_peer_uptime_seconds,1648,How long has the peer been up.
+frr_bgp_peer_uptime_seconds,1648,How long has the peer been up.
+frr_bgp_peer_uptime_seconds,1645,How long has the peer been up.
+frr_bgp_peer_uptime_seconds,1645,How long has the peer been up.
+frr_bgp_peer_uptime_seconds,1569,How long has the peer been up.
+frr_bgp_peer_uptime_seconds,1608,How long has the peer been up.
+frr_bgp_peers_count_total,1,Number peers configured.
+frr_bgp_peers_count_total,2,Number peers configured.
+frr_bgp_peers_count_total,1,Number peers configured.
+frr_bgp_peers_count_total,2,Number peers configured.
+frr_bgp_peers_memory_bytes,29808,Memory consumed by peers.
+frr_bgp_peers_memory_bytes,59616,Memory consumed by peers.
+frr_bgp_peers_memory_bytes,29808,Memory consumed by peers.
+frr_bgp_peers_memory_bytes,59616,Memory consumed by peers.
+frr_bgp_rib_count_total,13,Number of routes in the RIB.
+frr_bgp_rib_count_total,37,Number of routes in the RIB.
+frr_bgp_rib_count_total,25,Number of routes in the RIB.
+frr_bgp_rib_count_total,15,Number of routes in the RIB.
+frr_bgp_rib_memory_bytes,2080,Memory consumbed by the RIB.
+frr_bgp_rib_memory_bytes,5920,Memory consumbed by the RIB.
+frr_bgp_rib_memory_bytes,4000,Memory consumbed by the RIB.
+frr_bgp_rib_memory_bytes,2400,Memory consumbed by the RIB.
+frr_collector_up,1,"Whether the collector's last scrape was successful (1 = successful, 0 = unsuccessful)."
+frr_collector_up,1,"Whether the collector's last scrape was successful (1 = successful, 0 = unsuccessful)."
+frr_collector_up,1,"Whether the collector's last scrape was successful (1 = successful, 0 = unsuccessful)."
+frr_collector_up,1,"Whether the collector's last scrape was successful (1 = successful, 0 = unsuccessful)."
+frr_collector_up,1,"Whether the collector's last scrape was successful (1 = successful, 0 = unsuccessful)."
+frr_exporter_build_info,1,"A metric with a constant '1' value labeled by version, revision, branch, goversion from which frr_exporter was built, and the goos and goarch for the build."
+frr_ospf_neighbor_adjacencies,1,Number of neighbor adjacencies formed.
+frr_ospf_neighbor_adjacencies,1,Number of neighbor adjacencies formed.
+frr_ospf_neighbor_adjacencies,0,Number of neighbor adjacencies formed.
+frr_ospf_neighbors,1,Number of neighbors detected.
+frr_ospf_neighbors,1,Number of neighbors detected.
+frr_ospf_neighbors,0,Number of neighbors detected.
+frr_route_total,8,Total number of routes
+frr_route_total,14,Total number of routes
+frr_route_total,49,Total number of routes
+frr_route_total,1,Total number of routes
+frr_route_total,1,Total number of routes
+frr_route_total,5,Total number of routes
+frr_route_total_fib,8,Total number of routes in FIB
+frr_route_total_fib,14,Total number of routes in FIB
+frr_route_total_fib,31,Total number of routes in FIB
+frr_route_total_fib,1,Total number of routes in FIB
+frr_route_total_fib,1,Total number of routes in FIB
+frr_route_total_fib,5,Total number of routes in FIB
+frr_scrape_duration_seconds,0.000673165,Time it took for a collector's scrape to complete.
+frr_scrape_duration_seconds,0.001370967,Time it took for a collector's scrape to complete.
+frr_scrape_duration_seconds,0.000694779,Time it took for a collector's scrape to complete.
+frr_scrape_duration_seconds,0.000947379,Time it took for a collector's scrape to complete.
+frr_scrape_duration_seconds,0.00231878,Time it took for a collector's scrape to complete.
+frr_scrapes_total,116,Total number of times FRR has been scraped.
+go_gc_duration_seconds,5.1852e-05,A summary of the wall-time pause (stop-the-world) duration in garbage collection cycles.
+go_gc_duration_seconds,9.4135e-05,A summary of the wall-time pause (stop-the-world) duration in garbage collection cycles.
+go_gc_duration_seconds,0.000156496,A summary of the wall-time pause (stop-the-world) duration in garbage collection cycles.
+go_gc_duration_seconds,0.000225295,A summary of the wall-time pause (stop-the-world) duration in garbage collection cycles.
+go_gc_duration_seconds,0.000463615,A summary of the wall-time pause (stop-the-world) duration in garbage collection cycles.
+go_gc_duration_seconds_sum,0.015989725,
+go_gc_duration_seconds_count,93,
+go_gc_gogc_percent,100,"Heap size target percentage configured by the user, otherwise 100. This value is set by the GOGC environment variable, and the runtime/debug.SetGCPercent function. Sourced from /gc/gogc:percent."
+go_gc_gomemlimit_bytes,9.223372036854776e+18,"Go runtime memory limit configured by the user, otherwise math.MaxInt64. This value is set by the GOMEMLIMIT environment variable, and the runtime/debug.SetMemoryLimit function. Sourced from /gc/gomemlimit:bytes."
+go_goroutines,15,Number of goroutines that currently exist.
+go_info,1,Information about the Go environment.
+go_memstats_alloc_bytes,3.41352e+06,Number of bytes allocated in heap and currently in use. Equals to /memory/classes/heap/objects:bytes.
+go_memstats_alloc_bytes_total,1.15689904e+08,"Total number of bytes allocated in heap until now, even if released already. Equals to /gc/heap/allocs:bytes."
+go_memstats_buck_hash_sys_bytes,1.458555e+06,Number of bytes used by the profiling bucket hash table. Equals to /memory/classes/profiling/buckets:bytes.
+go_memstats_frees_total,405018,Total number of heap objects frees. Equals to /gc/heap/frees:objects + /gc/heap/tiny/allocs:objects.
+go_memstats_gc_sys_bytes,2.76864e+06,Number of bytes used for garbage collection system metadata. Equals to /memory/classes/metadata/other:bytes.
+go_memstats_heap_alloc_bytes,3.41352e+06,"Number of heap bytes allocated and currently in use, same as go_memstats_alloc_bytes. Equals to /memory/classes/heap/objects:bytes."
+go_memstats_heap_idle_bytes,6.22592e+06,Number of heap bytes waiting to be used. Equals to /memory/classes/heap/released:bytes + /memory/classes/heap/free:bytes.
+go_memstats_heap_inuse_bytes,5.259264e+06,Number of heap bytes that are in use. Equals to /memory/classes/heap/objects:bytes + /memory/classes/heap/unused:bytes
+go_memstats_heap_objects,4200,Number of currently allocated objects. Equals to /gc/heap/objects:objects.
+go_memstats_heap_released_bytes,5.357568e+06,Number of heap bytes released to OS. Equals to /memory/classes/heap/released:bytes.
+go_memstats_heap_sys_bytes,1.1485184e+07,Number of heap bytes obtained from system. Equals to /memory/classes/heap/objects:bytes + /memory/classes/heap/unused:bytes + /memory/classes/heap/released:bytes + /memory/classes/heap/free:bytes.
+go_memstats_last_gc_time_seconds,1.7792616822456305e+09,Number of seconds since 1970 of last garbage collection.
+go_memstats_mallocs_total,409218,"Total number of heap objects allocated, both live and gc-ed. Semantically a counter version for go_memstats_heap_objects gauge. Equals to /gc/heap/allocs:objects + /gc/heap/tiny/allocs:objects."
+go_memstats_mcache_inuse_bytes,19200,Number of bytes in use by mcache structures. Equals to /memory/classes/metadata/mcache/inuse:bytes.
+go_memstats_mcache_sys_bytes,31200,Number of bytes used for mcache structures obtained from system. Equals to /memory/classes/metadata/mcache/inuse:bytes + /memory/classes/metadata/mcache/free:bytes.
+go_memstats_mspan_inuse_bytes,190880,Number of bytes in use by mspan structures. Equals to /memory/classes/metadata/mspan/inuse:bytes.
+go_memstats_mspan_sys_bytes,212160,Number of bytes used for mspan structures obtained from system. Equals to /memory/classes/metadata/mspan/inuse:bytes + /memory/classes/metadata/mspan/free:bytes.
+go_memstats_next_gc_bytes,5.390064e+06,Number of heap bytes when next garbage collection will take place. Equals to /gc/heap/goal:bytes.
+go_memstats_other_sys_bytes,2.743789e+06,Number of bytes used for other system allocations. Equals to /memory/classes/other:bytes.
+go_memstats_stack_inuse_bytes,1.048576e+06,Number of bytes obtained from system for stack allocator in non-CGO environments. Equals to /memory/classes/heap/stacks:bytes.
+go_memstats_stack_sys_bytes,1.048576e+06,Number of bytes obtained from system for stack allocator. Equals to /memory/classes/heap/stacks:bytes + /memory/classes/os-stacks:bytes.
+go_memstats_sys_bytes,1.9748104e+07,Number of bytes obtained from system. Equals to /memory/classes/total:byte.
+go_sched_gomaxprocs_threads,16,"The current runtime.GOMAXPROCS setting, or the number of operating system threads that can execute user-level Go code simultaneously. Sourced from /sched/gomaxprocs:threads."
+go_threads,15,Number of OS threads created.
+process_cpu_seconds_total,1.18,Total user and system CPU time spent in seconds.
+process_max_fds,524288,Maximum number of open file descriptors.
+process_network_receive_bytes_total,9.80871639e+09,Number of bytes received by the process over the network.
+process_network_transmit_bytes_total,3.2341953739e+10,Number of bytes sent by the process over the network.
+process_open_fds,12,Number of open file descriptors.
+process_resident_memory_bytes,2.0312064e+07,Resident memory size in bytes.
+process_start_time_seconds,1.77925995854e+09,Start time of the process since unix epoch in seconds.
+process_virtual_memory_bytes,2.254147584e+09,Virtual memory size in bytes.
+process_virtual_memory_max_bytes,1.8446744073709552e+19,Maximum amount of virtual memory available in bytes.
+promhttp_metric_handler_requests_in_flight,1,Current number of scrapes being served.
+promhttp_metric_handler_requests_total,115,Total number of scrapes by HTTP status code.
+promhttp_metric_handler_requests_total,0,Total number of scrapes by HTTP status code.
+promhttp_metric_handler_requests_total,0,Total number of scrapes by HTTP status code.

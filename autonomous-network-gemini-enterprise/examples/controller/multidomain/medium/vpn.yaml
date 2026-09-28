@@ -1,0 +1,139 @@
+apiVersion: google.dev/v1
+kind: VyOSL3VPN
+metadata:
+  name: ran-mesh-vpn
+  namespace: network
+spec:
+  underlayRef: medium-network-underlay
+  services:
+    - name: "RAN_MESH"
+      type: "l3vpn"
+      topology: "mesh"
+  routers:
+    - name: "pe6"
+      vrfs:
+        - name: "RAN_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 400)
+          rd: "10.0.0.65:200"  # v2.0: Loopback-based (was 10.94.0.1:3000)
+          rt_export: ["65035:3000"]
+          rt_import: ["65035:3000"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "RAN_MESH"
+            neighbors:
+              - peer: "10.94.0.2"
+                remote_as: 65035
+                description: "eBGP to ce-core1"
+    - name: "pe1"
+      vrfs:
+        - name: "RAN_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 400)
+          rd: "10.0.0.60:200"  # v2.0: Loopback-based (was 10.94.1.1:3000)
+          rt_export: ["65035:3000"]
+          rt_import: ["65035:3000"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "RAN_MESH"
+            neighbors:
+              - peer: "10.94.1.2"
+                remote_as: 65035
+                description: "eBGP to ce-site1"
+    - name: "pe2"
+      vrfs:
+        - name: "RAN_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 400)
+          rd: "10.0.0.61:200"  # v2.0: Loopback-based (was 10.94.2.1:3000)
+          rt_export: ["65035:3000"]
+          rt_import: ["65035:3000"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "RAN_MESH"
+            neighbors:
+              - peer: "10.94.2.2"
+                remote_as: 65035
+                description: "eBGP to ce-site2"
+    - name: "pe3"
+      vrfs:
+        - name: "RAN_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 400)
+          rd: "10.0.0.62:200"  # v2.0: Loopback-based (was 10.94.3.1:3000)
+          rt_export: ["65035:3000"]
+          rt_import: ["65035:3000"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "RAN_MESH"
+            neighbors:
+              - peer: "10.94.3.2"
+                remote_as: 65035
+                description: "eBGP to ce-site3"
+    - name: "pe4"
+      vrfs:
+        - name: "RAN_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 400)
+          rd: "10.0.0.63:200"  # v2.0: Loopback-based (was 10.94.4.1:3000)
+          rt_export: ["65035:3000"]
+          rt_import: ["65035:3000"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "RAN_MESH"
+            neighbors:
+              - peer: "10.94.4.2"
+                remote_as: 65035
+                description: "eBGP to ce-site4"
+    - name: "pe5"
+      vrfs:
+        - name: "RAN_MESH"
+          table: 200  # v2.0: Dynamic allocation (was 400)
+          rd: "10.0.0.64:200"  # v2.0: Loopback-based (was 10.94.5.1:3000)
+          rt_export: ["65035:3000"]
+          rt_import: ["65035:3000"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "RAN_MESH"
+            neighbors:
+              - peer: "10.94.5.2"
+                remote_as: 65035
+                description: "eBGP to ce-site5"
+  ce_routers:
+    - name: "ce-core1"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.110"
+          neighbors: [{ peer: "10.94.0.1", remote_as: 65001, description: "eBGP to pe6 RAN_MESH VRF" }]
+    - name: "ce-site1"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.111"
+          neighbors: [{ peer: "10.94.1.1", remote_as: 65001, description: "eBGP to pe1 RAN_MESH VRF" }]
+    - name: "ce-site2"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.112"
+          neighbors: [{ peer: "10.94.2.1", remote_as: 65001, description: "eBGP to pe2 RAN_MESH VRF" }]
+    - name: "ce-site3"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.113"
+          neighbors: [{ peer: "10.94.3.1", remote_as: 65001, description: "eBGP to pe3 RAN_MESH VRF" }]
+    - name: "ce-site4"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.114"
+          neighbors: [{ peer: "10.94.4.1", remote_as: 65001, description: "eBGP to pe4 RAN_MESH VRF" }]
+    - name: "ce-site5"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.115"
+          neighbors: [{ peer: "10.94.5.1", remote_as: 65001, description: "eBGP to pe5 RAN_MESH VRF" }]

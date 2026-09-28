@@ -1,0 +1,137 @@
+apiVersion: google.dev/v1
+kind: VyOSL3VPN
+metadata:
+  name: green-vpn-service
+  namespace: network
+spec:
+  underlayRef: medium-network-underlay
+  services:
+    - name: "GREEN_MESH"
+      type: "l3vpn"
+      topology: "mesh"
+  routers:
+    # ===================================================================
+    # MESH PEs (All 8 PEs participate in full mesh - Cross-Area)
+    # ===================================================================
+    - name: "pe1"
+      vrfs:
+        - name: "GREEN_MESH"
+          table: 201  # v2.0: Dynamic allocation (was 500)
+          rd: "10.0.0.60:201"  # v2.0: Loopback-based (was 10.*.*.1:3000)
+          rt_export: ["65035:3000"]
+          rt_import: ["65035:3000"]  # Symmetric - import same as export for full mesh
+          interfaces: ["eth5"]  # PE-CE interface to ce1-green
+      bgp:
+        vrfs:
+          - name: "GREEN_MESH"
+            neighbors:
+              - peer: "10.52.1.2"   # ce1-green IP
+                remote_as: 65035
+
+    - name: "pe2"
+      vrfs:
+        - name: "GREEN_MESH"
+          table: 201  # v2.0: Dynamic allocation (was 500)
+          rd: "10.0.0.61:201"  # v2.0: Loopback-based (was 10.*.*.1:3000)
+          rt_export: ["65035:3000"]
+          rt_import: ["65035:3000"]
+          interfaces: ["eth5"]  # PE-CE interface to ce2-green
+      bgp:
+        vrfs:
+          - name: "GREEN_MESH"
+            neighbors:
+              - peer: "10.52.2.2"   # ce2-green IP
+                remote_as: 65035
+
+    - name: "pe3"
+      vrfs:
+        - name: "GREEN_MESH"
+          table: 201  # v2.0: Dynamic allocation (was 500)
+          rd: "10.0.0.62:201"  # v2.0: Loopback-based (was 10.*.*.1:3000)
+          rt_export: ["65035:3000"]
+          rt_import: ["65035:3000"]
+          interfaces: ["eth5"]  # PE-CE interface to ce3-green
+      bgp:
+        vrfs:
+          - name: "GREEN_MESH"
+            neighbors:
+              - peer: "10.52.3.2"   # ce3-green IP
+                remote_as: 65035
+
+    - name: "pe4"
+      vrfs:
+        - name: "GREEN_MESH"
+          table: 201  # v2.0: Dynamic allocation (was 500)
+          rd: "10.0.0.63:201"  # v2.0: Loopback-based (was 10.*.*.1:3000)
+          rt_export: ["65035:3000"]
+          rt_import: ["65035:3000"]
+          interfaces: ["eth5"]  # PE-CE interface to ce4-green
+      bgp:
+        vrfs:
+          - name: "GREEN_MESH"
+            neighbors:
+              - peer: "10.52.4.2"   # ce4-green IP
+                remote_as: 65035
+
+    - name: "pe5"
+      vrfs:
+        - name: "GREEN_MESH"
+          table: 201  # v2.0: Dynamic allocation (was 500)
+          rd: "10.0.0.64:201"  # v2.0: Loopback-based (was 10.*.*.1:3000)
+          rt_export: ["65035:3000"]
+          rt_import: ["65035:3000"]
+          interfaces: ["eth5"]  # PE-CE interface to ce5-green
+      bgp:
+        vrfs:
+          - name: "GREEN_MESH"
+            neighbors:
+              - peer: "10.52.5.2"   # ce5-green IP
+                remote_as: 65035
+
+    - name: "pe6"
+      vrfs:
+        - name: "GREEN_MESH"
+          table: 201  # v2.0: Dynamic allocation (was 500)
+          rd: "10.0.0.65:201"  # v2.0: Loopback-based (was 10.*.*.1:3000)
+          rt_export: ["65035:3000"]
+          rt_import: ["65035:3000"]
+          interfaces: ["eth5"]  # PE-CE interface to ce6-green
+      bgp:
+        vrfs:
+          - name: "GREEN_MESH"
+            neighbors:
+              - peer: "10.52.6.2"   # ce6-green IP
+                remote_as: 65035
+
+    # ===================================================================
+    # Area 2 PEs (Cross-area mesh participants)
+    # ===================================================================
+    - name: "pe7"
+      vrfs:
+        - name: "GREEN_MESH"
+          table: 201  # v2.0: Dynamic allocation (was 500)
+          rd: "10.0.0.66:201"  # v2.0: Loopback-based (was 10.*.*.1:3000)
+          rt_export: ["65035:3000"]
+          rt_import: ["65035:3000"]
+          interfaces: ["eth5"]  # PE-CE interface to ce7-green
+      bgp:
+        vrfs:
+          - name: "GREEN_MESH"
+            neighbors:
+              - peer: "10.52.7.2"   # ce7-green IP
+                remote_as: 65035
+
+    - name: "pe8"
+      vrfs:
+        - name: "GREEN_MESH"
+          table: 201  # v2.0: Dynamic allocation (was 500)
+          rd: "10.0.0.67:201"  # v2.0: Loopback-based (was 10.*.*.1:3000)
+          rt_export: ["65035:3000"]
+          rt_import: ["65035:3000"]
+          interfaces: ["eth5"]  # PE-CE interface to ce8-green
+      bgp:
+        vrfs:
+          - name: "GREEN_MESH"
+            neighbors:
+              - peer: "10.52.8.2"   # ce8-green IP
+                remote_as: 65035

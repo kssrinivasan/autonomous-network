@@ -1,0 +1,112 @@
+// Copyright 2024-2025 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// NOTE: This proto file documents the future gRPC API (Phase 2).
+// Phase 1 uses the equivalent HTTP/JSON API at :9090.
+// See internal/api/handler.go for the current implementation.
+
+syntax = "proto3";
+
+package agent;
+option go_package = "gitlab.com/tme4/gnnsandbox/traffic-agent/gen/agent";
+
+service TrafficAgent {
+  // Ping checks if the agent is alive and returns its version.
+  rpc Ping(PingRequest) returns (PingResponse);
+
+  // StartFlow starts a traffic flow on this agent (as source or destination).
+  rpc StartFlow(StartFlowRequest) returns (StartFlowResponse);
+
+  // StopFlow stops a running flow by ID.
+  rpc StopFlow(StopFlowRequest) returns (StopFlowResponse);
+
+  // GetStatus returns the current status and metrics for one or all flows.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+
+  // StreamMetrics streams real-time metrics for a flow at a given interval.
+  rpc StreamMetrics(StreamMetricsRequest) returns (stream MetricsSample);
+}
+
+message PingRequest {}
+
+message PingResponse {
+  string version = 1;
+  string status  = 2;
+}
+
+message StartFlowRequest {
+  string flow_id           = 1;
+  string role              = 2;  // "source" or "destination"
+  string destination_ip    = 3;
+  int32  port              = 4;
+  string protocol          = 5;  // "TCP" or "UDP"
+  int32  duration_sec      = 6;
+  string pattern_type      = 7;
+  string pattern_config_json = 8;  // JSON-encoded PatternConfig
+  int32  concurrent_sessions = 9;
+  int64  bandwidth_bps     = 10;
+}
+
+message StartFlowResponse {
+  bool   success = 1;
+  string error   = 2;
+  string flow_id = 3;
+}
+
+message StopFlowRequest {
+  string flow_id = 1;
+}
+
+message StopFlowResponse {
+  bool   success = 1;
+  string error   = 2;
+}
+
+message GetStatusRequest {
+  string flow_id = 1;  // empty string = return all flows
+}
+
+message GetStatusResponse {
+  repeated FlowStatus flows = 1;
+}
+
+message FlowStatus {
+  string      flow_id    = 1;
+  string      phase      = 2;  // "running", "completed", "failed", "stopped"
+  string      role       = 3;
+  int64       elapsed_sec = 4;
+  int64       duration_sec = 5;
+  FlowMetrics metrics    = 6;
+}
+
+message FlowMetrics {
+  int64  bytes_sent        = 1;
+  int64  bytes_received    = 2;
+  double throughput_bps    = 3;
+  double latency_ms        = 4;
+  double packet_loss_pct   = 5;
+  double jitter_ms         = 6;
+  int32  active_sessions   = 7;
+}
+
+message StreamMetricsRequest {
+  string flow_id     = 1;
+  int32  interval_sec = 2;
+}
+
+message MetricsSample {
+  string      flow_id        = 1;
+  int64       timestamp_unix = 2;
+  FlowMetrics metrics        = 3;
+}

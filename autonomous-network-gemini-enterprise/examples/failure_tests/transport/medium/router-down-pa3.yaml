@@ -1,0 +1,46 @@
+# NetworkFailure: Area Border Router Failure (Medium Network)
+#
+# Fault Type   : ROUTER_DOWN
+# Target       : PA3 (Dublin ABR, connects Area 0 to Area 2 - Ireland/Scotland region)
+# Mechanism    : Bring down entire ABR router (loopback_disable method)
+# Impact       : Area 2 (Ireland/Scotland) loses one of two ABRs to backbone. Traffic
+#                shifts to pa4 (Glasgow). Inter-area path changes affect all Ireland/
+#                Scotland PE routers (pe7, pe8). Multi-tier cascading impact.
+#
+# Traffic Impact:
+#   - Ireland/Scotland PEs (pe7, pe8) lose path via pa3 to core
+#   - All Area 2-to-other-region traffic reroutes through pa4 (Glasgow ABR)
+#   - pa4 load doubles (handles both pa3 and pa4 traffic)
+#   - Potential bottleneck at pa4-p2, pa4-p3 links
+#   - Minimal impact on UK traffic (Area 1 uses pa1/pa2)
+#
+# GNN Detection Signatures:
+#   D-GAT  : All edges connected to pa3 collapse simultaneously
+#   STGNN  : Router down alarm (control plane), Area 2 regional traffic shows severe
+#             path changes, load doubling on pa4 visible in metrics
+#   HetGNN : Area isolation pattern in embeddings, cross-tier impact cascade (PA→PE)
+#             Inter-area summary LSA updates from remaining ABR pa4
+#
+# Related Scenario: docs/scenarios/medium/scenario_3_abr_router_failure.md
+#
+# Usage:
+#   kubectl apply  -f router-down-pa3.yaml    # Bring down PA3 ABR
+#   kubectl delete -f router-down-pa3.yaml    # Restore PA3
+---
+apiVersion: google.dev/v1
+kind: NetworkFailure
+metadata:
+  name: router-down-pa3-abr
+  namespace: network
+  labels:
+    scenario: medium-network
+    fault-type: router-down
+    severity: critical
+spec:
+  writeMode: direct
+  failureType: ROUTER_DOWN
+  infrastructureRef: medium-network-infra
+  target:
+    router: pa3
+  parameters:
+    method: loopback_disable

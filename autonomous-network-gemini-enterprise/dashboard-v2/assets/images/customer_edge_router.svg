@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <title>Customer Edge Router</title>
+
+  <!-- Flat 2D Circle Base - Light blue for CE -->
+  <circle cx="50" cy="50" r="45" fill="#0288D1" />
+
+  <!-- Router arrows -->
+  <g fill="#FFFFFF">
+    <!-- Left Arrow (pointing Right, inward) -->
+    <path d="M20,47 L35,47 L35,42 L45,50 L35,58 L35,53 L20,53 Z" />
+    <!-- Right Arrow (pointing Right, outward) -->
+    <path d="M55,47 L70,47 L70,42 L80,50 L70,58 L70,53 L55,53 Z" />
+    <!-- Top Arrow (pointing Up) -->
+    <path d="M47,45 L47,30 L42,30 L50,20 L58,30 L53,30 L53,45 Z" />
+    <!-- Bottom Arrow (pointing Down) -->
+    <path d="M47,55 L47,70 L42,70 L50,80 L58,70 L53,70 L53,55 Z" />
+  </g>
+
+  <!-- Building/Site icon - bottom left, representing customer premises -->
+  <!-- Building body -->
+  <rect x="12" y="74" width="26" height="16" rx="1" ry="1" fill="#01579B" stroke="#FFFFFF" stroke-width="1.5"/>
+  <!-- Roof triangle -->
+  <polygon points="11,74 38,74 25,63" fill="#01579B" stroke="#FFFFFF" stroke-width="1.5" stroke-linejoin="round"/>
+  <!-- Door -->
+  <rect x="22" y="82" width="6" height="8" rx="1" ry="1" fill="#FFFFFF" opacity="0.9"/>
+  <!-- Windows -->
+  <rect x="14" y="77" width="5" height="4" rx="0.5" fill="#FFFFFF" opacity="0.8"/>
+  <rect x="31" y="77" width="5" height="4" rx="0.5" fill="#FFFFFF" opacity="0.8"/>
+</svg>

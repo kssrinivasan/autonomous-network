@@ -1,0 +1,15 @@
+name: detective
+acli_version: 1.4.2
+agent_directory: app
+region: europe-west1
+base_template: adk
+generated_at: '2026-06-06T10:22:17.798175+00:00'
+language: python
+create_params:
+  deployment_target: agent_runtime
+  session_type: in_memory
+  cicd_runner: skip
+  include_data_ingestion: false
+  is_a2a: false
+  datastore: none
+  agent_guidance_filename: detectiveagent.md

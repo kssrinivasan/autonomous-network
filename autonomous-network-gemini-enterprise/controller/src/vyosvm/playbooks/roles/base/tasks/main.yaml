@@ -1,0 +1,142 @@
+- name: Wait for dpkg lock to be released
+  ansible.builtin.shell: |
+    while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || \
+          fuser /var/lib/dpkg/lock >/dev/null 2>&1 || \
+          fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do
+      echo "Waiting for dpkg lock to be released..."
+      sleep 2
+    done
+  changed_when: false
+  retries: 30
+  delay: 10
+
+- name: Get running kernel version
+  ansible.builtin.command: uname -r
+  register: running_kernel
+
+- name: Install linux-modules-extra
+  ansible.builtin.apt:
+    name: "linux-modules-extra-{{ running_kernel.stdout }}"
+    state: present
+    update_cache: yes
+  retries: 3
+  delay: 10
+  register: result
+  until: result is succeeded
+
+- name: Install packages
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop:
+    - python3-pip
+    - bridge-utils
+    - nmon
+  retries: 3
+  delay: 10
+  register: result
+  until: result is succeeded
+
+- name: Load vrf kernel module
+  ansible.builtin.command: modprobe vrf
+  changed_when: false
+
+- name: Ensure vrf module is loaded on boot
+  ansible.builtin.copy:
+    content: "vrf\n"
+    dest: /etc/modules-load.d/vrf.conf
+
+- name: Install iptables-persistent for saving rules
+  ansible.builtin.package:
+    name: iptables-persistent
+    state: present
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+- name: Disable UFW
+  ansible.builtin.shell: ufw disable
+
+- name: flush iptables
+  ansible.builtin.shell: |
+    iptables -P INPUT ACCEPT
+    iptables -P FORWARD ACCEPT
+    iptables -P OUTPUT ACCEPT
+    iptables -F
+    iptables -t nat -F
+    iptables -t mangle -F
+    iptables -X
+
+- name: add persistent ICMP rule
+  ansible.builtin.shell: |
+    # Check if rule already exists
+    if ! iptables -C FORWARD -p icmp -j ACCEPT -m comment --comment "Allow ICMP for network traffic" 2>/dev/null; then
+      iptables -I FORWARD 1 -p icmp -j ACCEPT -m comment --comment "Allow ICMP for network traffic"
+      echo "changed"
+    fi
+
+- name: Save iptables rules
+  ansible.builtin.shell: iptables-save > /etc/iptables/rules.v4
+
+- name: install dev packages for gtp compile
+  ansible.builtin.apt:
+    pkg:
+      - git
+      - gcc
+      - g++
+      - cmake
+      - autoconf
+      - libtool
+      - pkg-config
+      - libmnl-dev
+      - libyaml-dev
+    state: latest
+    update_cache: true
+  retries: 3
+  delay: 10
+  register: result
+  until: result is succeeded
+
+- name: install gcc 12
+  ansible.builtin.apt:
+    pkg:
+      - gcc-12
+    state: latest
+  retries: 3
+  delay: 10
+  register: result
+  until: result is succeeded
+
+- name: install headers matching kernel
+  apt:
+    pkg:
+    - linux-headers-{{ running_kernel.stdout }}
+  retries: 3
+  delay: 10
+  register: result
+  until: result is succeeded
+
+- name: create /opt/gtp5
+  file:
+    path: /opt/gtp5
+    state: directory
+    mode: '0777' 
+
+- name: git checkout from gtp5
+  ansible.builtin.git:
+    version: v0.9.5
+    depth: 1
+    repo: https://github.com/free5gc/gtp5g.git
+    dest: /opt/gtp5
+    clone: yes  # Ensure the repo is cloned (not just updated)
+    update: yes
+    force: yes 
+
+- name: Build and install gtp module
+  ansible.builtin.shell: |
+    make clean
+    make
+    make install
+  args:
+    chdir: /opt/gtp5
+

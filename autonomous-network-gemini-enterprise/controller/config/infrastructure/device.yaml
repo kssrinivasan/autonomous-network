@@ -1,0 +1,243 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: devices.google.dev
+  labels:
+    type: infrastructure
+spec:
+  scope: Namespaced
+  group: google.dev
+  names:
+    kind: Device
+    plural: devices
+    singular: device
+    shortNames:
+      - dev
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: |
+            Device represents a virtual end-user device or customer premise equipment (CPE) that connects to a VyOSNetwork.
+            
+            Devices are Docker containers with networking capabilities that can:
+            - Simulate customer devices or end-user equipment
+            - Generate test traffic using tools like iperf3, ping, traceroute
+            - Host customer applications or services
+            - Connect to multi-access networks (LANs) or direct router connections
+            
+            Key provisioning concepts:
+            - Devices attach to LinuxNetwork bridges created by the operator
+            - Each device must have a unique IP address within the network subnet
+            - The gateway should point to the router interface on that network
+            - Devices are created as Alpine Linux containers with networking tools pre-installed
+            
+            Example use cases:
+            - Customer devices on a LAN behind a PE router
+            - Traffic generators for bandwidth/latency testing
+            - End-to-end connectivity validation tools
+            - Simulated IoT devices or servers
+          required:
+            - spec
+          properties:
+            spec:
+              type: object
+              required:
+                - network_name
+                - ip_address
+                - gateway
+              properties:
+                network_name: 
+                  type: string
+                  maxLength: 15
+                  description: |
+                    Name of the LinuxNetwork to attach this device to. Must match an existing LinuxNetwork resource name.
+                    
+                    The LinuxNetwork is typically generated from a VyOSNetwork and represents a network segment (LAN, subnet).
+                    To find available networks, query: kubectl get linuxnetwork
+                    
+                    Common network types to connect devices to:
+                    - multi-access networks: LANs where multiple devices and routers connect (e.g., customer LAN)
+                    - p2p networks: Point-to-point links (less common for devices, more for router interconnects)
+                    
+                    Example values: "customer-lan", "lan1", "access-network"
+                    
+                    Note: Do NOT connect devices to management or loopback networks.
+                ip_address:
+                  type: string
+                  pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                  description: |
+                    Static IPv4 address for this device within the network subnet.
+                    
+                    Requirements:
+                    - Must be within the subnet range of the specified network_name
+                    - Must be unique (not assigned to any router interface or other device)
+                    - Cannot be the network address, broadcast address, or gateway address
+                    - Must be a valid unicast IP address
+                    
+                    Best practices:
+                    - Use higher addresses in the subnet to avoid conflicts with router interfaces
+                    - Document IP assignments to prevent duplicate IPs
+                    - For a /24 network like 192.168.1.0/24, use .10 and above for devices
+                    
+                    Examples:
+                    - Network 192.168.1.0/24 with gateway .1: use 192.168.1.10, 192.168.1.11, etc.
+                    - Network 10.1.1.0/24 with gateway .1: use 10.1.1.100, 10.1.1.101, etc.
+                vlan:
+                  type: integer
+                  minimum: 1
+                  maximum: 4094
+                  description: |
+                    VLAN ID for 802.1Q tagged traffic (optional).
+                    
+                    Use this when:
+                    - The network segment uses VLAN tagging
+                    - Multiple logical networks share the same physical infrastructure
+                    - The connected router interface is configured with a VLAN
+                    
+                    If specified, must match the VLAN ID configured on the network segment.
+                    If the network doesn't use VLANs, omit this field.
+                    
+                    Valid range: 1-4094 (VLAN 0 reserved, 4095 reserved)
+                    Common values: 10, 100, 200 (arbitrary, must match network config)
+                mgmt_ip:
+                  type: string
+                  pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                  description: |
+                    Management IP address assigned to the device's eth1 interface on the management bridge.
+                    Required when the device is deployed as part of a VyOSInfrastructure with daemon mode.
+                    The traffic-agent daemon listens on this IP at port 9090 for flow control requests.
+                    Must be within the management network subnet defined by the infrastructure spec.
+                mgmt_network:
+                  type: string
+                  description: |
+                    Name of the management Linux bridge on the network VM.
+                    Set automatically by the VyOSInfrastructure operator from the management LinuxNetwork.
+                    When set, a second veth pair (eth1) is attached to this bridge and mgmt_ip is assigned.
+                image:
+                  type: string
+                  description: |
+                    Docker image to use for this device container. Defaults to device:latest.
+                    Override to use a different image, e.g. mongo for a MongoDB container.
+                  default: device:latest
+                gateway:
+                  type: string
+                  pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                  description: |
+                    Default gateway IP address for this device (optional but recommended).
+
+                    The gateway should be:
+                    - The IP address of the router interface on this network segment
+                    - Within the same subnet as the device's ip_address
+                    - Reachable via layer 2 (same broadcast domain)
+
+                    Purpose:
+                    - Routes traffic destined for other networks through the gateway
+                    - Essential for inter-network communication and internet access
+                    - Required for the device to reach networks beyond its local subnet
+
+                    How to determine the correct gateway:
+                    1. Identify which router interface connects to this network
+                    2. Use that router interface's IP address as the gateway
+                    3. Query the VyOSNetwork or LinuxNetwork for router connection details
+
+                    Example:
+                    - If network "customer-lan" has router "r1" with interface IP 192.168.1.1
+                    - Set gateway: "192.168.1.1"
+                    - Device can then reach other networks via r1
+
+                    If omitted: Device can only communicate with other devices on the same local network segment.
+                extra_interfaces:
+                  type: array
+                  description: |
+                    Additional data-plane interfaces beyond the primary eth0.
+                    Each entry attaches a new veth pair to a different LinuxNetwork bridge,
+                    creating eth2, eth3, ... in sequence inside the container.
+                    Use this to give a device (e.g. UPF) a dedicated N6 data-network interface
+                    separate from the primary N3/control-plane interface.
+                  items:
+                    type: object
+                    required:
+                      - network_name
+                      - ip_address
+                    properties:
+                      network_name:
+                        type: string
+                        maxLength: 15
+                        description: Name of the LinuxNetwork bridge to attach this interface to.
+                      ip_address:
+                        type: string
+                        pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                        description: Static IP address for this interface (/24 prefix).
+                      gateway:
+                        type: string
+                        pattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}$'
+                        description: Optional gateway reachable via this interface.
+                      vlan:
+                        type: integer
+                        minimum: 1
+                        maximum: 4094
+                        description: Optional 802.1Q VLAN tag for this interface.
+            status:
+              type: object
+              description: |
+                Status provides runtime information about the device's deployment state.
+                Updated by the operator during device lifecycle operations.
+              properties:
+                name: 
+                  type: string
+                  description: |
+                    Container name of the deployed device.
+                    Used to interact with the device using Docker commands.
+                    Example: docker exec <name> ping 8.8.8.8
+                network_name: 
+                  type: string
+                  description: |
+                    Name of the Linux bridge network the device is connected to.
+                    Confirms which network segment the device successfully attached to.
+                ip_address:
+                  type: string
+                  description: |
+                    IP address assigned to the device.
+                    This is the address the device uses for network communication.
+                    Should match the spec.ip_address value after successful provisioning.
+                phase:
+                  type: string
+                  enum: ["Pending", "Creating", "Ready", "Failed", "Deleting", "Updating"]
+                  description: |
+                    Current lifecycle phase of the device:
+                    - Pending: Device resource created, waiting for provisioning to start
+                    - Creating: Device container is being created and configured
+                    - Ready: Device is fully operational and connected to the network
+                    - Failed: Device provisioning or operation failed (check message for details)
+                    - Deleting: Device is being removed and cleaned up
+                    - Updating: Device configuration is being modified
+                    
+                    For automation: Wait for phase="Ready" before using the device.
+                message:
+                  type: string
+                  description: |
+                    Human-readable status message providing additional context.
+                    Contains error details when phase="Failed".
+                    Examples: "Device created successfully", "Failed to attach to network: bridge not found"
+                mgmt_ip:
+                  type: string
+                  description: |
+                    Management IP address of the running device container (on eth1).
+                    The traffic-agent daemon is reachable at this address on port 9090.
+                    Populated by the operator after successful device provisioning.
+      additionalPrinterColumns:
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+        - name: Network
+          type: string
+          jsonPath: .spec.network_name
+        - name: IP Address
+          type: string
+          jsonPath: .spec.ip_address

@@ -1,0 +1,260 @@
+apiVersion: google.dev/v1
+kind: VyOSL3VPN
+metadata:
+  name: blue-vpn-service
+  namespace: network
+spec:
+  underlayRef: complex-network-underlay
+  services:
+    - name: "BLUE_SPOKE"
+      type: "l3vpn"
+      topology: "spoke"
+    - name: "BLUE_HUB"
+      type: "l3vpn"
+      topology: "hub"
+  routers:
+    # ==================== HUB PE ====================
+    - name: "pe2"
+      vrfs:
+        - name: "BLUE_HUB"
+          table: 200  # v2.0: Dynamic allocation (was 400)
+          rd: "10.0.0.8:200"  # v2.0: Loopback-based (was 10.*.*.1:1011)
+          rt_export: ["65035:1030"]
+          rt_import: ["65035:1011", "65035:1030"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "BLUE_HUB"
+            neighbors: [{ peer: "10.80.80.2", remote_as: 65035 }]
+
+    # ==================== SPOKE PEs ====================
+    - name: "pe1"
+      vrfs:
+        - name: "BLUE_SPOKE"
+          table: 200  # v2.0: Dynamic allocation (was 200)
+          rd: "10.0.0.7:200"  # v2.0: Loopback-based (was 10.*.*.1:1011)
+          rt_export: ["65035:1011"]
+          rt_import: ["65035:1030"]
+          interfaces: ["eth2"]
+      bgp:
+        vrfs:
+          - name: "BLUE_SPOKE"
+            neighbors: [{ peer: "10.50.50.2", remote_as: 65035 }]
+
+    - name: "pe3"
+      vrfs:
+        - name: "BLUE_SPOKE"
+          table: 200  # v2.0: Dynamic allocation (was 200)
+          rd: "10.0.0.10:200"  # v2.0: Loopback-based (was 10.*.*.1:1011)
+          rt_export: ["65035:1011"]
+          rt_import: ["65035:1030"]
+          interfaces: ["eth2"]
+      bgp:
+        vrfs:
+          - name: "BLUE_SPOKE"
+            neighbors: [{ peer: "10.60.60.2", remote_as: 65035 }]
+
+    - name: "pe4"
+      vrfs:
+        - name: "BLUE_SPOKE"
+          table: 200  # v2.0: Dynamic allocation (was 200)
+          rd: "10.0.0.11:200"  # v2.0: Loopback-based (was 10.*.*.1:1011)
+          rt_export: ["65035:1011"]
+          rt_import: ["65035:1030"]
+          interfaces: ["eth2"]
+      bgp:
+        vrfs:
+          - name: "BLUE_SPOKE"
+            neighbors: [{ peer: "10.70.70.2", remote_as: 65035 }]
+
+    - name: "pe5"
+      vrfs:
+        - name: "BLUE_SPOKE"
+          table: 200  # v2.0: Dynamic allocation (was 200)
+          rd: "10.0.0.60:200"  # v2.0: Loopback-based (was 10.*.*.1:1011)
+          rt_export: ["65035:1011"]
+          rt_import: ["65035:1030"]
+          interfaces: ["eth2"]
+      bgp:
+        vrfs:
+          - name: "BLUE_SPOKE"
+            neighbors: [{ peer: "10.50.51.2", remote_as: 65035 }]
+
+    - name: "pe6"
+      vrfs:
+        - name: "BLUE_SPOKE"
+          table: 200  # v2.0: Dynamic allocation (was 200)
+          rd: "10.0.0.61:200"  # v2.0: Loopback-based (was 10.*.*.1:1011)
+          rt_export: ["65035:1011"]
+          rt_import: ["65035:1030"]
+          interfaces: ["eth2"]
+      bgp:
+        vrfs:
+          - name: "BLUE_SPOKE"
+            neighbors: [{ peer: "10.50.52.2", remote_as: 65035 }]
+
+    - name: "pe7"
+      vrfs:
+        - name: "BLUE_SPOKE"
+          table: 200  # v2.0: Dynamic allocation (was 200)
+          rd: "10.0.0.62:200"  # v2.0: Loopback-based (was 10.*.*.1:1011)
+          rt_export: ["65035:1011"]
+          rt_import: ["65035:1030"]
+          interfaces: ["eth2"]
+      bgp:
+        vrfs:
+          - name: "BLUE_SPOKE"
+            neighbors: [{ peer: "10.50.53.2", remote_as: 65035 }]
+
+    - name: "pe8"
+      vrfs:
+        - name: "BLUE_SPOKE"
+          table: 200  # v2.0: Dynamic allocation (was 200)
+          rd: "10.0.0.63:200"  # v2.0: Loopback-based (was 10.*.*.1:1011)
+          rt_export: ["65035:1011"]
+          rt_import: ["65035:1030"]
+          interfaces: ["eth2"]
+      bgp:
+        vrfs:
+          - name: "BLUE_SPOKE"
+            neighbors: [{ peer: "10.50.54.2", remote_as: 65035 }]
+
+    - name: "pe9"
+      vrfs:
+        - name: "BLUE_SPOKE"
+          table: 200  # v2.0: Dynamic allocation (was 200)
+          rd: "10.0.0.64:200"  # v2.0: Loopback-based (was 10.*.*.1:1011)
+          rt_export: ["65035:1011"]
+          rt_import: ["65035:1030"]
+          interfaces: ["eth2"]
+      bgp:
+        vrfs:
+          - name: "BLUE_SPOKE"
+            neighbors: [{ peer: "10.50.55.2", remote_as: 65035 }]
+
+    - name: "pe10"
+      vrfs:
+        - name: "BLUE_SPOKE"
+          table: 200  # v2.0: Dynamic allocation (was 200)
+          rd: "10.0.0.65:200"  # v2.0: Loopback-based (was 10.*.*.1:1011)
+          rt_export: ["65035:1011"]
+          rt_import: ["65035:1030"]
+          interfaces: ["eth2"]
+      bgp:
+        vrfs:
+          - name: "BLUE_SPOKE"
+            neighbors: [{ peer: "10.50.56.2", remote_as: 65035 }]
+
+    - name: "pe11"
+      vrfs:
+        - name: "BLUE_SPOKE"
+          table: 200  # v2.0: Dynamic allocation (was 200)
+          rd: "10.0.0.66:200"  # v2.0: Loopback-based (was 10.*.*.1:1011)
+          rt_export: ["65035:1011"]
+          rt_import: ["65035:1030"]
+          interfaces: ["eth2"]
+      bgp:
+        vrfs:
+          - name: "BLUE_SPOKE"
+            neighbors: [{ peer: "10.50.57.2", remote_as: 65035 }]
+
+    - name: "pe12"
+      vrfs:
+        - name: "BLUE_SPOKE"
+          table: 200  # v2.0: Dynamic allocation (was 200)
+          rd: "10.0.0.67:200"  # v2.0: Loopback-based (was 10.*.*.1:1011)
+          rt_export: ["65035:1011"]
+          rt_import: ["65035:1030"]
+          interfaces: ["eth2"]
+      bgp:
+        vrfs:
+          - name: "BLUE_SPOKE"
+            neighbors: [{ peer: "10.50.58.2", remote_as: 65035 }]
+
+  # ==================== CUSTOMER EDGE ROUTERS ====================
+  ce_routers:
+    # Hub CE
+    - name: "ce1-hub"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.100"
+          neighbors: [{ peer: "10.80.80.1", remote_as: 65001, description: "eBGP to pe2 BLUE_HUB VRF" }]
+
+    # Spoke CEs
+    - name: "ce1-spoke"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.80"
+          neighbors: [{ peer: "10.50.50.1", remote_as: 65001, description: "eBGP to pe1 BLUE_SPOKE VRF" }]
+
+    - name: "ce2-spoke"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.81"
+          neighbors: [{ peer: "10.60.60.1", remote_as: 65001, description: "eBGP to pe3 BLUE_SPOKE VRF" }]
+
+    - name: "ce3-spoke"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.82"
+          neighbors: [{ peer: "10.70.70.1", remote_as: 65001, description: "eBGP to pe4 BLUE_SPOKE VRF" }]
+
+    - name: "ce4-spoke"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.83"
+          neighbors: [{ peer: "10.50.51.1", remote_as: 65001, description: "eBGP to pe5 BLUE_SPOKE VRF" }]
+
+    - name: "ce5-spoke"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.84"
+          neighbors: [{ peer: "10.50.52.1", remote_as: 65001, description: "eBGP to pe6 BLUE_SPOKE VRF" }]
+
+    - name: "ce6-spoke"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.85"
+          neighbors: [{ peer: "10.50.53.1", remote_as: 65001, description: "eBGP to pe7 BLUE_SPOKE VRF" }]
+
+    - name: "ce7-spoke"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.86"
+          neighbors: [{ peer: "10.50.54.1", remote_as: 65001, description: "eBGP to pe8 BLUE_SPOKE VRF" }]
+
+    - name: "ce8-spoke"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.87"
+          neighbors: [{ peer: "10.50.55.1", remote_as: 65001, description: "eBGP to pe9 BLUE_SPOKE VRF" }]
+
+    - name: "ce9-spoke"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.88"
+          neighbors: [{ peer: "10.50.56.1", remote_as: 65001, description: "eBGP to pe10 BLUE_SPOKE VRF" }]
+
+    - name: "ce10-spoke"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.89"
+          neighbors: [{ peer: "10.50.57.1", remote_as: 65001, description: "eBGP to pe11 BLUE_SPOKE VRF" }]
+
+    - name: "ce11-spoke"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.90"
+          neighbors: [{ peer: "10.50.58.1", remote_as: 65001, description: "eBGP to pe12 BLUE_SPOKE VRF" }]

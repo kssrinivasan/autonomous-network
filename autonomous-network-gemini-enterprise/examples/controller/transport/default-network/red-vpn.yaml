@@ -1,0 +1,87 @@
+apiVersion: google.dev/v1
+kind: VyOSL3VPN
+metadata:
+  name: l3vpn-red-service
+  namespace: network
+spec:
+  underlayRef: l3vpn-underlay
+  services:
+    - name: "RED_MESH"
+      type: "l3vpn"
+      topology: "any-to-any"
+  routers:
+    - name: "pe1"
+      vrfs:
+        - name: "RED_MESH"
+          table: 201  # v2.0: Dynamic allocation, second VRF (was 300)
+          rd: "10.0.0.7:201"  # v2.0: Loopback-based (was 10.55.55.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors: [{ peer: "10.55.55.2", remote_as: 65035 }]
+    - name: "pe2"
+      vrfs:
+        - name: "RED_MESH"
+          table: 201  # v2.0: Dynamic allocation, second VRF (was 300)
+          rd: "10.0.0.8:201"  # v2.0: Loopback-based (was 10.65.65.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth4"]
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors: [{ peer: "10.65.65.2", remote_as: 65035 }]
+    - name: "pe3"
+      vrfs:
+        - name: "RED_MESH"
+          table: 201  # v2.0: Dynamic allocation, second VRF (was 300)
+          rd: "10.0.0.10:201"  # v2.0: Loopback-based (was 10.75.75.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors: [{ peer: "10.75.75.2", remote_as: 65035 }]
+    - name: "pe4"
+      vrfs:
+        - name: "RED_MESH"
+          table: 201  # v2.0: Dynamic allocation, second VRF (was 300)
+          rd: "10.0.0.11:201"  # v2.0: Loopback-based (was 10.85.85.1:2000)
+          rt_export: ["65035:2000"]
+          rt_import: ["65035:2000"]
+          interfaces: ["eth3"]
+      bgp:
+        vrfs:
+          - name: "RED_MESH"
+            neighbors: [{ peer: "10.85.85.2", remote_as: 65035 }]
+  # CE routers are customer equipment — their eBGP config lives here alongside
+  # the VPN service they participate in, not in the provider underlay.
+  ce_routers:
+    - name: "ce1-red"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.101"
+          neighbors: [{ peer: "10.55.55.1", remote_as: 65001, description: "eBGP to pe1 RED_MESH VRF" }]
+    - name: "ce2-red"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.102"
+          neighbors: [{ peer: "10.65.65.1", remote_as: 65001, description: "eBGP to pe2 RED_MESH VRF" }]
+    - name: "ce3-red"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.103"
+          neighbors: [{ peer: "10.75.75.1", remote_as: 65001, description: "eBGP to pe3 RED_MESH VRF" }]
+    - name: "ce4-red"
+      protocols:
+        bgp:
+          as_number: 65035
+          router_id: "10.0.0.104"
+          neighbors: [{ peer: "10.85.85.1", remote_as: 65001, description: "eBGP to pe4 RED_MESH VRF" }]

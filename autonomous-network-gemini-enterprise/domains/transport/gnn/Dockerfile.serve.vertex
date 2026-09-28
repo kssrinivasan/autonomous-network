@@ -1,0 +1,24 @@
+FROM python:3.12-slim
+
+ENV SPANNER_INSTANCE=networktopology-instance
+ENV SPANNER_DATABASE=transporttopology-db
+ENV SERVICE_DATABASE=servicetopology-db
+ENV INFRA_DATABASE=infratopology-db
+ENV GCS_BUCKET_NAME=network-model-artifacts
+# Vertex AI Endpoint required env vars
+ENV AIP_HTTP_PORT=8080
+ENV AIP_PREDICT_ROUTE=/predict
+ENV AIP_HEALTH_ROUTE=/health
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+ADD gnn/requirements.txt /
+RUN pip install -r /requirements.txt
+
+ADD gnn/src/ /app
+WORKDIR /app
+
+# serve.py with background inference loop removed — pure HTTP prediction server
+CMD ["python", "serve.py"]

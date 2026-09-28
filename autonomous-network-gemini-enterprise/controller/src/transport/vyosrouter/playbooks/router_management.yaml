@@ -1,0 +1,382 @@
+---
+- hosts: all
+  become: true
+  gather_facts: true
+  vars:
+    # Default values
+    vyos_image: "vyos:1.5"
+
+  tasks:
+    - name: Debug operation
+      debug:
+        msg: "Performing {{ operation }} operation on VyOS router {{ router_name }}"
+
+    # CREATE OPERATION
+    - block:
+
+        # --- Idempotency check: if the container already exists and is running, skip creation ---
+        - name: Check if router container already exists
+          docker_container_info:
+            name: "{{ router_name }}"
+          register: existing_container
+          ignore_errors: true
+
+        - name: Set container already running flag
+          set_fact:
+            container_already_running: "{{ existing_container.exists | default(false) and existing_container.container.State.Running | default(false) }}"
+
+        - name: Skip container creation (already running from previous attempt)
+          debug:
+            msg: "Container {{ router_name }} already exists and is running, skipping creation (idempotent retry)"
+          when: container_already_running | bool
+
+        - name: Check if Docker is installed
+          command: docker --version
+          register: docker_check
+          ignore_errors: true
+          when: not container_already_running | bool
+
+        - name: Add Docker GPG apt Key
+          apt_key:
+            url: https://download.docker.com/linux/ubuntu/gpg
+            state: present
+          when: not container_already_running | bool and docker_check.rc != 0
+
+        - name: Add Docker Repository
+          apt_repository:
+            repo: deb https://download.docker.com/linux/ubuntu focal stable
+            state: present
+          when: not container_already_running | bool and docker_check.rc != 0
+
+        - name: Install docker-ce
+          apt:
+            pkg:
+              - docker-ce 
+              - docker-ce-cli 
+              - containerd.io
+            state: latest
+            update_cache: true
+          when: not container_already_running | bool and docker_check.rc != 0
+
+        - name: Create VyOS router container with first network only
+          docker_container:
+            name: "{{ router_name }}"
+            image: "{{ vyos_image }}"
+            hostname: "{{ router_hostname }}"
+            command: "/sbin/init"
+            network_mode: "none"
+            privileged: true
+            capabilities:
+              - NET_ADMIN
+            sysctls:
+              net.ipv4.ip_forward: 1
+              net.ipv6.conf.all.forwarding: 1
+              net.ipv6.conf.default.forwarding: 1
+            volumes:
+              - "/lib/modules:/lib/modules:ro"
+            restart_policy: unless-stopped
+            state: started
+            labels:
+              vyos.router.name: "{{ router_name }}"
+              vyos.router.hostname: "{{ router_hostname }}"
+              vyos.router.id: "{{ router_id }}"
+              vyos.source.network: "{{ source_network | default('') }}"
+          register: container_result
+          when: not container_already_running | bool
+
+        - name: Sequentially create veth pair for all non lo networks and attach to linux network bridge
+          shell: |
+            # Improved error handling with retry logic
+            veth_host="{{ router_name[:8] }}-{{ item.name }}"
+            veth_peer="{{ router_name[:8] }}-p{{ item.name }}"
+            
+            # Check if veth already exists (idempotency)
+            if ip link show $veth_host >/dev/null 2>&1; then
+              echo "Veth pair $veth_host already exists, skipping creation"
+              exit 0
+            fi
+            
+            # Retry logic for veth creation (handles transient failures)
+            MAX_RETRIES=5
+            RETRY_DELAY=1
+            
+            for attempt in $(seq 1 $MAX_RETRIES); do
+              echo "Attempt $attempt of $MAX_RETRIES to create veth pair $veth_host"
+              
+              # Create veth pair
+              if ip link add $veth_host type veth peer name $veth_peer 2>/dev/null; then
+                echo "Successfully created veth pair: $veth_host <-> $veth_peer"
+                
+                # Attach one end to the Linux bridge with retry
+                for bridge_attempt in $(seq 1 3); do
+                  if ip link set $veth_host master {{ item.linux_network }} 2>/dev/null; then
+                    echo "Successfully attached $veth_host to bridge {{ item.linux_network }}"
+                    break
+                  else
+                    echo "Bridge attachment attempt $bridge_attempt failed, retrying..."
+                    sleep 0.5
+                  fi
+                done
+                
+                # Bring up host-side veth
+                ip link set $veth_host up
+                
+                # Apply bandwidth limit to host-side veth if the network definition
+                # specifies a capacity.  This enforces the link speed at the host
+                # level (mimicking a physical interface rate) without requiring any
+                # VyOS traffic-policy configuration inside the router.
+                # The bandwidth value comes from the network definition in the
+                # VyOSInfrastructure spec (e.g. "100mbit" for PE-P links, "1gbit"
+                # for P-P links).  Management and loopback interfaces never carry
+                # this field so they are naturally excluded.
+                {% if item.bandwidth is defined and item.bandwidth != '' %}
+                BANDWIDTH="{{ item.bandwidth }}"
+                
+                # Remove any existing qdisc before re-applying
+                tc qdisc del dev $veth_host root 2>/dev/null || true
+                
+                # HTB root qdisc — all traffic falls into the default class (1:10)
+                tc qdisc add dev $veth_host root handle 1: htb default 10
+                # Root class: sets the hard ceiling for the interface
+                tc class add dev $veth_host parent 1: classid 1:1 htb rate $BANDWIDTH ceil $BANDWIDTH
+                # Default class: inherits the ceiling; SFQ leaf for fair queuing
+                tc class add dev $veth_host parent 1:1 classid 1:10 htb rate $BANDWIDTH ceil $BANDWIDTH
+                tc qdisc add dev $veth_host parent 1:10 handle 10: sfq perturb 10
+                
+                echo "Applied ${BANDWIDTH} bandwidth limit to $veth_host"
+                {% endif %}
+                
+                # Attach the other end to the VyOS container
+                pid=$(docker inspect -f '{% raw %}{{.State.Pid}}{% endraw %}' {{ router_name }})
+                if [ -n "$pid" ] && [ "$pid" != "0" ]; then
+                  ip link set $veth_peer netns $pid
+                  docker exec {{ router_name }} ip link set $veth_peer name {{ item.name }}
+                  docker exec {{ router_name }} ip link set {{ item.name }} up
+                  echo "Successfully configured veth in container namespace"
+                  exit 0
+                else
+                  echo "ERROR: Invalid container PID"
+                  # Clean up on failure
+                  ip link delete $veth_host 2>/dev/null || true
+                  exit 1
+                fi
+              else
+                echo "Veth creation attempt $attempt failed, waiting ${RETRY_DELAY}s before retry..."
+                sleep $RETRY_DELAY
+              fi
+            done
+            
+            echo "ERROR: Failed to create veth pair after $MAX_RETRIES attempts"
+            exit 1
+          loop: "{{ interfaces }}"
+          when: 
+            - item.linux_network is defined
+            - item.linux_network != ''
+            - item.name != 'lo'
+          register: veth_creation_result
+          changed_when: veth_creation_result.rc == 0
+
+        - name: Wait for VyOS container to be ready
+          shell: |
+            for i in {1..30}; do
+              if docker exec {{ router_name }} vbash --help >/dev/null 2>&1; then
+                echo "VyOS container is ready"
+                exit 0
+              fi
+              echo "Waiting for VyOS to be ready... (attempt $i/30)"
+              sleep 1
+            done
+            echo "VyOS container failed to become ready"
+            exit 1
+          register: vyos_ready_result
+          changed_when: false
+
+        - name: Wait for VyOS configuration daemon to be ready
+          shell: |
+            docker exec {{ router_name }} sh -c "
+                if pgrep -f 'vyos-configd' > /dev/null 2>&1; then
+                    exit 0
+                else
+                    exit 1
+                fi
+            "
+          register: vyos_configd_check
+          until: vyos_configd_check.rc == 0
+          retries: 30
+          delay: 1
+          changed_when: false
+
+        - name: Additional wait for VyOS configuration daemon stability
+          pause:
+            seconds: 3
+
+        - name: Fix hostname resolution at the system level for VyOS
+          shell: |
+            docker exec {{ router_name }} sh -c "
+                # Ensure the hostname is properly resolved for sudo
+                hostname=\$(hostname)
+                changed=0
+                if ! grep -q \"127.0.0.1.*\$hostname\" /etc/hosts; then
+                    echo \"127.0.0.1 \$hostname\" >> /etc/hosts
+                    changed=1
+                fi
+                # Also add it with FQDN
+                if ! grep -q \"127.0.0.1.*\$hostname.lab.local\" /etc/hosts; then
+                    echo \"127.0.0.1 \$hostname.lab.local \$hostname\" >> /etc/hosts
+                    changed=1
+                fi
+                exit \$changed
+            "
+          register: hostname_fix_result
+          changed_when: hostname_fix_result.rc == 1
+          failed_when: hostname_fix_result.rc > 1
+ 
+        - name: Get container information
+          docker_container_info:
+            name: "{{ router_name }}"
+          register: container_info
+
+        - name: Set router creation facts (new container)
+          set_fact:
+            container_id: "{{ container_result.container.Id }}"
+            management_ip: "{{ container_info.container.NetworkSettings.IPAddress | default('') }}"
+          when: not container_already_running | bool
+
+        - name: Set router creation facts (existing container)
+          set_fact:
+            container_id: "{{ existing_container.container.Id }}"
+            management_ip: "{{ container_info.container.NetworkSettings.IPAddress | default('') }}"
+          when: container_already_running | bool
+
+        - name: Display router creation result
+          debug:
+            msg: "VyOS router {{ router_name }} ready with container ID {{ container_id }} ({{ 'pre-existing' if container_already_running else 'newly created' }})"
+
+      when: operation == 'create'
+
+    # DELETE OPERATION
+    - block:
+        - name: Check if router container exists
+          docker_container_info:
+            name: "{{ router_name }}"
+          register: router_info
+          ignore_errors: true
+
+        - name: Remove veth pairs for router interfaces
+          shell: |
+            # Improved cleanup with better error handling
+            veth_host="{{ router_name[:8] }}-{{ item.name }}"
+            
+            # Remove veth pair if it exists (idempotent)
+            if ip link show $veth_host >/dev/null 2>&1; then
+              echo "Removing tc rules from $veth_host"
+              tc qdisc del dev $veth_host root 2>/dev/null || true
+              
+              echo "Removing veth pair: $veth_host"
+              if ip link delete $veth_host 2>/dev/null; then
+                echo "Successfully removed veth pair: $veth_host"
+              else
+                echo "Warning: Failed to remove veth pair $veth_host (may already be deleted)"
+              fi
+            else
+              echo "Veth pair $veth_host not found (already cleaned up)"
+            fi
+            exit 0
+          loop: "{{ interfaces | default([]) }}"
+          when: 
+            - item.linux_network is defined
+            - item.linux_network != ''
+            - item.name != 'lo'
+          ignore_errors: true
+          register: veth_cleanup_result
+
+        - name: Stop and remove VyOS router container
+          docker_container:
+            name: "{{ router_name }}"
+            state: absent
+            force_kill: true
+          register: container_delete_result
+          when: router_info.exists | default(false)
+
+        - name: Router deletion result
+          debug:
+            msg: "Router {{ router_name }} {{ 'deleted successfully' if container_delete_result.changed else 'was not found or already deleted' }}"
+
+      when: operation == 'delete'
+
+    # STATUS OPERATION
+    - block:
+        - name: Get VyOS router container information
+          docker_container_info:
+            name: "{{ router_name }}"
+          register: router_status
+          ignore_errors: true
+
+        - name: Set router status facts
+          set_fact:
+            running: "{{ router_status.exists and router_status.container.State.Running | default(false) }}"
+
+        - name: Get interface statuses
+          shell: |
+            docker exec {{ router_name }} ip -j link show 2>/dev/null | \
+              jq '[.[] | {"name": .ifname, "status": .operstate}]' 2>/dev/null || echo "[]"
+          register: ip_link_out
+          when: running | default(false)
+          ignore_errors: true
+          changed_when: false
+
+        - name: Get OSPF status
+          shell: |
+            docker exec {{ router_name }} vbash -c "show ip ospf neighbor json" 2>/dev/null || echo "{}"
+          register: ospf_out
+          when: running | default(false)
+          ignore_errors: true
+          changed_when: false
+
+        - name: Get BGP status
+          shell: |
+            docker exec {{ router_name }} vbash -c "show ip bgp summary json" 2>/dev/null || echo "{}"
+          register: bgp_out
+          when: running | default(false)
+          ignore_errors: true
+          changed_when: false
+
+        - name: Get MPLS LDP status
+          shell: |
+            docker exec {{ router_name }} vbash -c "show mpls ldp neighbor json" 2>/dev/null || echo "{}"
+          register: mpls_out
+          when: running | default(false)
+          ignore_errors: true
+          changed_when: false
+
+        - name: Set protocol status facts
+          set_fact:
+            interface_status: "{{ ip_link_out.stdout | from_json if ip_link_out.stdout is defined else [] }}"
+            ospf_status: "{{ ospf_out.stdout | from_json if ospf_out.stdout is defined else {} }}"
+            bgp_status: "{{ bgp_out.stdout | from_json if bgp_out.stdout is defined else {} }}"
+            mpls_status: "{{ mpls_out.stdout | from_json if mpls_out.stdout is defined else {} }}"
+          when: running | default(false)
+
+        - name: Return status information
+          debug:
+            msg:
+              running: "{{ running }}"
+              interface_status: "{{ interface_status | default([]) }}"
+              ospf_status: "{{ ospf_status | default({}) }}"
+              bgp_status: "{{ bgp_status | default({}) }}"
+              mpls_status: "{{ mpls_status | default({}) }}"
+          register: status_output
+
+      when: operation == 'status'
+
+    # ERROR HANDLING
+    - name: Handle unsupported operation
+      fail:
+        msg: "Unsupported operation: {{ operation }}. Supported operations are: create, delete, status"
+      when: operation not in ['create', 'delete', 'status']
+
+  handlers:
+    - name: restart docker
+      systemd:
+        name: docker
+        state: restarted

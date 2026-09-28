@@ -1,0 +1,91 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: networkoperator-rolebinding-cluster
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: networkoperator-account
+    namespace: "automation"
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: networkoperator-account
+  namespace: ${GOOGLE_NAMESPACE}
+  annotations:
+    iam.gke.io/gcp-service-account: networkagent@${GOOGLE_PROJECT}.iam.gserviceaccount.com
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${NETWORK_OPERATOR}
+  namespace: ${GOOGLE_NAMESPACE}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      application: ${NETWORK_OPERATOR}
+  template:
+    metadata:
+      labels:
+        application: ${NETWORK_OPERATOR}
+    spec:
+      serviceAccountName: networkoperator-account
+      containers:
+      - name: ${NETWORK_OPERATOR}
+        image: ${GOOGLE_REGION}-docker.pkg.dev/${GOOGLE_PROJECT}/${GOOGLE_REPO}/networkoperator:latest
+        imagePullPolicy: Always
+        env:
+        - name: BASEDIR
+          value: "/controller"
+        - name: GOOGLE_ORG_NAME
+          value: "${GOOGLE_ORG_NAME}"
+        - name: GOOGLE_PROJECT
+          value: ${GOOGLE_PROJECT}
+        - name: GOOGLE_PROJECT_NUMBER
+          value: "${GOOGLE_PROJECT_NUMBER}"
+        - name: GOOGLE_REGION
+          value: ${GOOGLE_REGION}
+        - name: GOOGLE_ZONE
+          value: ${GOOGLE_ZONE}
+        - name: GOOGLE_VM_USER
+          value: ${GOOGLE_VM_USER}
+        - name: GOOGLE_CLOUD_DISABLE_METRICS_EXPORT
+          value: "true"
+        - name: WEBAPPS_LOGIN
+          value: ${WEBAPPS_LOGIN}
+        - name: WEBAPPS_PWD
+          value: "${WEBAPPS_PWD}"
+        # Set explicitly rather than left to utils/git.py's discovery fallback.
+        # The controller is the busiest GitOps writer in the system, and every
+        # commit would otherwise cost a Compute API round trip to look up the
+        # address that this value already encodes.
+        - name: GITEA_URL
+          value: "${GITEA_URL}"
+        - name: FREE5GC
+          value: "yes"
+        - name: VPN
+          value: "yes"
+        - name: GRAPH
+          value: "yes"
+        - name: GOOGLE_SPANNER_TRANSPORT_DATABASE
+          value: "${GOOGLE_SPANNER_TRANSPORT_DATABASE}"
+        - name: GOOGLE_SPANNER_INFRA_DATABASE
+          value: "${GOOGLE_SPANNER_INFRA_DATABASE}"
+        - name: GOOGLE_SPANNER_CORE_DATABASE
+          value: "${GOOGLE_SPANNER_CORE_DATABASE}"
+        - name: GOOGLE_SPANNER_RADIO_DATABASE
+          value: "${GOOGLE_SPANNER_RADIO_DATABASE}"
+        - name: GOOGLE_SPANNER_SERVICE_DATABASE
+          value: "${GOOGLE_SPANNER_SERVICE_DATABASE}"
+        - name: GOOGLE_SPANNER_OPS_DATABASE
+          value: "${GOOGLE_SPANNER_OPS_DATABASE}"

@@ -1,0 +1,299 @@
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-cell1a
+  namespace: network
+spec:
+  container_name: "cell1a"
+  gnb:
+    mcc: "208"
+    mnc: "93"
+    tac: 1
+    gnbId: "0x1"
+    amf_name: "free5gc-core-amf"
+    upf_name: "free5gc-core-upf"
+    smf_name: "free5gc-core-smf"
+    slices:
+      - sst: 1
+        sd: "010203"
+  ues:
+    - imsi: "208930000000001"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000002"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000003"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000004"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000005"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-cell1b
+  namespace: network
+spec:
+  container_name: "cell1b"
+  gnb:
+    mcc: "208"
+    mnc: "93"
+    tac: 1
+    gnbId: "0x2"
+    amf_name: "free5gc-core-amf"
+    upf_name: "free5gc-core-upf"
+    smf_name: "free5gc-core-smf"
+    slices:
+      - sst: 1
+        sd: "010203"
+  ues:
+    - imsi: "208930000000006"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000007"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000008"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000009"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000010"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-cell2a
+  namespace: network
+spec:
+  container_name: "cell2a"
+  gnb:
+    mcc: "208"
+    mnc: "93"
+    tac: 1
+    gnbId: "0x3"
+    amf_name: "free5gc-core-amf"
+    upf_name: "free5gc-core-upf"
+    smf_name: "free5gc-core-smf"
+    slices:
+      - sst: 1
+        sd: "010203"
+  ues:
+    - imsi: "208930000000011"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000012"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000013"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000014"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000015"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-cell2b
+  namespace: network
+spec:
+  container_name: "cell2b"
+  gnb:
+    mcc: "208"
+    mnc: "93"
+    tac: 1
+    gnbId: "0x4"
+    amf_name: "free5gc-core-amf"
+    upf_name: "free5gc-core-upf"
+    smf_name: "free5gc-core-smf"
+    slices:
+      - sst: 1
+        sd: "010203"
+  ues:
+    - imsi: "208930000000016"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000017"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000018"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000019"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000020"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-cell3a
+  namespace: network
+spec:
+  container_name: "cell3a"
+  gnb:
+    mcc: "208"
+    mnc: "93"
+    tac: 1
+    gnbId: "0x5"
+    amf_name: "free5gc-core-amf"
+    upf_name: "free5gc-core-upf"
+    smf_name: "free5gc-core-smf"
+    slices:
+      - sst: 1
+        sd: "010203"
+  ues:
+    - imsi: "208930000000021"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000022"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000023"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000024"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000025"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+---
+apiVersion: google.dev/v1
+kind: CellSite
+metadata:
+  name: cellsite-cell3b
+  namespace: network
+spec:
+  container_name: "cell3b"
+  gnb:
+    mcc: "208"
+    mnc: "93"
+    tac: 1
+    gnbId: "0x6"
+    amf_name: "free5gc-core-amf"
+    upf_name: "free5gc-core-upf"
+    smf_name: "free5gc-core-smf"
+    slices:
+      - sst: 1
+        sd: "010203"
+  ues:
+    - imsi: "208930000000026"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000027"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000028"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000029"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"
+    - imsi: "208930000000030"
+      key: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+      opc: "E8ED289DEBA952E4283B54E88E6183CA"
+      apn: "internet"
+      sst: 1
+      sd: "010203"

@@ -1,0 +1,149 @@
+# Copyright 2024-2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+---
+# Build VyOS Docker image from latest daily build
+# Based on instructions from docs/vyos.md
+
+- name: Check if VyOS Docker image already exists
+  docker_image_info:
+    name: "{{ vyos_image_name | default('vyos:1.5') }}"
+  register: vyos_image_check
+  failed_when: false
+
+- name: Display existing image status
+  debug:
+    msg: "VyOS image exists: {{ vyos_image_check.images | length > 0 }}"
+
+- name: Build VyOS image from daily build
+  block:
+    - name: Create working directory for VyOS build
+      file:
+        path: "{{ vyos_build_dir | default('/tmp/vyos-build') }}"
+        state: directory
+        mode: '0755'
+
+    - name: Get latest VyOS daily build release info
+      uri:
+        url: "{{ vyos_github_api_url }}"
+        method: GET
+        return_content: yes
+      register: latest_release_info
+      retries: 3
+      delay: 10
+      until: latest_release_info is success
+
+    - name: Extract latest ISO download URL from assets
+      set_fact:
+        vyos_iso_url: "{{ item.browser_download_url }}"
+      with_items: "{{ latest_release_info.json.assets }}"
+      when: item.name is match('.*amd64\\.iso$')
+      loop_control:
+        loop_var: item
+
+    - name: Verify ISO URL was found
+      fail:
+        msg: "Could not find amd64 ISO in latest release assets"
+      when: vyos_iso_url is not defined
+
+    - name: Display ISO URL and release info
+      debug:
+        msg: |
+          Downloading VyOS ISO: {{ vyos_iso_url }}
+          Release: {{ latest_release_info.json.tag_name }}
+          Published: {{ latest_release_info.json.published_at }}
+
+    - name: Download latest VyOS daily build ISO
+      get_url:
+        url: "{{ vyos_iso_url }}"
+        dest: "{{ vyos_build_dir }}/vyos-latest.iso"
+        mode: '0644'
+        timeout: 1800  # 30 minutes timeout for large download
+      register: iso_download
+      retries: 3
+      delay: 30
+      until: iso_download is success
+
+    - name: Create VyOS Docker build directory
+      file:
+        path: "{{ vyos_build_dir }}/vyos-docker"
+        state: directory
+        mode: '0755'
+
+    - name: Create rootfs mount directory
+      file:
+        path: "{{ vyos_build_dir }}/vyos-docker/rootfs"
+        state: directory
+        mode: '0755'
+
+    - name: Create unsquashfs directory
+      file:
+        path: "{{ vyos_build_dir }}/vyos-docker/unsquashfs"
+        state: directory
+        mode: '0755'
+
+    - name: Install required packages for image extraction
+      package:
+        name:
+          - squashfs-tools
+        state: present
+      become: yes
+
+    - name: Mount VyOS ISO
+      mount:
+        path: "{{ vyos_build_dir }}/vyos-docker/rootfs"
+        src: "{{ vyos_build_dir }}/vyos-latest.iso"
+        fstype: iso9660
+        opts: loop,ro
+        state: mounted
+      become: yes
+
+    - name: Extract filesystem from squashfs
+      shell: |
+        unsquashfs -f -d "{{ vyos_build_dir }}/vyos-docker/unsquashfs/" \
+          "{{ vyos_build_dir }}/vyos-docker/rootfs/live/filesystem.squashfs"
+      become: yes
+
+    - name: Create Docker image from extracted filesystem
+      shell: |
+        tar -C "{{ vyos_build_dir }}/vyos-docker/unsquashfs" -c . | \
+        docker import - "{{ vyos_image_name | default('vyos:1.5') }}"
+      become: yes
+
+    - name: Unmount VyOS ISO
+      mount:
+        path: "{{ vyos_build_dir }}/vyos-docker/rootfs"
+        state: unmounted
+      become: yes
+
+    - name: Clean up build directory
+      file:
+        path: "{{ vyos_build_dir }}"
+        state: absent
+      when: vyos_cleanup_build_dir | default(true)
+
+    - name: Verify VyOS Docker image was created
+      docker_image_info:
+        name: "{{ vyos_image_name | default('vyos:1.5') }}"
+      register: final_image_check
+
+    - name: Display build success
+      debug:
+        msg: "VyOS Docker image '{{ vyos_image_name | default('vyos:1.5') }}' built successfully!"
+      when: final_image_check.images | length > 0
+  when: vyos_image_check.images | length == 0 or vyos_force_rebuild | default(false)
+
+- name: VyOS image already exists
+  debug:
+    msg: "VyOS Docker image '{{ vyos_image_name | default('vyos:1.5') }}' already exists. Use vyos_force_rebuild=true to rebuild."
+  when: vyos_image_check.images | length > 0 and not (vyos_force_rebuild | default(false))

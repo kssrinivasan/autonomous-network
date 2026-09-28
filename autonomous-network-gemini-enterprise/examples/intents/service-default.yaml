@@ -1,0 +1,160 @@
+---
+# Service Domain Intent - End-to-End Network Slice
+# TMF921 Intent for multi-domain network slice orchestration (HIGHEST ABSTRACTION)
+# API Endpoint: POST http://<service-api-host>:8080/intent
+#
+# WHAT you specify (business outcomes):
+#   - Coverage area and zones
+#   - Subscriber capacity and throughput
+#   - Service level requirements (speed, latency, availability)
+#   - Backhaul requirements
+#
+# HOW the orchestrator implements (multi-domain decomposition):
+#   - Generates Transport intent (L3VPN backhaul)
+#   - Generates Core intent (5G network functions and subscribers)
+#   - Generates Radio intents (cell sites per coverage zone)
+#   - Orchestrates sequentially: Transport → Core → Radio
+#   - Aggregates state across all domain intents
+
+"@type": "Intent"
+name: "uk-default-embb-slice"
+description: "UK-wide eMBB network slice for enhanced mobile broadband services"
+priority: 50
+intentExpression:
+  "@type": "IntentExpression"
+  expectation:
+    - "@type": "NetworkSliceIntent"
+      expectationVerb: "DELIVER"
+      expectationObject:
+        "@type": "NetworkSliceService"
+        sliceName: "UK Default eMBB Network Slice"
+        operator: "TelecomCo UK"
+        serviceType: "eMBB"
+
+        coverageArea:
+          region: "United Kingdom"
+          zones:
+            - name: "South East England"
+              priority: "high"
+              locations:
+                - "Oxford"
+                - "Cambridge"
+                - "Brighton"
+            - name: "London Region"
+              priority: "high"
+            - name: "Midlands"
+              priority: "medium"
+          totalArea: "50000 sq km"
+
+        capacity:
+          totalSubscribers: 50000
+          peakConcurrentUsers: 5000
+          aggregateThroughput: "10 Gbps"
+          subscribersPerZone:
+            - zone: "South East England"
+              count: 20000
+            - zone: "London Region"
+              count: 20000
+            - zone: "Midlands"
+              count: 10000
+
+        sla:
+          downloadSpeed: "100 Mbps typical, 1 Gbps peak"
+          uploadSpeed: "50 Mbps typical, 200 Mbps peak"
+          latency: "< 20ms"
+          availability: "99.99%"
+          jitter: "< 5ms"
+          packetLoss: "< 0.1%"
+
+        backhaul:
+          bandwidth: "10 Gbps aggregate"
+          latency: "< 5ms"
+          redundancy: "dual-path"
+          topology: "any-to-any mesh"
+
+# ============================================================================
+# SERVICE ORCHESTRATOR DECOMPOSITION LOGIC:
+# ============================================================================
+#
+# The Service orchestrator translates this business-level intent into
+# domain-specific intents, demonstrating the abstraction hierarchy:
+#
+#   Business Intent (this file)
+#        ↓ DECOMPOSES INTO
+#   Domain Intents (Transport, Core, Radio)
+#        ↓ TRANSLATES TO
+#   Kubernetes CRs (VyOSL3VPN, FiveGCore, CellSite)
+#        ↓ PROVISIONS
+#   Network Infrastructure (routers, NFs, gNodeBs)
+#
+# Decomposition Steps:
+#
+# 1. TRANSPORT DOMAIN INTENT
+#    Derived from: coverageArea, backhaul requirements
+#    - Creates L3VPN backhaul network (RED_MESH any-to-any topology)
+#    - PE routers: pe1 (Oxford), pe2 (Cambridge), pe3 (Brighton), pe4 (Cardiff)
+#    - Bandwidth: Calculated from aggregateThroughput + overhead
+#    - SLA: Maps backhaul.latency → transport QoS
+#    - Output: transport-default.yaml equivalent
+#
+# 2. CORE DOMAIN INTENT
+#    Derived from: serviceType, capacity, sla
+#    - Creates 5G core network (free5gc-core)
+#    - PLMN: Auto-allocated (MCC=208, MNC=93 for UK test network)
+#    - Network slices: Maps serviceType=eMBB → SST=1, SD=010203, DNN=internet
+#    - Subscribers: Provisions capacity.totalSubscribers (50,000)
+#    - Initial subscribers: 5 (can be expanded)
+#    - Network functions: NRF, AMF (TAC=1), SMF, UPF, UDR, UDM, AUSF, PCF, WebUI
+#    - IP pool: 10.60.0.0/16 (calculated from peakConcurrentUsers)
+#    - Output: core-default.yaml equivalent
+#
+# 3. RADIO DOMAIN INTENTS
+#    Derived from: coverageArea.zones, capacity.subscribersPerZone
+#    - Calculates cell site count per zone:
+#      * South East England: 3 cell sites (Oxford, Cambridge, Brighton)
+#      * Each cell site: ~1-2 UEs (for demo; production would be 100s-1000s)
+#    - gNodeB configuration:
+#      * PLMN: MCC=208, MNC=93 (matches Core)
+#      * TAC: 1 (matches Core AMF)
+#      * Slices: SST=1, SD=010203 (matches Core)
+#      * Core reference: coreName="free5gc-core"
+#    - UE distribution: Allocates IMSIs from Core subscriber pool
+#    - Output: radio-default.yaml equivalent (3 cell site intents)
+#
+# 4. ORCHESTRATION SEQUENCE
+#    Service API executes:
+#      a. POST to Transport API → Wait for "Completed" state
+#      b. POST to Core API → Wait for "Completed" state
+#      c. POST to Radio API (3x, one per cell site) → Wait for all "Completed"
+#      d. Monitor aggregate state → Return "Completed" when all domains ready
+#
+# 5. STATE AGGREGATION
+#    Service intent state derived from domain intents:
+#    - All Acknowledged → Service state: Acknowledged
+#    - Any InProgress → Service state: InProgress
+#    - All Completed → Service state: Completed
+#    - Any Rejected → Service state: Rejected
+
+# Expected Domain Intents Generated:
+#
+# Transport Intent:
+#   - serviceId: RED_MESH
+#   - topology: any-to-any
+#   - endpoints: 4 PE routers (pe1, pe2, pe3, pe4)
+#   - bandwidth: 10 Gbps
+#
+# Core Intent:
+#   - coreId: free5gc-core
+#   - plmn: {mcc: "208", mnc: "93"}
+#   - slices: [{sst: 1, sd: "010203", dnn: "internet"}]
+#   - subscribers: 5 initial (IMSI: 208930000000001-005)
+#   - networkFunctions: 9 NFs (NRF, AMF, SMF, UPF, UDR, UDM, AUSF, PCF, WebUI)
+#
+# Radio Intents (3x):
+#   - cellsite-cell1a: gnbId=0x1, 2 UEs (IMSI 001, 002)
+#   - cellsite-cell2a: gnbId=0x2, 1 UE (IMSI 003)
+#   - cellsite-cell3a: gnbId=0x3, 2 UEs (IMSI 004, 005)
+#
+# Cross-Domain Dependencies:
+#   Radio → Core: coreName="free5gc-core" resolves to NetworkFunction CRs
+#   All → Infrastructure: Device CRs must exist from VyOSInfrastructure

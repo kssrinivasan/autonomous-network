@@ -1,0 +1,50 @@
+# Copyright 2024-2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Lightweight playbook to re-render the Ops Agent config and restart
+# the agent whenever the VyOSInfrastructure router inventory changes.
+#
+# Expected extra vars:
+#   routers  - list of {name, ip_address} dicts, one per VyOS router in the
+#              management network (may be empty on topology teardown)
+#   devices  - list of {name, mgmt_ip} dicts, one per device running
+#              traffic-agent (may be empty if no devices are defined)
+#   nfs      - list of {name, ip_address, metrics_port, nf_type} dicts for
+#              free5gc NetworkFunctions with spec.metrics.enabled=true
+---
+- name: Update Ops Agent scrape config
+  hosts: all
+  become: true
+  gather_facts: no
+
+  vars:
+    routers: "{{ routers | default([]) }}"
+    devices: "{{ devices | default([]) }}"
+    nfs: "{{ nfs | default([]) }}"
+
+  handlers:
+    - name: Restart Ops Agent
+      ansible.builtin.systemd:
+        name: google-cloud-ops-agent
+        state: restarted
+
+  tasks:
+    - name: Render Ops Agent config from router inventory
+      ansible.builtin.template:
+        src: templates/ops-agent-config.yaml.j2
+        dest: /etc/google-cloud-ops-agent/config.yaml
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart Ops Agent
